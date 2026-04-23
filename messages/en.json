@@ -1,0 +1,38 @@
+{
+  "App": {
+    "title": "CRM",
+    "tagline": "Clients, jobs, and documents in one place."
+  },
+  "Auth": {
+    "login": "Log in",
+    "register": "Register owner",
+    "logout": "Log out",
+    "email": "Email",
+    "password": "Password",
+    "name": "Name",
+    "submitLogin": "Log in",
+    "submitRegister": "Create owner account",
+    "loginError": "Invalid email or password.",
+    "registerClosed": "Registration is closed. Ask the owner for an invite.",
+    "passwordTooShort": "Password must be at least 10 characters.",
+    "forgotPassword": "Forgot password?"
+  },
+  "Onboarding": {
+    "welcome": "Welcome to the CRM",
+    "intro": "Let's finish the basic setup — it only takes a few minutes.",
+    "skip": "Skip and finish later",
+    "step": "Step {current} of {total}",
+    "companyProfile": "Company profile",
+    "taxRates": "VAT rates",
+    "itemCategories": "Item categories",
+    "signature": "Signature",
+    "language": "Language",
+    "next": "Continue",
+    "back": "Back",
+    "finish": "Finish"
+  },
+  "Dashboard": {
+    "title": "Dashboard",
+    "empty": "A summary will appear here once you've added your first clients and jobs."
+  }
+}

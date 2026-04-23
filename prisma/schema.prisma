@@ -1,0 +1,93 @@
+// CRM + Invoicing — schema for Milestone 1 (auth + onboarding scaffolding).
+// Only the models touched in M1 live here. Future milestones will extend this file.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  OWNER
+  USER
+}
+
+enum UserLocale {
+  cs
+  en
+}
+
+model User {
+  id                 String     @id @default(cuid())
+  email              String     @unique
+  passwordHash       String
+  name               String
+  role               UserRole   @default(USER)
+  locale             UserLocale @default(cs)
+  calendarColor      String     @default("#2563eb")
+  signatureImagePath String?
+  deactivatedAt      DateTime?
+  onboardingDoneAt   DateTime?
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+
+  invitesCreated     Invite[]   @relation("InviteCreator")
+  passwordResets     PasswordResetToken[]
+}
+
+model Invite {
+  id          String    @id @default(cuid())
+  email       String
+  tokenHash   String    @unique
+  createdById String
+  createdBy   User      @relation("InviteCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  expiresAt   DateTime
+  acceptedAt  DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([email])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+}
+
+// One or more company profiles (branding/legal identity) per PRD §9.1.
+// Minimal at M1 (set up in onboarding); extended at M2.
+model CompanyProfile {
+  id            String   @id @default(cuid())
+  name          String
+  ico           String?
+  dic           String?
+  addressStreet String?
+  addressCity   String?
+  addressZip    String?
+  addressCountry String  @default("CZ")
+  iban          String?
+  swift         String?
+  accountNumber String?
+  logoPath      String?
+  isDefault     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// Rate-limit login attempts by IP (PRD §23 brute-force protection).
+model LoginAttempt {
+  id        String   @id @default(cuid())
+  ipHash    String
+  email     String?
+  success   Boolean
+  createdAt DateTime @default(now())
+
+  @@index([ipHash, createdAt])
+}

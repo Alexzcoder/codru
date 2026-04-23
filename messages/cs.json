@@ -1,0 +1,38 @@
+{
+  "App": {
+    "title": "CRM",
+    "tagline": "Klienti, zakázky a doklady na jednom místě."
+  },
+  "Auth": {
+    "login": "Přihlášení",
+    "register": "Registrace vlastníka",
+    "logout": "Odhlásit se",
+    "email": "E-mail",
+    "password": "Heslo",
+    "name": "Jméno",
+    "submitLogin": "Přihlásit se",
+    "submitRegister": "Vytvořit účet vlastníka",
+    "loginError": "Neplatný e-mail nebo heslo.",
+    "registerClosed": "Registrace je uzavřená. Nechte si poslat pozvánku od vlastníka.",
+    "passwordTooShort": "Heslo musí mít alespoň 10 znaků.",
+    "forgotPassword": "Zapomenuté heslo?"
+  },
+  "Onboarding": {
+    "welcome": "Vítejte v CRM",
+    "intro": "Dokončeme základní nastavení — zabere to pár minut.",
+    "skip": "Přeskočit a dokončit později",
+    "step": "Krok {current} z {total}",
+    "companyProfile": "Firemní údaje",
+    "taxRates": "Sazby DPH",
+    "itemCategories": "Kategorie položek",
+    "signature": "Podpis",
+    "language": "Jazyk",
+    "next": "Pokračovat",
+    "back": "Zpět",
+    "finish": "Dokončit"
+  },
+  "Dashboard": {
+    "title": "Přehled",
+    "empty": "Zde se objeví souhrn, jakmile přidáte první klienty a zakázky."
+  }
+}
