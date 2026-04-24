@@ -5,6 +5,8 @@ import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { clientDisplayName } from "@/lib/client-display";
 import { calculateDocument } from "@/lib/line-items";
+import { PageHeader } from "@/components/page-header";
+import { Plus } from "lucide-react";
 import type { DocumentStatus } from "@prisma/client";
 
 const PAGE_SIZE = 50;
@@ -56,15 +58,20 @@ export default async function QuotesPage({
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-8">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight">{t("Quotes.title")}</h1>
-        <Link href="/quotes/new">
-          <Button size="sm">{t("Quotes.newQuote")}</Button>
-        </Link>
-      </div>
+    <div className="mx-auto max-w-6xl px-8 py-8">
+      <PageHeader
+        title={t("Quotes.title")}
+        description={`${total} ${total === 1 ? "quote" : "quotes"}`}
+        actions={
+          <Link href="/quotes/new">
+            <Button size="sm" className="gap-1.5">
+              <Plus size={14} /> {t("Quotes.newQuote")}
+            </Button>
+          </Link>
+        }
+      />
 
-      <div className="mt-6 flex flex-wrap gap-2 text-sm">
+      <div className="mb-6 flex flex-wrap gap-2 text-sm">
         {(["ALL", ...allowed] as const).map((s) => {
           const active = (s === "ALL" && !statusFilter) || s === statusFilter;
           return (
@@ -93,17 +100,17 @@ export default async function QuotesPage({
       ) : (
         <div className="mt-6 overflow-hidden rounded-md border border-neutral-200 bg-white">
           <table className="w-full text-sm">
-            <thead className="bg-neutral-50 text-xs uppercase tracking-wider text-neutral-500">
+            <thead className="border-b border-border bg-secondary/40 text-xs uppercase tracking-wider text-muted-foreground">
               <tr>
-                <th className="px-4 py-2 text-left">{t("Quotes.fields.number")}</th>
-                <th className="px-4 py-2 text-left">{t("Quotes.fields.client")}</th>
-                <th className="px-4 py-2 text-left">{t("Quotes.fields.issueDate")}</th>
-                <th className="px-4 py-2 text-left">{t("Quotes.fields.validUntil")}</th>
-                <th className="px-4 py-2 text-right">{t("Quotes.totals.totalGross")}</th>
-                <th className="px-4 py-2 text-left">Status</th>
+                <th className="px-4 py-3 text-left">{t("Quotes.fields.number")}</th>
+                <th className="px-4 py-3 text-left">{t("Quotes.fields.client")}</th>
+                <th className="px-4 py-3 text-left">{t("Quotes.fields.issueDate")}</th>
+                <th className="px-4 py-3 text-left">{t("Quotes.fields.validUntil")}</th>
+                <th className="px-4 py-3 text-right">{t("Quotes.totals.totalGross")}</th>
+                <th className="px-4 py-3 text-left">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-neutral-200">
+            <tbody className="divide-y divide-border">
               {quotes.map((q) => {
                 const totals = calculateDocument({
                   lines: q.lineItems.map((l) => ({
@@ -119,8 +126,8 @@ export default async function QuotesPage({
                   reverseCharge: q.reverseCharge,
                 });
                 return (
-                  <tr key={q.id} className="hover:bg-neutral-50">
-                    <td className="px-4 py-2 font-medium">
+                  <tr key={q.id} className="hover:bg-secondary/40">
+                    <td className="px-4 py-3 font-medium">
                       <Link href={`/quotes/${q.id}`} className="hover:underline">
                         {q.number ?? (
                           <span className="italic text-neutral-400">
@@ -129,19 +136,19 @@ export default async function QuotesPage({
                         )}
                       </Link>
                     </td>
-                    <td className="px-4 py-2 text-neutral-600">
+                    <td className="px-4 py-3 text-muted-foreground">
                       {clientDisplayName(q.client)}
                     </td>
-                    <td className="px-4 py-2 text-neutral-600">
+                    <td className="px-4 py-3 text-muted-foreground">
                       {q.issueDate.toISOString().slice(0, 10)}
                     </td>
-                    <td className="px-4 py-2 text-neutral-600">
+                    <td className="px-4 py-3 text-muted-foreground">
                       {q.validUntilDate?.toISOString().slice(0, 10) ?? "—"}
                     </td>
-                    <td className="px-4 py-2 text-right tabular-nums">
+                    <td className="px-4 py-3 text-right tabular-nums">
                       {totals.totalGross} {q.currency}
                     </td>
-                    <td className="px-4 py-2">
+                    <td className="px-4 py-3">
                       <span
                         className={`rounded-full px-2 py-0.5 text-xs ${STATUS_STYLE[q.status] ?? "bg-neutral-100"}`}
                       >
@@ -158,7 +165,7 @@ export default async function QuotesPage({
 
       {totalPages > 1 && (
         <div className="mt-4 flex items-center justify-between text-sm">
-          <p className="text-neutral-500">
+          <p className="text-muted-foreground">
             {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, total)} of {total}
           </p>
           <div className="flex gap-2">

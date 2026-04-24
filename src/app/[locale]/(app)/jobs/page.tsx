@@ -7,6 +7,8 @@ import { clientDisplayName } from "@/lib/client-display";
 import { JobListFilters } from "./list-filters";
 import { BulkActions } from "./bulk-actions";
 import { createDemoJob } from "./actions";
+import { PageHeader } from "@/components/page-header";
+import { Plus, Sparkles } from "lucide-react";
 import type { JobStatus } from "@prisma/client";
 
 const PAGE_SIZE = 50;
@@ -86,22 +88,27 @@ export default async function JobsPage({
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-8">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight">{t("Jobs.title")}</h1>
-        <div className="flex gap-2">
-          <form action={createDemoJob}>
-            <Button type="submit" variant="ghost" size="sm">
-              + Demo job
-            </Button>
-          </form>
-          <Link href="/jobs/new">
-            <Button size="sm">{t("Jobs.newJob")}</Button>
-          </Link>
-        </div>
-      </div>
+    <div className="mx-auto max-w-6xl px-8 py-8">
+      <PageHeader
+        title={t("Jobs.title")}
+        description={`${total} ${total === 1 ? "job" : "jobs"}`}
+        actions={
+          <>
+            <form action={createDemoJob}>
+              <Button type="submit" variant="ghost" size="sm" className="gap-1.5">
+                <Sparkles size={14} /> Demo
+              </Button>
+            </form>
+            <Link href="/jobs/new">
+              <Button size="sm" className="gap-1.5">
+                <Plus size={14} /> {t("Jobs.newJob")}
+              </Button>
+            </Link>
+          </>
+        }
+      />
 
-      <div className="mt-6">
+      <div className="mt-0 mb-6">
         <JobListFilters
           initial={{
             q,
@@ -120,8 +127,8 @@ export default async function JobsPage({
       </div>
 
       {jobs.length === 0 ? (
-        <div className="mt-12 rounded-md border border-dashed border-neutral-300 bg-white p-12 text-center">
-          <p className="text-sm text-neutral-600">{t("Jobs.empty")}</p>
+        <div className="rounded-xl border border-dashed border-border bg-card p-12 text-center shadow-sm">
+          <p className="text-sm text-muted-foreground">{t("Jobs.empty")}</p>
           <Link href="/jobs/new" className="mt-4 inline-block">
             <Button size="sm">{t("Jobs.emptyCTA")}</Button>
           </Link>
@@ -141,7 +148,7 @@ export default async function JobsPage({
 
       {totalPages > 1 && (
         <div className="mt-4 flex items-center justify-between text-sm">
-          <p className="text-neutral-500">
+          <p className="text-muted-foreground">
             {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, total)} of {total}
           </p>
           <div className="flex gap-2">

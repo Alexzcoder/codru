@@ -6,6 +6,8 @@ import { logout } from "./actions";
 import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/prisma";
 import { scanImplicitTriggers } from "@/lib/notifications";
+import { Sidebar } from "./sidebar";
+import { Bell, LogOut } from "lucide-react";
 
 const DEV_BYPASS = process.env.DEV_BYPASS === "true";
 
@@ -35,10 +37,8 @@ export default async function AppLayout({
     userId = session.user.id ?? null;
   }
 
-  // Fan out time-driven notifications (throttled). Non-blocking for the UI.
   scanImplicitTriggers().catch(() => {});
 
-  // Badge count for the bell.
   const unreadCount = userId
     ? await prisma.notification.count({
         where: { userId, readAt: null },
@@ -48,75 +48,44 @@ export default async function AppLayout({
   const t = await getTranslations();
 
   return (
-    <div className="flex-1 flex flex-col">
-      <header className="border-b border-neutral-200 bg-white">
-        <div className="mx-auto max-w-6xl px-6 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <Link href="/dashboard" className="text-sm font-semibold">
-              {t("App.title")}
-            </Link>
-            <Link href="/clients" className="text-sm text-neutral-600 hover:text-neutral-900">
-              {t("Clients.title")}
-            </Link>
-            <Link href="/jobs" className="text-sm text-neutral-600 hover:text-neutral-900">
-              {t("Jobs.title")}
-            </Link>
-            <Link href="/calendar" className="text-sm text-neutral-600 hover:text-neutral-900">
-              {t("Calendar.title")}
-            </Link>
-            <Link href="/quotes" className="text-sm text-neutral-600 hover:text-neutral-900">
-              {t("Quotes.title")}
-            </Link>
-            <Link href="/advance-invoices" className="text-sm text-neutral-600 hover:text-neutral-900">
-              {t("AdvanceInvoices.title")}
-            </Link>
-            <Link href="/final-invoices" className="text-sm text-neutral-600 hover:text-neutral-900">
-              {t("FinalInvoices.title")}
-            </Link>
-            <Link href="/credit-notes" className="text-sm text-neutral-600 hover:text-neutral-900">
-              {t("CreditNotes.title")}
-            </Link>
-            <Link href="/payments" className="text-sm text-neutral-600 hover:text-neutral-900">
-              {t("Payments.title")}
-            </Link>
-            <Link href="/expenses" className="text-sm text-neutral-600 hover:text-neutral-900">
-              {t("Expenses.title")}
-            </Link>
-            <Link href="/accounting" className="text-sm text-neutral-600 hover:text-neutral-900">
-              {t("Accounting.title")}
-            </Link>
-            <Link href="/recurring" className="text-sm text-neutral-600 hover:text-neutral-900">
-              {t("Recurring.title")}
-            </Link>
-            <Link href="/settings/profile" className="text-sm text-neutral-600 hover:text-neutral-900">
-              {t("Settings.title")}
-            </Link>
-          </div>
-          <div className="flex items-center gap-3">
+    <div className="flex flex-1">
+      <Sidebar workspaceEmail={email} userInitial={(email[0] ?? "d")} />
+
+      <div className="flex min-w-0 flex-1 flex-col">
+        <header className="sticky top-0 z-10 border-b border-border bg-background/90 backdrop-blur">
+          <div className="flex items-center justify-end gap-3 px-6 py-3">
             <Link
               href="/notifications"
-              className="relative inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900"
+              className="relative inline-flex items-center gap-1 rounded-md p-2 text-sm text-muted-foreground hover:bg-accent hover:text-foreground"
               aria-label={t("Notifications.title")}
             >
-              <span aria-hidden>🔔</span>
+              <Bell size={18} />
               {unreadCount > 0 && (
-                <span className="inline-flex items-center justify-center rounded-full bg-red-600 px-1.5 text-[10px] font-bold leading-5 text-white">
+                <span className="absolute -right-0.5 -top-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold leading-none text-white">
                   {unreadCount > 99 ? "99+" : unreadCount}
                 </span>
               )}
             </Link>
-            <span className="text-sm text-neutral-600">{email}</span>
+            <div className="flex items-center gap-2 rounded-full bg-secondary/60 px-3 py-1.5 text-sm">
+              <span
+                className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground"
+              >
+                {(email[0] ?? "d").toUpperCase()}
+              </span>
+              <span className="text-muted-foreground">{email}</span>
+            </div>
             {!DEV_BYPASS && (
               <form action={logout}>
-                <Button type="submit" variant="ghost" size="sm">
+                <Button type="submit" variant="ghost" size="sm" className="gap-1.5">
+                  <LogOut size={14} />
                   {t("Auth.logout")}
                 </Button>
               </form>
             )}
           </div>
-        </div>
-      </header>
-      <main className="flex-1">{children}</main>
+        </header>
+        <main className="flex-1 bg-background">{children}</main>
+      </div>
     </div>
   );
 }

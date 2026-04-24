@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { clientDisplayName } from "@/lib/client-display";
 import { ClientListFilters } from "./list-filters";
 import { createDemoClient } from "./actions";
+import { PageHeader } from "@/components/page-header";
+import { Plus, Download, Sparkles } from "lucide-react";
 import type { ClientStatus } from "@prisma/client";
 
 const PAGE_SIZE = 50;
@@ -56,66 +58,71 @@ export default async function ClientsPage({
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-8">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight">{t("Clients.title")}</h1>
-        <div className="flex gap-2">
-          <form action={createDemoClient}>
-            <Button type="submit" variant="ghost" size="sm">
-              + Demo client
-            </Button>
-          </form>
-          <Link href="/clients/export" prefetch={false}>
-            <Button variant="outline" size="sm">
-              {t("Clients.exportCsv")}
-            </Button>
-          </Link>
-          <Link href="/clients/new">
-            <Button size="sm">{t("Clients.newClient")}</Button>
-          </Link>
-        </div>
-      </div>
+    <div className="mx-auto max-w-6xl px-8 py-8">
+      <PageHeader
+        title={t("Clients.title")}
+        description={`${total} ${total === 1 ? "client" : "clients"}`}
+        actions={
+          <>
+            <form action={createDemoClient}>
+              <Button type="submit" variant="ghost" size="sm" className="gap-1.5">
+                <Sparkles size={14} /> Demo
+              </Button>
+            </form>
+            <Link href="/clients/export" prefetch={false}>
+              <Button variant="outline" size="sm" className="gap-1.5">
+                <Download size={14} /> {t("Clients.exportCsv")}
+              </Button>
+            </Link>
+            <Link href="/clients/new">
+              <Button size="sm" className="gap-1.5">
+                <Plus size={14} /> {t("Clients.newClient")}
+              </Button>
+            </Link>
+          </>
+        }
+      />
 
-      <div className="mt-6">
+      <div className="mb-6">
         <ClientListFilters initialQ={q} initialStatus={statusFilter ?? "ALL"} />
       </div>
 
       {clients.length === 0 ? (
-        <div className="mt-12 rounded-md border border-dashed border-neutral-300 bg-white p-12 text-center">
-          <p className="text-sm text-neutral-600">{t("Clients.empty")}</p>
+        <div className="rounded-xl border border-dashed border-border bg-card p-12 text-center shadow-sm">
+          <p className="text-sm text-muted-foreground">{t("Clients.empty")}</p>
           <Link href="/clients/new" className="mt-4 inline-block">
             <Button size="sm">{t("Clients.emptyCTA")}</Button>
           </Link>
         </div>
       ) : (
-        <div className="mt-6 overflow-hidden rounded-md border border-neutral-200 bg-white">
+        <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
           <table className="w-full text-sm">
-            <thead className="bg-neutral-50 text-xs uppercase tracking-wider text-neutral-500">
+            <thead className="border-b border-border bg-secondary/40 text-xs uppercase tracking-wider text-muted-foreground">
               <tr>
-                <th className="px-4 py-2 text-left">{t("Clients.form.type")}</th>
-                <th className="px-4 py-2 text-left">Name</th>
-                <th className="px-4 py-2 text-left">IČO</th>
-                <th className="px-4 py-2 text-left">Email</th>
-                <th className="px-4 py-2 text-left">{t("Clients.form.status")}</th>
+                <th className="px-4 py-3 text-left">{t("Clients.form.type")}</th>
+                <th className="px-4 py-3 text-left">Name</th>
+                <th className="px-4 py-3 text-left">IČO</th>
+                <th className="px-4 py-3 text-left">Email</th>
+                <th className="px-4 py-3 text-left">{t("Clients.form.status")}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-neutral-200">
+            <tbody className="divide-y divide-border">
               {clients.map((c) => (
-                <tr key={c.id} className="hover:bg-neutral-50">
-                  <td className="px-4 py-2 text-neutral-500 text-xs">
+                <tr key={c.id} className="hover:bg-secondary/40">
+                  <td className="px-4 py-3 text-xs text-muted-foreground">
                     {t(`Clients.type.${c.type}`)}
                   </td>
-                  <td className="px-4 py-2">
+                  <td className="px-4 py-3">
                     <Link
                       href={`/clients/${c.id}`}
-                      className="font-medium text-neutral-900 hover:underline"
+                      className="font-medium text-foreground hover:underline"
                     >
                       {clientDisplayName(c)}
                     </Link>
                   </td>
-                  <td className="px-4 py-2 tabular-nums text-neutral-600">{c.ico ?? ""}</td>
-                  <td className="px-4 py-2 text-neutral-600">{c.email ?? ""}</td>
-                  <td className="px-4 py-2">
+                  <td className="px-4 py-3 tabular-nums text-muted-foreground">{c.ico ?? ""}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{c.email ?? ""}</td>
+                  <td className="px-4 py-3">
                     <StatusBadge status={c.status} label={t(`Clients.status.${c.status}`)} />
                   </td>
                 </tr>
@@ -127,7 +134,7 @@ export default async function ClientsPage({
 
       {totalPages > 1 && (
         <div className="mt-4 flex items-center justify-between text-sm">
-          <p className="text-neutral-500">
+          <p className="text-muted-foreground">
             {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, total)} of {total}
           </p>
           <div className="flex gap-2">

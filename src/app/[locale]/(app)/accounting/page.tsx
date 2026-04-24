@@ -6,6 +6,7 @@ import { calculateDocument } from "@/lib/line-items";
 import { computeOutstanding } from "@/lib/payment-status";
 import { computeJobProfitability } from "@/lib/job-profitability";
 import { clientDisplayName } from "@/lib/client-display";
+import { PageHeader } from "@/components/page-header";
 
 function monthStart(d: Date): Date {
   return new Date(d.getFullYear(), d.getMonth(), 1);
@@ -181,10 +182,13 @@ export default async function AccountingDashboardPage({
   };
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-10">
-      <h1 className="text-2xl font-semibold tracking-tight">{t("Accounting.title")}</h1>
+    <div className="mx-auto max-w-6xl px-8 py-8">
+      <PageHeader
+        title={t("Accounting.title")}
+        description="Revenue, outstanding balance, stale quotes, and job profitability in one view."
+      />
 
-      <section className="mt-8 grid gap-4 md:grid-cols-3">
+      <section className="grid gap-4 md:grid-cols-3">
         <RevCard
           title={t("Accounting.revenue.thisMonth")}
           amount={revMonth}
@@ -358,8 +362,8 @@ function Card({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-md border border-neutral-200 bg-white p-5">
-      <h2 className="text-sm font-medium text-neutral-500">{title}</h2>
+    <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+      <h2 className="text-sm font-semibold text-foreground">{title}</h2>
       <div className="mt-3">{children}</div>
     </div>
   );
@@ -375,8 +379,8 @@ function RevCard({
   delta: { text: string; positive: boolean };
 }) {
   return (
-    <div className="rounded-md border border-neutral-200 bg-white p-5">
-      <h2 className="text-xs uppercase tracking-wider text-neutral-500">{title}</h2>
+    <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+      <h2 className="text-xs uppercase tracking-wider text-muted-foreground">{title}</h2>
       <p className="mt-2 text-2xl font-semibold tabular-nums">
         {amount.toFixed(2)} CZK
       </p>
