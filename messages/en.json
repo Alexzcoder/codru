@@ -66,6 +66,36 @@
       "fromMarkup": "unit price = cost × (1 + markup%)"
     }
   },
+  "AdvanceInvoices": {
+    "title": "Advance invoices",
+    "new": "New advance invoice",
+    "empty": "No advance invoices yet.",
+    "fromQuote": "From quote",
+    "fields": {
+      "number": "Number",
+      "sourceQuote": "Source quote",
+      "amountMode": "Amount",
+      "amountPercent": "Percent of quote",
+      "amountFixed": "Fixed amount",
+      "taxPointDate": "Tax point date",
+      "dueDate": "Due date",
+      "dueInDays": "Due in (days)"
+    },
+    "status": {
+      "UNSENT": "Draft",
+      "SENT": "Unpaid",
+      "PAID": "Paid",
+      "OVERDUE": "Overdue",
+      "PAID_PENDING_COMPLETION": "Paid — awaiting job completion"
+    },
+    "actions": {
+      "markSent": "Mark as sent",
+      "markPaid": "Mark paid",
+      "delete": "Delete draft"
+    },
+    "defaultLineName": "Advance payment",
+    "ppcHint": "This advance is paid, but the linked job isn't Completed yet. It will move to Paid automatically when the job is marked Completed."
+  },
   "Quotes": {
     "title": "Quotes",
     "newQuote": "New quote",

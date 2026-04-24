@@ -137,8 +137,33 @@ export async function setJobStatus(id: string, status: string) {
     before: { status: before.status } as unknown as Record<string, unknown>,
     after: { status: after.status } as unknown as Record<string, unknown>,
   });
+
+  // PRD §11.2: when a job reaches COMPLETED, flip any linked PPC advance
+  // invoices to PAID.
+  if (after.status === "COMPLETED" && before.status !== "COMPLETED") {
+    await flipPpcAdvancesToPaid(id);
+  }
+
   revalidatePath("/jobs");
   revalidatePath(`/jobs/${id}`);
+  revalidatePath("/advance-invoices");
+}
+
+async function flipPpcAdvancesToPaid(jobId: string) {
+  const ppc = await prisma.document.findMany({
+    where: {
+      jobId,
+      type: "ADVANCE_INVOICE",
+      status: "PAID_PENDING_COMPLETION",
+      deletedAt: null,
+    },
+    select: { id: true },
+  });
+  if (ppc.length === 0) return;
+  await prisma.document.updateMany({
+    where: { id: { in: ppc.map((p) => p.id) } },
+    data: { status: "PAID", completedAt: new Date() },
+  });
 }
 
 export async function bulkSetJobStatus(ids: string[], status: string) {
@@ -158,7 +183,11 @@ export async function bulkSetJobStatus(ids: string[], status: string) {
       after: { status } as unknown as Record<string, unknown>,
     });
   }
+  if (status === "COMPLETED") {
+    for (const id of ids) await flipPpcAdvancesToPaid(id);
+  }
   revalidatePath("/jobs");
+  revalidatePath("/advance-invoices");
 }
 
 export async function deleteJob(id: string) {

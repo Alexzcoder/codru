@@ -66,6 +66,36 @@
       "fromMarkup": "jedn. cena = náklad × (1 + marže%)"
     }
   },
+  "AdvanceInvoices": {
+    "title": "Zálohové faktury",
+    "new": "Nová zálohová faktura",
+    "empty": "Zatím žádné zálohy.",
+    "fromQuote": "Z nabídky",
+    "fields": {
+      "number": "Číslo",
+      "sourceQuote": "Výchozí nabídka",
+      "amountMode": "Částka",
+      "amountPercent": "Procento z nabídky",
+      "amountFixed": "Pevná částka",
+      "taxPointDate": "DUZP",
+      "dueDate": "Splatnost",
+      "dueInDays": "Splatnost (dny)"
+    },
+    "status": {
+      "UNSENT": "Koncept",
+      "SENT": "Nezaplaceno",
+      "PAID": "Zaplaceno",
+      "OVERDUE": "Po splatnosti",
+      "PAID_PENDING_COMPLETION": "Zaplaceno — čeká na dokončení zakázky"
+    },
+    "actions": {
+      "markSent": "Označit jako odeslané",
+      "markPaid": "Označit jako zaplacené",
+      "delete": "Smazat koncept"
+    },
+    "defaultLineName": "Záloha",
+    "ppcHint": "Záloha je zaplacena, ale propojená zakázka ještě není dokončena. Přejde na „Zaplaceno“ automaticky po dokončení zakázky."
+  },
   "Quotes": {
     "title": "Nabídky",
     "newQuote": "Nová nabídka",
