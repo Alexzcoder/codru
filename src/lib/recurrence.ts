@@ -160,6 +160,16 @@ export async function fireRule(ruleId: string): Promise<void> {
         lastError: null,
       },
     });
+    const { createNotification } = await import("./notifications");
+    await createNotification({
+      trigger: "RECURRING_UPCOMING",
+      entityType: "RecurrenceRule",
+      entityId: rule.id,
+      message: `Recurring ${rule.targetKind.toLowerCase()} generated: ${rule.name}`,
+      href: `/recurring/${rule.id}`,
+      dedupKey: `RECURRING_UPCOMING:${rule.id}:${rule.nextRunAt.toISOString().slice(0, 10)}`,
+      scope: "all",
+    });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     await prisma.recurrenceRule.update({

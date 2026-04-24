@@ -54,6 +54,21 @@
     "recentContacts": "Poslední kontakty",
     "upcomingJobs": "Nadcházející zakázky (7 dní)"
   },
+  "Notifications": {
+    "title": "Oznámení",
+    "empty": "Žádná nová oznámení.",
+    "unread": "Nepřečtené",
+    "markRead": "Označit jako přečtené",
+    "markAllRead": "Označit vše jako přečtené",
+    "triggers": {
+      "INVOICE_OVERDUE": "Faktura po splatnosti",
+      "JOB_TOMORROW": "Zakázka zítra",
+      "QUOTE_EXPIRING": "Nabídka brzy vyprší",
+      "NEW_POTENTIAL_CLIENT": "Nový potenciální klient",
+      "PAYMENT_RECEIVED": "Přijatá platba",
+      "RECURRING_UPCOMING": "Opakování vygenerováno"
+    }
+  },
   "Recurring": {
     "title": "Opakované",
     "new": "Nové opakované pravidlo",

@@ -54,6 +54,21 @@
     "recentContacts": "Recent contact log",
     "upcomingJobs": "Upcoming jobs (next 7 days)"
   },
+  "Notifications": {
+    "title": "Notifications",
+    "empty": "You're all caught up.",
+    "unread": "Unread",
+    "markRead": "Mark read",
+    "markAllRead": "Mark all read",
+    "triggers": {
+      "INVOICE_OVERDUE": "Invoice overdue",
+      "JOB_TOMORROW": "Job tomorrow",
+      "QUOTE_EXPIRING": "Quote expiring",
+      "NEW_POTENTIAL_CLIENT": "New potential client",
+      "PAYMENT_RECEIVED": "Payment received",
+      "RECURRING_UPCOMING": "Recurring generated"
+    }
+  },
   "Recurring": {
     "title": "Recurring",
     "new": "New recurring rule",

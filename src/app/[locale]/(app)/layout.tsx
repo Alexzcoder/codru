@@ -5,6 +5,7 @@ import { Link } from "@/i18n/navigation";
 import { logout } from "./actions";
 import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/prisma";
+import { scanImplicitTriggers } from "@/lib/notifications";
 
 const DEV_BYPASS = process.env.DEV_BYPASS === "true";
 
@@ -19,14 +20,30 @@ export default async function AppLayout({
   setRequestLocale(locale);
 
   let email = "dev";
+  let userId: string | null = null;
   if (DEV_BYPASS) {
-    const owner = await prisma.user.findFirst({ where: { role: "OWNER" }, select: { email: true } });
+    const owner = await prisma.user.findFirst({
+      where: { role: "OWNER" },
+      select: { id: true, email: true },
+    });
     email = owner?.email ?? "dev";
+    userId = owner?.id ?? null;
   } else {
     const session = await auth();
     if (!session?.user) redirect("/login");
     email = session.user.email ?? "";
+    userId = session.user.id ?? null;
   }
+
+  // Fan out time-driven notifications (throttled). Non-blocking for the UI.
+  scanImplicitTriggers().catch(() => {});
+
+  // Badge count for the bell.
+  const unreadCount = userId
+    ? await prisma.notification.count({
+        where: { userId, readAt: null },
+      })
+    : 0;
 
   const t = await getTranslations();
 
@@ -76,6 +93,18 @@ export default async function AppLayout({
             </Link>
           </div>
           <div className="flex items-center gap-3">
+            <Link
+              href="/notifications"
+              className="relative inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900"
+              aria-label={t("Notifications.title")}
+            >
+              <span aria-hidden>🔔</span>
+              {unreadCount > 0 && (
+                <span className="inline-flex items-center justify-center rounded-full bg-red-600 px-1.5 text-[10px] font-bold leading-5 text-white">
+                  {unreadCount > 99 ? "99+" : unreadCount}
+                </span>
+              )}
+            </Link>
             <span className="text-sm text-neutral-600">{email}</span>
             {!DEV_BYPASS && (
               <form action={logout}>

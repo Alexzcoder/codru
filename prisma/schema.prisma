@@ -48,6 +48,7 @@ model User {
   paymentsLogged     Payment[]
   expensesCreated    Expense[]            @relation("ExpenseCreator")
   recurrencesCreated RecurrenceRule[]     @relation("RecurrenceCreator")
+  notifications      Notification[]
 }
 
 model Invite {
@@ -808,6 +809,41 @@ model RecurrenceRule {
 
   @@index([nextRunAt, pausedAt])
   @@index([targetKind])
+}
+
+// ──────────────────────────────────────────────────────────
+// M15 — Notifications (PRD §18)
+// ──────────────────────────────────────────────────────────
+
+enum NotificationTrigger {
+  INVOICE_OVERDUE
+  JOB_TOMORROW
+  QUOTE_EXPIRING
+  NEW_POTENTIAL_CLIENT
+  PAYMENT_RECEIVED
+  RECURRING_UPCOMING
+}
+
+model Notification {
+  id         String              @id @default(cuid())
+  userId     String
+  user       User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trigger    NotificationTrigger
+
+  entityType String?
+  entityId   String?
+
+  message    String
+  href       String?
+
+  readAt     DateTime?
+  createdAt  DateTime @default(now())
+
+  // Prevents firing the same trigger twice for the same user+entity+date.
+  dedupKey   String
+
+  @@unique([userId, dedupKey])
+  @@index([userId, readAt, createdAt])
 }
 
 // Rate-limit login attempts by IP (PRD §23 brute-force protection).

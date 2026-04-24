@@ -69,6 +69,29 @@ export async function sendPasswordResetEmail({
   return { sent: true };
 }
 
+export async function sendNotificationEmail({
+  to,
+  subject,
+  body,
+}: {
+  to: string;
+  subject: string;
+  body: string;
+}): Promise<SendResult> {
+  const resend = getResend();
+  if (!resend) {
+    console.log(`[email/dev] Notification for ${to}: ${subject}\n${body}`);
+    return { sent: false };
+  }
+  await resend.emails.send({
+    from,
+    to,
+    subject,
+    html: `<p>${escape(body).replace(/\n/g, "<br>")}</p>`,
+  });
+  return { sent: true };
+}
+
 function escape(s: string) {
   return s.replace(/[&<>"']/g, (c) =>
     c === "&" ? "&amp;" : c === "<" ? "&lt;" : c === ">" ? "&gt;" : c === '"' ? "&quot;" : "&#39;",

@@ -84,6 +84,26 @@ export async function createPayment(
     await recomputeInvoiceStatus(a.documentId);
   }
 
+  const { createNotification } = await import("@/lib/notifications");
+  const client = await prisma.client.findUnique({
+    where: { id: d.clientId },
+    select: { companyName: true, fullName: true, anonymizedAt: true, type: true },
+  });
+  const clientName = client?.anonymizedAt
+    ? "[anonymized]"
+    : client?.type === "COMPANY"
+      ? client.companyName ?? "(unnamed)"
+      : client?.fullName ?? "(unnamed)";
+  await createNotification({
+    trigger: "PAYMENT_RECEIVED",
+    entityType: "Payment",
+    entityId: payment.id,
+    message: `Payment received: ${d.amount} ${d.currency} from ${clientName}`,
+    href: `/payments/${payment.id}`,
+    dedupKey: `PAYMENT_RECEIVED:${payment.id}`,
+    scope: "all",
+  });
+
   revalidatePath("/payments");
   revalidatePath("/advance-invoices");
   revalidatePath("/final-invoices");

@@ -154,6 +154,20 @@ export async function createClient(
     after: client as unknown as Record<string, unknown>,
   });
 
+  if (client.status === "POTENTIAL") {
+    const { createNotification } = await import("@/lib/notifications");
+    const name = client.companyName ?? client.fullName ?? "(unnamed)";
+    await createNotification({
+      trigger: "NEW_POTENTIAL_CLIENT",
+      entityType: "Client",
+      entityId: client.id,
+      message: `New potential client: ${name}`,
+      href: `/clients/${client.id}`,
+      dedupKey: `NEW_POTENTIAL_CLIENT:${client.id}`,
+      scope: "all",
+    });
+  }
+
   revalidatePath("/clients");
   redirect(`/clients/${client.id}`);
 }
@@ -287,5 +301,18 @@ export async function createDemoClient() {
     action: "create",
     after: client as unknown as Record<string, unknown>,
   });
+  if (client.status === "POTENTIAL") {
+    const { createNotification } = await import("@/lib/notifications");
+    const name = client.companyName ?? client.fullName ?? "(unnamed)";
+    await createNotification({
+      trigger: "NEW_POTENTIAL_CLIENT",
+      entityType: "Client",
+      entityId: client.id,
+      message: `New potential client: ${name}`,
+      href: `/clients/${client.id}`,
+      dedupKey: `NEW_POTENTIAL_CLIENT:${client.id}`,
+      scope: "all",
+    });
+  }
   revalidatePath("/clients");
 }
