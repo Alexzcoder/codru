@@ -7,14 +7,13 @@ import { Button } from "@/components/ui/button";
 import { clientDisplayName } from "@/lib/client-display";
 import { calculateDocument } from "@/lib/line-items";
 import {
-  autoExpireQuote,
-  deleteQuoteDraft,
-  markQuoteAccepted,
-  markQuoteRejected,
-  markQuoteSent,
+  autoOverdueFinal,
+  deleteFinalDraft,
+  markFinalPaid,
+  markFinalSent,
 } from "../actions";
 
-export default async function QuoteDetailPage({
+export default async function FinalInvoiceDetailPage({
   params,
 }: {
   params: Promise<{ locale: string; id: string }>;
@@ -24,21 +23,20 @@ export default async function QuoteDetailPage({
   await requireUser();
   const t = await getTranslations();
 
-  // Lazy auto-expire on render
-  await autoExpireQuote(id);
+  await autoOverdueFinal(id);
 
   const doc = await prisma.document.findUnique({
     where: { id },
     include: {
       client: true,
       job: true,
-      companyProfile: true,
-      documentTemplate: true,
+      sourceQuote: true,
       lineItems: { orderBy: { position: "asc" } },
+      advanceDeductions: { include: { advance: true } },
       pdfSnapshots: { orderBy: { createdAt: "desc" }, take: 1 },
     },
   });
-  if (!doc || doc.type !== "QUOTE" || doc.deletedAt) notFound();
+  if (!doc || doc.type !== "FINAL_INVOICE" || doc.deletedAt) notFound();
 
   const totals = calculateDocument({
     lines: doc.lineItems.map((l) => ({
@@ -57,19 +55,15 @@ export default async function QuoteDetailPage({
   const isDraft = doc.status === "UNSENT";
   const sendBound = async () => {
     "use server";
-    await markQuoteSent(id);
+    await markFinalSent(id);
   };
-  const acceptBound = async () => {
+  const payBound = async () => {
     "use server";
-    await markQuoteAccepted(id);
-  };
-  const rejectBound = async () => {
-    "use server";
-    await markQuoteRejected(id);
+    await markFinalPaid(id);
   };
   const deleteBound = async () => {
     "use server";
-    await deleteQuoteDraft(id);
+    await deleteFinalDraft(id);
   };
 
   const snapshot = doc.pdfSnapshots[0];
@@ -77,14 +71,22 @@ export default async function QuoteDetailPage({
   return (
     <div className="mx-auto max-w-5xl px-6 py-8">
       <p className="text-xs text-neutral-500">
-        <Link href="/quotes" className="hover:underline">
-          {t("Quotes.title")}
+        <Link href="/final-invoices" className="hover:underline">
+          {t("FinalInvoices.title")}
         </Link>
         {doc.client && (
           <>
             {" · "}
             <Link href={`/clients/${doc.client.id}`} className="hover:underline">
               {clientDisplayName(doc.client)}
+            </Link>
+          </>
+        )}
+        {doc.job && (
+          <>
+            {" · "}
+            <Link href={`/jobs/${doc.job.id}`} className="hover:underline">
+              {doc.job.title}
             </Link>
           </>
         )}
@@ -96,18 +98,17 @@ export default async function QuoteDetailPage({
           )}
         </h1>
         <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs">
-          {t(`Quotes.status.${doc.status}`)}
+          {t(`FinalInvoices.status.${doc.status}`)}
         </span>
       </div>
 
-      {/* Actions */}
       <div className="mt-4 flex flex-wrap gap-2">
-        <Link href={`/quotes/${id}/edit`}>
+        <Link href={`/final-invoices/${id}/edit`}>
           <Button variant="outline" size="sm">
             {t("Settings.edit")}
           </Button>
         </Link>
-        <a href={`/quotes/${id}/pdf`} target="_blank" rel="noreferrer">
+        <a href={`/final-invoices/${id}/pdf`} target="_blank" rel="noreferrer">
           <Button variant="outline" size="sm">
             {t("Quotes.actions.previewPdf")} ↗
           </Button>
@@ -115,60 +116,59 @@ export default async function QuoteDetailPage({
         {isDraft && (
           <form action={sendBound}>
             <Button type="submit" size="sm">
-              {t("Quotes.actions.markSent")}
+              {t("FinalInvoices.actions.markSent")}
             </Button>
           </form>
         )}
-        {(doc.status === "SENT" || doc.status === "EXPIRED") && (
-          <form action={acceptBound}>
+        {(doc.status === "SENT" || doc.status === "OVERDUE") && (
+          <form action={payBound}>
             <Button type="submit" size="sm">
-              {t("Quotes.actions.markAccepted")}
-            </Button>
-          </form>
-        )}
-        {doc.status === "SENT" && (
-          <form action={rejectBound}>
-            <Button type="submit" variant="outline" size="sm">
-              {t("Quotes.actions.markRejected")}
+              {t("FinalInvoices.actions.markPaid")}
             </Button>
           </form>
         )}
         {isDraft && (
           <form action={deleteBound}>
             <Button type="submit" variant="outline" size="sm">
-              {t("Quotes.actions.delete")}
+              {t("FinalInvoices.actions.delete")}
             </Button>
           </form>
         )}
-        {(doc.status === "SENT" || doc.status === "ACCEPTED") && (
-          <>
-            <Link href={`/advance-invoices/new?fromQuote=${id}`}>
-              <Button variant="outline" size="sm">
-                → {t("AdvanceInvoices.new")}
-              </Button>
-            </Link>
-            <Link href={`/final-invoices/new?fromQuote=${id}`}>
-              <Button variant="outline" size="sm">
-                → {t("FinalInvoices.new")}
-              </Button>
-            </Link>
-          </>
-        )}
       </div>
 
-      {/* Meta */}
       <div className="mt-6 grid gap-4 md:grid-cols-4">
         <Info label={t("Quotes.fields.issueDate")}>
           {doc.issueDate.toISOString().slice(0, 10)}
         </Info>
-        <Info label={t("Quotes.fields.validUntil")}>
-          {doc.validUntilDate?.toISOString().slice(0, 10) ?? "—"}
+        <Info label={t("FinalInvoices.fields.taxPointDate")}>
+          {doc.taxPointDate?.toISOString().slice(0, 10) ?? "—"}
+        </Info>
+        <Info label={t("FinalInvoices.fields.dueDate")}>
+          {doc.dueDate?.toISOString().slice(0, 10) ?? "—"}
         </Info>
         <Info label={t("Quotes.fields.currency")}>{doc.currency}</Info>
-        <Info label={t("Quotes.fields.locale")}>{doc.locale.toUpperCase()}</Info>
       </div>
 
-      {/* Line items readonly */}
+      {doc.advanceDeductions.length > 0 && (
+        <div className="mt-6 rounded-md border border-neutral-200 bg-white p-4 text-sm">
+          <p className="text-xs uppercase tracking-wider text-neutral-500">
+            Deducted advances
+          </p>
+          <ul className="mt-2 space-y-1">
+            {doc.advanceDeductions.map((d) => (
+              <li key={d.advanceId}>
+                <Link
+                  href={`/advance-invoices/${d.advanceId}`}
+                  className="hover:underline"
+                >
+                  {d.advance.number ?? "(draft)"}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       <div className="mt-8 overflow-hidden rounded-md border border-neutral-200 bg-white">
         <table className="w-full text-sm">
           <thead className="bg-neutral-50 text-xs uppercase tracking-wider text-neutral-500">
@@ -221,15 +221,6 @@ export default async function QuoteDetailPage({
           </tfoot>
         </table>
       </div>
-
-      {doc.notesToClient && (
-        <div className="mt-6">
-          <p className="text-xs uppercase tracking-wider text-neutral-500">
-            {t("Quotes.fields.notesToClient")}
-          </p>
-          <p className="mt-1 whitespace-pre-wrap">{doc.notesToClient}</p>
-        </div>
-      )}
 
       {snapshot && (
         <div className="mt-8 rounded-md border border-neutral-200 bg-white p-4 text-sm">

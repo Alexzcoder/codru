@@ -69,6 +69,11 @@ export default async function JobDetailPage({
               {t("Settings.edit")}
             </Button>
           </Link>
+          <Link href={`/final-invoices/new?fromJob=${id}`}>
+            <Button variant="outline" size="sm">
+              → {t("FinalInvoices.new")}
+            </Button>
+          </Link>
         </div>
       </div>
 

@@ -66,6 +66,34 @@
       "fromMarkup": "unit price = cost × (1 + markup%)"
     }
   },
+  "FinalInvoices": {
+    "title": "Final invoices",
+    "new": "New final invoice",
+    "empty": "No final invoices yet.",
+    "fields": {
+      "number": "Number",
+      "jobRequired": "Job (required)",
+      "sourceQuote": "Source quote",
+      "availableAdvances": "Available advances for this job",
+      "deductionLine": "Advance {number} — deduction ({rate}%)",
+      "taxPointDate": "Tax point date",
+      "dueDate": "Due date"
+    },
+    "status": {
+      "UNSENT": "Draft",
+      "SENT": "Unpaid",
+      "PARTIALLY_PAID": "Partially paid",
+      "PAID": "Paid",
+      "OVERDUE": "Overdue"
+    },
+    "actions": {
+      "markSent": "Mark as sent",
+      "markPaid": "Mark paid",
+      "delete": "Delete draft"
+    },
+    "noAvailableAdvances": "No advances available for deduction on this job.",
+    "jobRequiredHint": "A final invoice must be linked to a Job."
+  },
   "AdvanceInvoices": {
     "title": "Advance invoices",
     "new": "New advance invoice",

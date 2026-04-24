@@ -66,6 +66,34 @@
       "fromMarkup": "jedn. cena = náklad × (1 + marže%)"
     }
   },
+  "FinalInvoices": {
+    "title": "Faktury",
+    "new": "Nová faktura",
+    "empty": "Zatím žádné faktury.",
+    "fields": {
+      "number": "Číslo",
+      "jobRequired": "Zakázka (povinné)",
+      "sourceQuote": "Výchozí nabídka",
+      "availableAdvances": "Dostupné zálohy pro tuto zakázku",
+      "deductionLine": "Záloha {number} — odpočet ({rate}%)",
+      "taxPointDate": "DUZP",
+      "dueDate": "Splatnost"
+    },
+    "status": {
+      "UNSENT": "Koncept",
+      "SENT": "Nezaplaceno",
+      "PARTIALLY_PAID": "Částečně zaplaceno",
+      "PAID": "Zaplaceno",
+      "OVERDUE": "Po splatnosti"
+    },
+    "actions": {
+      "markSent": "Označit jako odeslané",
+      "markPaid": "Označit jako zaplacené",
+      "delete": "Smazat koncept"
+    },
+    "noAvailableAdvances": "Pro tuto zakázku nejsou k dispozici žádné zálohy.",
+    "jobRequiredHint": "Faktura musí být propojena se zakázkou."
+  },
   "AdvanceInvoices": {
     "title": "Zálohové faktury",
     "new": "Nová zálohová faktura",

@@ -560,6 +560,11 @@ model Document {
   lineItems          DocumentLineItem[]
   pdfSnapshots       PdfSnapshot[]
 
+  // M10: advances deducted on THIS final invoice
+  advanceDeductions  AdvanceDeduction[] @relation("FinalInvoiceDeductions")
+  // M10: final invoices deducting THIS advance
+  deductedOn         AdvanceDeduction[] @relation("AdvanceDeducted")
+
   @@unique([type, yearSeries, numberSeq])
   @@index([clientId])
   @@index([jobId])
@@ -600,6 +605,20 @@ model NumberSeries {
   updatedAt DateTime     @updatedAt
 
   @@id([type, year])
+}
+
+// M10 — PRD §12: advances deducted on a final invoice. Join table so one
+// final invoice can deduct multiple advances and one advance could (in
+// principle) be applied across multiple finals, though the UI prevents it.
+model AdvanceDeduction {
+  finalInvoiceId String
+  finalInvoice   Document @relation("FinalInvoiceDeductions", fields: [finalInvoiceId], references: [id], onDelete: Cascade)
+  advanceId      String
+  advance        Document @relation("AdvanceDeducted",       fields: [advanceId],      references: [id], onDelete: Restrict)
+  createdAt      DateTime @default(now())
+
+  @@id([finalInvoiceId, advanceId])
+  @@index([advanceId])
 }
 
 // Frozen PDF archive (PRD §9.5). Generated when document transitions to SENT.
