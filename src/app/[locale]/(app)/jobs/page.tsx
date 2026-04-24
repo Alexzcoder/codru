@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { clientDisplayName } from "@/lib/client-display";
 import { JobListFilters } from "./list-filters";
 import { BulkActions } from "./bulk-actions";
+import { createDemoJob } from "./actions";
 import type { JobStatus } from "@prisma/client";
 
 const PAGE_SIZE = 50;
@@ -88,9 +89,16 @@ export default async function JobsPage({
     <div className="mx-auto max-w-6xl px-6 py-8">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold tracking-tight">{t("Jobs.title")}</h1>
-        <Link href="/jobs/new">
-          <Button size="sm">{t("Jobs.newJob")}</Button>
-        </Link>
+        <div className="flex gap-2">
+          <form action={createDemoJob}>
+            <Button type="submit" variant="ghost" size="sm">
+              + Demo job
+            </Button>
+          </form>
+          <Link href="/jobs/new">
+            <Button size="sm">{t("Jobs.newJob")}</Button>
+          </Link>
+        </div>
       </div>
 
       <div className="mt-6">

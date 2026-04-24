@@ -226,6 +226,38 @@ export async function uploadAttachment(
   return {};
 }
 
+export async function createDemoJob() {
+  const { generateDemoJob, generateDemoClient } = await import("@/lib/demo-data");
+  const user = await requireUser();
+
+  // Pick a random existing non-deleted client, or create one if the DB is empty.
+  let client = await prisma.client.findFirst({
+    where: { deletedAt: null, anonymizedAt: null },
+    orderBy: { createdAt: "desc" },
+  });
+  if (!client) {
+    client = await prisma.client.create({ data: generateDemoClient() });
+  }
+
+  const job = await prisma.job.create({ data: generateDemoJob(client.id) });
+
+  // Assign the current user so the job has a team member badge.
+  await prisma.jobAssignment.create({
+    data: { jobId: job.id, userId: user.id },
+  });
+
+  await writeAudit({
+    actorId: user.id,
+    entity: "Job",
+    entityId: job.id,
+    action: "create",
+    after: job as unknown as Record<string, unknown>,
+  });
+
+  revalidatePath("/jobs");
+  revalidatePath(`/clients/${client.id}`);
+}
+
 export async function deleteAttachment(id: string) {
   const user = await requireUser();
   const att = await prisma.attachment.findUnique({ where: { id } });

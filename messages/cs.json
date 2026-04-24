@@ -36,6 +36,40 @@
     "title": "Přehled",
     "empty": "Zde se objeví souhrn, jakmile přidáte první klienty a zakázky."
   },
+  "Calendar": {
+    "title": "Kalendář",
+    "newEvent": "Nová událost",
+    "today": "Dnes",
+    "exportIcs": "Export .ics",
+    "views": {
+      "month": "Měsíc",
+      "week": "Týden",
+      "day": "Den"
+    },
+    "type": {
+      "MEETING": "Schůzka",
+      "SITE_VISIT": "Návštěva",
+      "REMINDER": "Připomínka",
+      "OTHER": "Jiné",
+      "JOB": "Zakázka"
+    },
+    "form": {
+      "title": "Název",
+      "type": "Typ",
+      "startsAt": "Začátek",
+      "endsAt": "Konec",
+      "allDay": "Celý den",
+      "assignee": "Přiřazeno",
+      "client": "Klient",
+      "job": "Zakázka",
+      "notes": "Poznámky",
+      "none": "—"
+    },
+    "markComplete": "Označit jako hotové",
+    "markUncomplete": "Označit jako probíhající",
+    "filter": "Přiřazeno",
+    "weekdays": ["Po", "Út", "St", "Čt", "Pá", "So", "Ne"]
+  },
   "Jobs": {
     "title": "Zakázky",
     "newJob": "Nová zakázka",

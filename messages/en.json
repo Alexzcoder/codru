@@ -36,6 +36,40 @@
     "title": "Dashboard",
     "empty": "A summary will appear here once you've added your first clients and jobs."
   },
+  "Calendar": {
+    "title": "Calendar",
+    "newEvent": "New event",
+    "today": "Today",
+    "exportIcs": "Export .ics",
+    "views": {
+      "month": "Month",
+      "week": "Week",
+      "day": "Day"
+    },
+    "type": {
+      "MEETING": "Meeting",
+      "SITE_VISIT": "Site visit",
+      "REMINDER": "Reminder",
+      "OTHER": "Other",
+      "JOB": "Job"
+    },
+    "form": {
+      "title": "Title",
+      "type": "Type",
+      "startsAt": "Starts",
+      "endsAt": "Ends",
+      "allDay": "All day",
+      "assignee": "Assigned to",
+      "client": "Related client",
+      "job": "Related job",
+      "notes": "Notes",
+      "none": "—"
+    },
+    "markComplete": "Mark complete",
+    "markUncomplete": "Mark pending",
+    "filter": "Assignee",
+    "weekdays": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+  },
   "Jobs": {
     "title": "Jobs",
     "newJob": "New job",

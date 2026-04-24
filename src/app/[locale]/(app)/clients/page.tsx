@@ -5,6 +5,7 @@ import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { clientDisplayName } from "@/lib/client-display";
 import { ClientListFilters } from "./list-filters";
+import { createDemoClient } from "./actions";
 import type { ClientStatus } from "@prisma/client";
 
 const PAGE_SIZE = 50;
@@ -59,6 +60,11 @@ export default async function ClientsPage({
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold tracking-tight">{t("Clients.title")}</h1>
         <div className="flex gap-2">
+          <form action={createDemoClient}>
+            <Button type="submit" variant="ghost" size="sm">
+              + Demo client
+            </Button>
+          </form>
           <Link href="/clients/export" prefetch={false}>
             <Button variant="outline" size="sm">
               {t("Clients.exportCsv")}

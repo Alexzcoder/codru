@@ -42,6 +42,8 @@ model User {
   contactLogs        ContactLog[]
   jobAssignments     JobAssignment[]
   attachmentsUploaded Attachment[]        @relation("AttachmentUploader")
+  calendarEventsCreated  CalendarEvent[]  @relation("CalendarEventCreator")
+  calendarEventsAssigned CalendarEvent[]  @relation("CalendarEventAssignee")
 }
 
 model Invite {
@@ -184,6 +186,7 @@ model Client {
   contactLogs       ContactLog[]
   customFieldValues CustomFieldValue[]
   jobs              Job[]
+  calendarEvents    CalendarEvent[]
 
   @@index([status])
   @@index([email])
@@ -278,6 +281,7 @@ model Job {
   assignments    JobAssignment[]
   contactLogs    ContactLog[]
   attachments    Attachment[]
+  calendarEvents CalendarEvent[]
 
   @@index([clientId])
   @@index([status, scheduledStart])
@@ -315,6 +319,43 @@ model Attachment {
   createdAt    DateTime       @default(now())
 
   @@index([jobId, createdAt])
+}
+
+// ──────────────────────────────────────────────────────────
+// M5 — Calendar events (PRD §6)
+// ──────────────────────────────────────────────────────────
+
+enum CalendarEventType {
+  MEETING
+  SITE_VISIT
+  REMINDER
+  OTHER
+}
+
+model CalendarEvent {
+  id          String            @id @default(cuid())
+  title       String
+  type        CalendarEventType @default(MEETING)
+  startsAt    DateTime
+  endsAt      DateTime?
+  allDay      Boolean           @default(false)
+  notes       String?
+  completedAt DateTime?
+
+  clientId    String?
+  client      Client?  @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  jobId       String?
+  job         Job?     @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  assigneeId  String?
+  assignee    User?    @relation("CalendarEventAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  createdById String
+  createdBy   User     @relation("CalendarEventCreator", fields: [createdById], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([startsAt])
+  @@index([assigneeId, startsAt])
 }
 
 // Rate-limit login attempts by IP (PRD §23 brute-force protection).

@@ -274,3 +274,18 @@ function displayOf(c: {
   if (c.anonymizedAt) return "[anonymized]";
   return c.type === "COMPANY" ? c.companyName ?? "(unnamed)" : c.fullName ?? "(unnamed)";
 }
+
+export async function createDemoClient() {
+  const { generateDemoClient } = await import("@/lib/demo-data");
+  const user = await requireUser();
+  const data = generateDemoClient();
+  const client = await prisma.client.create({ data });
+  await writeAudit({
+    actorId: user.id,
+    entity: "Client",
+    entityId: client.id,
+    action: "create",
+    after: client as unknown as Record<string, unknown>,
+  });
+  revalidatePath("/clients");
+}
