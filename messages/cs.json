@@ -15,7 +15,8 @@
     "loginError": "Neplatný e-mail nebo heslo.",
     "registerClosed": "Registrace je uzavřená. Nechte si poslat pozvánku od vlastníka.",
     "passwordTooShort": "Heslo musí mít alespoň 10 znaků.",
-    "forgotPassword": "Zapomenuté heslo?"
+    "forgotPassword": "Zapomenuté heslo?",
+    "rateLimited": "Příliš mnoho pokusů — zkuste to za 15 minut."
   },
   "Onboarding": {
     "welcome": "Vítejte v CRM",
@@ -34,5 +35,86 @@
   "Dashboard": {
     "title": "Přehled",
     "empty": "Zde se objeví souhrn, jakmile přidáte první klienty a zakázky."
+  },
+  "Settings": {
+    "title": "Nastavení",
+    "navProfile": "Můj profil",
+    "navCompanyProfiles": "Firemní profily",
+    "navTaxRates": "Sazby DPH",
+    "navCategories": "Kategorie položek",
+    "navUsers": "Uživatelé",
+    "saved": "Uloženo.",
+    "save": "Uložit",
+    "cancel": "Zrušit",
+    "create": "Vytvořit",
+    "edit": "Upravit",
+    "delete": "Smazat",
+    "archive": "Archivovat",
+    "unarchive": "Obnovit",
+    "confirmDelete": "Opravdu?",
+    "newCompanyProfile": "Nový firemní profil",
+    "editCompanyProfile": "Upravit firemní profil",
+    "fields": {
+      "name": "Název",
+      "ico": "IČO",
+      "dic": "DIČ",
+      "street": "Ulice",
+      "city": "Město",
+      "zip": "PSČ",
+      "country": "Země",
+      "iban": "IBAN",
+      "swift": "SWIFT",
+      "accountNumber": "Číslo účtu",
+      "brandColor": "Barva značky",
+      "headerText": "Výchozí text záhlaví PDF",
+      "footerText": "Výchozí text zápatí PDF",
+      "paymentTermsDays": "Výchozí splatnost (dny)",
+      "warrantyText": "Výchozí záruka",
+      "logo": "Logo",
+      "signature": "Podpis",
+      "calendarColor": "Barva v kalendáři",
+      "uiLanguage": "Jazyk UI",
+      "label": "Označení",
+      "percent": "Procento",
+      "role": "Role",
+      "status": "Stav",
+      "active": "Aktivní",
+      "deactivated": "Deaktivovaný",
+      "lastLogin": "Poslední přihlášení",
+      "never": "Nikdy",
+      "isDefault": "Výchozí"
+    },
+    "users": {
+      "invite": "Pozvat uživatele",
+      "inviteSent": "Pozvánka odeslána.",
+      "devInviteLink": "E-mail není nakonfigurovaný — předejte tento odkaz:",
+      "alreadyMember": "Uživatel s tímto e-mailem už existuje.",
+      "deactivate": "Deaktivovat",
+      "reactivate": "Obnovit",
+      "triggerReset": "Odeslat odkaz pro reset hesla"
+    },
+    "profile": {
+      "title": "Můj profil",
+      "changePassword": "Změnit heslo",
+      "currentPassword": "Současné heslo",
+      "newPassword": "Nové heslo",
+      "passwordChanged": "Heslo změněno.",
+      "wrongCurrent": "Současné heslo není správné."
+    }
+  },
+  "Invite": {
+    "title": "Přijetí pozvánky",
+    "intro": "Byli jste pozváni do CRM. Nastavte si jméno a heslo.",
+    "setPassword": "Uložit a pokračovat",
+    "invalidOrExpired": "Pozvánka je neplatná nebo vypršela."
+  },
+  "Reset": {
+    "forgotTitle": "Zapomenuté heslo",
+    "forgotIntro": "Zadejte svůj e-mail. Pokud účet existuje, pošleme odkaz pro reset.",
+    "forgotSubmit": "Odeslat odkaz",
+    "forgotDone": "Pokud účet s tímto e-mailem existuje, byl odeslán odkaz pro reset.",
+    "resetTitle": "Reset hesla",
+    "resetSubmit": "Nastavit nové heslo",
+    "invalidOrExpired": "Odkaz pro reset je neplatný nebo vypršel."
   }
 }

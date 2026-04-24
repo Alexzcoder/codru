@@ -1,0 +1,73 @@
+import { prisma } from "@/lib/prisma";
+import { requireOwner } from "@/lib/session";
+import { getTranslations, setRequestLocale } from "next-intl/server";
+import { InviteForm } from "./invite-form";
+import { UserRow } from "./user-row";
+
+export default async function UsersPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const owner = await requireOwner();
+  const t = await getTranslations();
+
+  const [users, pendingInvites] = await Promise.all([
+    prisma.user.findMany({ orderBy: [{ role: "asc" }, { createdAt: "asc" }] }),
+    prisma.invite.findMany({
+      where: { acceptedAt: null, expiresAt: { gt: new Date() } },
+      orderBy: { createdAt: "desc" },
+    }),
+  ]);
+
+  return (
+    <div>
+      <h2 className="text-lg font-medium">{t("Settings.navUsers")}</h2>
+
+      <div className="mt-6 overflow-hidden rounded-md border border-neutral-200 bg-white">
+        <table className="w-full text-sm">
+          <thead className="bg-neutral-50 text-xs uppercase tracking-wider text-neutral-500">
+            <tr>
+              <th className="px-4 py-2 text-left">{t("Settings.fields.name")}</th>
+              <th className="px-4 py-2 text-left">Email</th>
+              <th className="px-4 py-2 text-left">{t("Settings.fields.role")}</th>
+              <th className="px-4 py-2 text-left">{t("Settings.fields.status")}</th>
+              <th className="px-4 py-2 text-left">{t("Settings.fields.lastLogin")}</th>
+              <th className="px-4 py-2"></th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-neutral-200">
+            {users.map((u) => (
+              <UserRow key={u.id} user={u} isSelf={u.id === owner.id} />
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {pendingInvites.length > 0 && (
+        <div className="mt-8">
+          <h3 className="text-sm font-medium">Pending invites</h3>
+          <ul className="mt-3 divide-y divide-neutral-200 rounded-md border border-neutral-200 bg-white text-sm">
+            {pendingInvites.map((i) => (
+              <li key={i.id} className="flex justify-between px-4 py-2">
+                <span>{i.email}</span>
+                <span className="text-xs text-neutral-500">
+                  expires {i.expiresAt.toISOString().slice(0, 16).replace("T", " ")}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <div className="mt-8">
+        <h3 className="text-sm font-medium">{t("Settings.users.invite")}</h3>
+        <div className="mt-3">
+          <InviteForm />
+        </div>
+      </div>
+    </div>
+  );
+}

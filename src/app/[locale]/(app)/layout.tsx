@@ -24,9 +24,17 @@ export default async function AppLayout({
     <div className="flex-1 flex flex-col">
       <header className="border-b border-neutral-200 bg-white">
         <div className="mx-auto max-w-6xl px-6 py-3 flex items-center justify-between">
-          <Link href="/dashboard" className="text-sm font-semibold">
-            {t("App.title")}
-          </Link>
+          <div className="flex items-center gap-6">
+            <Link href="/dashboard" className="text-sm font-semibold">
+              {t("App.title")}
+            </Link>
+            <Link
+              href="/settings"
+              className="text-sm text-neutral-600 hover:text-neutral-900"
+            >
+              {t("Settings.title")}
+            </Link>
+          </div>
           <div className="flex items-center gap-3">
             <span className="text-sm text-neutral-600">{session.user.email}</span>
             <form action={logout}>

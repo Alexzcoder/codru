@@ -1,5 +1,5 @@
-// CRM + Invoicing — schema for Milestone 1 (auth + onboarding scaffolding).
-// Only the models touched in M1 live here. Future milestones will extend this file.
+// CRM + Invoicing — schema.
+// Models added in each milestone; do not remove or rename existing fields without a migration plan.
 
 generator client {
   provider = "prisma-client-js"
@@ -29,13 +29,16 @@ model User {
   locale             UserLocale @default(cs)
   calendarColor      String     @default("#2563eb")
   signatureImagePath String?
+  notificationPrefs  Json       @default("{}")
   deactivatedAt      DateTime?
   onboardingDoneAt   DateTime?
+  lastLoginAt        DateTime?
   createdAt          DateTime   @default(now())
   updatedAt          DateTime   @updatedAt
 
-  invitesCreated     Invite[]   @relation("InviteCreator")
+  invitesCreated     Invite[]             @relation("InviteCreator")
   passwordResets     PasswordResetToken[]
+  auditLogs          AuditLog[]
 }
 
 model Invite {
@@ -62,23 +65,68 @@ model PasswordResetToken {
 }
 
 // One or more company profiles (branding/legal identity) per PRD §9.1.
-// Minimal at M1 (set up in onboarding); extended at M2.
 model CompanyProfile {
-  id            String   @id @default(cuid())
-  name          String
-  ico           String?
-  dic           String?
-  addressStreet String?
-  addressCity   String?
-  addressZip    String?
-  addressCountry String  @default("CZ")
-  iban          String?
-  swift         String?
-  accountNumber String?
-  logoPath      String?
-  isDefault     Boolean  @default(false)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id                     String   @id @default(cuid())
+  name                   String
+  ico                    String?
+  dic                    String?
+  addressStreet          String?
+  addressCity            String?
+  addressZip             String?
+  addressCountry         String   @default("CZ")
+  iban                   String?
+  swift                  String?
+  accountNumber          String?
+  logoPath               String?
+  brandColor             String   @default("#1d4ed8")
+  defaultHeaderText      String?
+  defaultFooterText      String?
+  defaultPaymentTermsDays Int     @default(14)
+  defaultWarrantyText    String?
+  isDefault              Boolean  @default(false)
+  archivedAt             DateTime?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+}
+
+// User-configurable VAT rates. Pre-filled: 21, 12, 0. Used by line items starting M6.
+model TaxRate {
+  id         String    @id @default(cuid())
+  label      String
+  percent    Decimal   @db.Decimal(5, 2)
+  isDefault  Boolean   @default(false)
+  archivedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@unique([label])
+}
+
+// User-configurable item categories. Pre-filled: Labor, Materials, Travel, Diagnosis.
+model ItemCategory {
+  id         String    @id @default(cuid())
+  name       String
+  archivedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@unique([name])
+}
+
+// Audit log — PRD §23. Every create/edit/delete on protected entities records actor + before/after.
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  actor      User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  entity     String
+  entityId   String
+  action     String
+  before     Json?
+  after      Json?
+  createdAt  DateTime @default(now())
+
+  @@index([entity, entityId])
+  @@index([actorId, createdAt])
 }
 
 // Rate-limit login attempts by IP (PRD §23 brute-force protection).

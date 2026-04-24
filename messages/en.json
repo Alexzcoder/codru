@@ -15,7 +15,8 @@
     "loginError": "Invalid email or password.",
     "registerClosed": "Registration is closed. Ask the owner for an invite.",
     "passwordTooShort": "Password must be at least 10 characters.",
-    "forgotPassword": "Forgot password?"
+    "forgotPassword": "Forgot password?",
+    "rateLimited": "Too many attempts — wait 15 minutes."
   },
   "Onboarding": {
     "welcome": "Welcome to the CRM",
@@ -34,5 +35,86 @@
   "Dashboard": {
     "title": "Dashboard",
     "empty": "A summary will appear here once you've added your first clients and jobs."
+  },
+  "Settings": {
+    "title": "Settings",
+    "navProfile": "My profile",
+    "navCompanyProfiles": "Company profiles",
+    "navTaxRates": "VAT rates",
+    "navCategories": "Item categories",
+    "navUsers": "Users",
+    "saved": "Saved.",
+    "save": "Save",
+    "cancel": "Cancel",
+    "create": "Create",
+    "edit": "Edit",
+    "delete": "Delete",
+    "archive": "Archive",
+    "unarchive": "Restore",
+    "confirmDelete": "Are you sure?",
+    "newCompanyProfile": "New company profile",
+    "editCompanyProfile": "Edit company profile",
+    "fields": {
+      "name": "Name",
+      "ico": "IČO",
+      "dic": "DIČ",
+      "street": "Street",
+      "city": "City",
+      "zip": "ZIP",
+      "country": "Country",
+      "iban": "IBAN",
+      "swift": "SWIFT",
+      "accountNumber": "Account number",
+      "brandColor": "Brand color",
+      "headerText": "Default PDF header text",
+      "footerText": "Default PDF footer text",
+      "paymentTermsDays": "Default payment terms (days)",
+      "warrantyText": "Default warranty text",
+      "logo": "Logo",
+      "signature": "Signature image",
+      "calendarColor": "Calendar color",
+      "uiLanguage": "UI language",
+      "label": "Label",
+      "percent": "Percent",
+      "role": "Role",
+      "status": "Status",
+      "active": "Active",
+      "deactivated": "Deactivated",
+      "lastLogin": "Last login",
+      "never": "Never",
+      "isDefault": "Default"
+    },
+    "users": {
+      "invite": "Invite user",
+      "inviteSent": "Invite sent.",
+      "devInviteLink": "Email isn't configured — give this link to the invitee:",
+      "alreadyMember": "A user with that email already exists.",
+      "deactivate": "Deactivate",
+      "reactivate": "Reactivate",
+      "triggerReset": "Send password reset link"
+    },
+    "profile": {
+      "title": "My profile",
+      "changePassword": "Change password",
+      "currentPassword": "Current password",
+      "newPassword": "New password",
+      "passwordChanged": "Password changed.",
+      "wrongCurrent": "Current password is incorrect."
+    }
+  },
+  "Invite": {
+    "title": "Accept invite",
+    "intro": "You've been invited to join the CRM. Set your name and password to continue.",
+    "setPassword": "Set password and continue",
+    "invalidOrExpired": "This invite link is invalid or has expired."
+  },
+  "Reset": {
+    "forgotTitle": "Forgot password",
+    "forgotIntro": "Enter your email. If an account exists, we'll send a reset link.",
+    "forgotSubmit": "Send reset link",
+    "forgotDone": "If an account exists for that email, a reset link has been sent.",
+    "resetTitle": "Reset password",
+    "resetSubmit": "Set new password",
+    "invalidOrExpired": "This reset link is invalid or has expired."
   }
 }

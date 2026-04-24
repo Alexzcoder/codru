@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { login, type LoginState } from "./actions";
+import { Link } from "@/i18n/navigation";
 
 export function LoginForm({ next }: { next?: string }) {
   const t = useTranslations("Auth");
@@ -47,6 +48,11 @@ export function LoginForm({ next }: { next?: string }) {
       <Button type="submit" disabled={pending} className="w-full">
         {t("submitLogin")}
       </Button>
+      <p className="text-center text-sm">
+        <Link href="/forgot-password" className="text-neutral-600 hover:text-neutral-900">
+          {t("forgotPassword")}
+        </Link>
+      </p>
     </form>
   );
 }
