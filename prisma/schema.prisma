@@ -40,6 +40,8 @@ model User {
   passwordResets     PasswordResetToken[]
   auditLogs          AuditLog[]
   contactLogs        ContactLog[]
+  jobAssignments     JobAssignment[]
+  attachmentsUploaded Attachment[]        @relation("AttachmentUploader")
 }
 
 model Invite {
@@ -181,6 +183,7 @@ model Client {
 
   contactLogs       ContactLog[]
   customFieldValues CustomFieldValue[]
+  jobs              Job[]
 
   @@index([status])
   @@index([email])
@@ -199,8 +202,8 @@ model ContactLog {
   id         String         @id @default(cuid())
   clientId   String
   client     Client         @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  // jobId nullable until M4; contact logs can be attached to a Job too.
   jobId      String?
+  job        Job?           @relation(fields: [jobId], references: [id], onDelete: SetNull)
   date       DateTime       @default(now())
   type       ContactLogType
   notes      String
@@ -239,6 +242,79 @@ model CustomFieldValue {
 
   @@unique([clientId, fieldDefId])
   @@index([fieldDefId])
+}
+
+// ──────────────────────────────────────────────────────────
+// M4 — Jobs + Attachments (PRD §5)
+// ──────────────────────────────────────────────────────────
+
+enum JobStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+model Job {
+  id             String    @id @default(cuid())
+  title          String
+  clientId       String
+  client         Client    @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  status         JobStatus @default(SCHEDULED)
+
+  // Site address (overrides client billing address when set)
+  siteStreet     String?
+  siteCity       String?
+  siteZip        String?
+  siteCountry    String?
+
+  scheduledStart DateTime?
+  scheduledEnd   DateTime?
+  notes          String?
+
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  assignments    JobAssignment[]
+  contactLogs    ContactLog[]
+  attachments    Attachment[]
+
+  @@index([clientId])
+  @@index([status, scheduledStart])
+}
+
+model JobAssignment {
+  jobId      String
+  userId     String
+  job        Job   @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  user       User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assignedAt DateTime @default(now())
+
+  @@id([jobId, userId])
+  @@index([userId])
+}
+
+enum AttachmentKind {
+  IMAGE
+  PDF
+  OTHER
+}
+
+model Attachment {
+  id           String         @id @default(cuid())
+  jobId        String
+  job          Job            @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  filename     String
+  mimeType     String
+  sizeBytes    Int
+  kind         AttachmentKind
+  path         String         // Relative /uploads/jobs/... path
+  caption      String?
+  uploadedById String
+  uploadedBy   User           @relation("AttachmentUploader", fields: [uploadedById], references: [id], onDelete: Restrict)
+  createdAt    DateTime       @default(now())
+
+  @@index([jobId, createdAt])
 }
 
 // Rate-limit login attempts by IP (PRD §23 brute-force protection).

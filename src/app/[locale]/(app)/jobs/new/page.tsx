@@ -1,0 +1,47 @@
+import { prisma } from "@/lib/prisma";
+import { requireUser } from "@/lib/session";
+import { getTranslations, setRequestLocale } from "next-intl/server";
+import { clientDisplayName } from "@/lib/client-display";
+import { JobForm } from "../job-form";
+import { createJob } from "../actions";
+
+export default async function NewJobPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<{ clientId?: string }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  await requireUser();
+  const t = await getTranslations();
+  const { clientId } = await searchParams;
+
+  const [clients, users] = await Promise.all([
+    prisma.client.findMany({
+      where: { deletedAt: null, anonymizedAt: null },
+      select: { id: true, type: true, companyName: true, fullName: true, anonymizedAt: true },
+      orderBy: { updatedAt: "desc" },
+    }),
+    prisma.user.findMany({
+      where: { deactivatedAt: null },
+      select: { id: true, name: true, calendarColor: true },
+      orderBy: { name: "asc" },
+    }),
+  ]);
+
+  return (
+    <div className="mx-auto max-w-3xl px-6 py-8">
+      <h1 className="text-2xl font-semibold tracking-tight">{t("Jobs.newJob")}</h1>
+      <div className="mt-8">
+        <JobForm
+          initial={clientId ? { clientId } : undefined}
+          clients={clients.map((c) => ({ id: c.id, name: clientDisplayName(c) }))}
+          users={users}
+          action={createJob}
+        />
+      </div>
+    </div>
+  );
+}

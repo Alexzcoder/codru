@@ -18,7 +18,7 @@ export default async function ClientDetailPage({
   await requireUser();
   const t = await getTranslations();
 
-  const [client, logs, customValues, customDefs] = await Promise.all([
+  const [client, logs, customValues, customDefs, jobs] = await Promise.all([
     prisma.client.findUnique({ where: { id } }),
     prisma.contactLog.findMany({
       where: { clientId: id },
@@ -31,6 +31,11 @@ export default async function ClientDetailPage({
       include: { fieldDef: true },
     }),
     prisma.customFieldDef.findMany({ where: { archivedAt: null } }),
+    prisma.job.findMany({
+      where: { clientId: id },
+      orderBy: { updatedAt: "desc" },
+      take: 50,
+    }),
   ]);
   if (!client || client.deletedAt) notFound();
 
@@ -132,11 +137,37 @@ export default async function ClientDetailPage({
         </aside>
       </div>
 
-      <section className="mt-10 rounded-md border border-neutral-200 bg-white p-5">
-        <h2 className="text-sm font-medium text-neutral-500">
-          {t("Clients.detail.jobs")}
-        </h2>
-        <p className="mt-3 text-xs text-neutral-400">Available from M4.</p>
+      <section className="mt-10">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-medium">{t("Clients.detail.jobs")}</h2>
+          <Link href={`/jobs/new?clientId=${id}`}>
+            <Button size="sm" variant="outline">
+              {t("Jobs.newJob")}
+            </Button>
+          </Link>
+        </div>
+        {jobs.length === 0 ? (
+          <p className="mt-3 text-sm text-neutral-500">No jobs yet.</p>
+        ) : (
+          <ul className="mt-3 divide-y divide-neutral-200 rounded-md border border-neutral-200 bg-white">
+            {jobs.map((j) => (
+              <li key={j.id}>
+                <Link
+                  href={`/jobs/${j.id}`}
+                  className="flex items-center justify-between px-4 py-2 text-sm hover:bg-neutral-50"
+                >
+                  <span className="font-medium">{j.title}</span>
+                  <span className="flex items-center gap-3 text-xs text-neutral-500">
+                    {j.scheduledStart
+                      ? j.scheduledStart.toISOString().slice(0, 10)
+                      : ""}
+                    <span>{t(`Jobs.status.${j.status}`)}</span>
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       <section className="mt-10">

@@ -36,6 +36,55 @@
     "title": "Přehled",
     "empty": "Zde se objeví souhrn, jakmile přidáte první klienty a zakázky."
   },
+  "Jobs": {
+    "title": "Zakázky",
+    "newJob": "Nová zakázka",
+    "empty": "Zatím žádné zakázky.",
+    "emptyCTA": "Vytvořit první zakázku",
+    "searchPlaceholder": "Hledat podle názvu nebo klienta…",
+    "status": {
+      "SCHEDULED": "Naplánováno",
+      "IN_PROGRESS": "Probíhá",
+      "COMPLETED": "Dokončeno",
+      "CANCELLED": "Zrušeno"
+    },
+    "form": {
+      "title": "Název",
+      "client": "Klient",
+      "status": "Stav",
+      "start": "Plánovaný začátek",
+      "end": "Plánovaný konec",
+      "assignees": "Přiřazený tým",
+      "notes": "Poznámky",
+      "sitePrefix": "Adresa místa realizace (prázdné = fakturační adresa klienta)",
+      "street": "Ulice",
+      "city": "Město",
+      "zip": "PSČ",
+      "country": "Země"
+    },
+    "detail": {
+      "siteAddress": "Adresa místa",
+      "usesClientAddress": "Používá fakturační adresu klienta",
+      "contactLog": "Záznamy kontaktů",
+      "attachments": "Přílohy",
+      "documents": "Doklady",
+      "noDocs": "Dostupné od M10.",
+      "uploadLimits": "Max 25 MB na soubor, 50 souborů na zakázku.",
+      "deleteAttachment": "Smazat"
+    },
+    "bulk": {
+      "selected": "{count, plural, one {# vybráno} few {# vybrány} other {# vybráno}}",
+      "changeStatus": "Změnit stav"
+    },
+    "filters": {
+      "status": "Stav",
+      "client": "Klient",
+      "assignee": "Přiřazeno",
+      "from": "Od",
+      "to": "Do",
+      "all": "Vše"
+    }
+  },
   "Clients": {
     "title": "Klienti",
     "newClient": "Nový klient",

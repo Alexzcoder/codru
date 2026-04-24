@@ -36,6 +36,55 @@
     "title": "Dashboard",
     "empty": "A summary will appear here once you've added your first clients and jobs."
   },
+  "Jobs": {
+    "title": "Jobs",
+    "newJob": "New job",
+    "empty": "No jobs yet.",
+    "emptyCTA": "Create your first job",
+    "searchPlaceholder": "Search by title or client…",
+    "status": {
+      "SCHEDULED": "Scheduled",
+      "IN_PROGRESS": "In progress",
+      "COMPLETED": "Completed",
+      "CANCELLED": "Cancelled"
+    },
+    "form": {
+      "title": "Title",
+      "client": "Client",
+      "status": "Status",
+      "start": "Scheduled start",
+      "end": "Scheduled end",
+      "assignees": "Assigned team",
+      "notes": "Notes",
+      "sitePrefix": "Site address (leave blank to use client billing address)",
+      "street": "Street",
+      "city": "City",
+      "zip": "ZIP",
+      "country": "Country"
+    },
+    "detail": {
+      "siteAddress": "Site address",
+      "usesClientAddress": "Uses client billing address",
+      "contactLog": "Contact log",
+      "attachments": "Attachments",
+      "documents": "Documents",
+      "noDocs": "Available from M10.",
+      "uploadLimits": "Max 25 MB per file, 50 files per job.",
+      "deleteAttachment": "Delete"
+    },
+    "bulk": {
+      "selected": "{count, plural, one {# selected} other {# selected}}",
+      "changeStatus": "Change status"
+    },
+    "filters": {
+      "status": "Status",
+      "client": "Client",
+      "assignee": "Assignee",
+      "from": "From",
+      "to": "To",
+      "all": "All"
+    }
+  },
   "Clients": {
     "title": "Clients",
     "newClient": "New client",

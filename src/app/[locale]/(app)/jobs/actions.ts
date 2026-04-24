@@ -1,0 +1,243 @@
+"use server";
+
+import { z } from "zod";
+import { prisma } from "@/lib/prisma";
+import { requireUser } from "@/lib/session";
+import { writeAudit } from "@/lib/audit";
+import { saveJobAttachment, deleteUpload } from "@/lib/uploads";
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+
+const MAX_FILES_PER_JOB = 50;
+
+const jobSchema = z.object({
+  title: z.string().trim().min(1).max(300),
+  clientId: z.string().min(1),
+  status: z.enum(["SCHEDULED", "IN_PROGRESS", "COMPLETED", "CANCELLED"]),
+  siteStreet: z.string().trim().max(200).optional().or(z.literal("")),
+  siteCity: z.string().trim().max(100).optional().or(z.literal("")),
+  siteZip: z.string().trim().max(20).optional().or(z.literal("")),
+  siteCountry: z.string().trim().max(2).optional().or(z.literal("")),
+  scheduledStart: z.string().optional().or(z.literal("")),
+  scheduledEnd: z.string().optional().or(z.literal("")),
+  notes: z.string().trim().max(5000).optional().or(z.literal("")),
+  assignees: z.string().optional(), // comma-separated user ids
+});
+
+export type JobState = { error?: string };
+
+function toPayload(d: z.infer<typeof jobSchema>) {
+  return {
+    title: d.title,
+    clientId: d.clientId,
+    status: d.status,
+    siteStreet: d.siteStreet || null,
+    siteCity: d.siteCity || null,
+    siteZip: d.siteZip || null,
+    siteCountry: d.siteCountry || null,
+    scheduledStart: d.scheduledStart ? new Date(d.scheduledStart) : null,
+    scheduledEnd: d.scheduledEnd ? new Date(d.scheduledEnd) : null,
+    notes: d.notes || null,
+  };
+}
+
+function parseAssignees(raw: string | undefined): string[] {
+  if (!raw) return [];
+  return raw.split(",").map((s) => s.trim()).filter(Boolean);
+}
+
+async function syncAssignees(jobId: string, userIds: string[]) {
+  await prisma.$transaction([
+    prisma.jobAssignment.deleteMany({
+      where: { jobId, NOT: { userId: { in: userIds } } },
+    }),
+    ...userIds.map((userId) =>
+      prisma.jobAssignment.upsert({
+        where: { jobId_userId: { jobId, userId } },
+        create: { jobId, userId },
+        update: {},
+      }),
+    ),
+  ]);
+}
+
+export async function createJob(
+  _prev: JobState,
+  formData: FormData,
+): Promise<JobState> {
+  const user = await requireUser();
+  const parsed = jobSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { error: "invalidInput" };
+
+  const job = await prisma.job.create({ data: toPayload(parsed.data) });
+  const assignees = parseAssignees(parsed.data.assignees);
+  if (assignees.length) await syncAssignees(job.id, assignees);
+
+  await writeAudit({
+    actorId: user.id,
+    entity: "Job",
+    entityId: job.id,
+    action: "create",
+    after: job as unknown as Record<string, unknown>,
+  });
+
+  revalidatePath("/jobs");
+  revalidatePath(`/clients/${job.clientId}`);
+  redirect(`/jobs/${job.id}`);
+}
+
+export async function updateJob(
+  id: string,
+  _prev: JobState,
+  formData: FormData,
+): Promise<JobState> {
+  const user = await requireUser();
+  const parsed = jobSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { error: "invalidInput" };
+
+  const existing = await prisma.job.findUnique({ where: { id } });
+  if (!existing) return { error: "notFound" };
+
+  const updated = await prisma.job.update({
+    where: { id },
+    data: toPayload(parsed.data),
+  });
+  await syncAssignees(id, parseAssignees(parsed.data.assignees));
+
+  await writeAudit({
+    actorId: user.id,
+    entity: "Job",
+    entityId: id,
+    action: "update",
+    before: existing as unknown as Record<string, unknown>,
+    after: updated as unknown as Record<string, unknown>,
+  });
+
+  revalidatePath("/jobs");
+  revalidatePath(`/jobs/${id}`);
+  revalidatePath(`/clients/${updated.clientId}`);
+  redirect(`/jobs/${id}`);
+}
+
+export async function setJobStatus(id: string, status: string) {
+  const user = await requireUser();
+  const allowed = ["SCHEDULED", "IN_PROGRESS", "COMPLETED", "CANCELLED"] as const;
+  if (!allowed.includes(status as (typeof allowed)[number])) return;
+  const before = await prisma.job.findUnique({ where: { id } });
+  if (!before) return;
+  const after = await prisma.job.update({
+    where: { id },
+    data: { status: status as (typeof allowed)[number] },
+  });
+  await writeAudit({
+    actorId: user.id,
+    entity: "Job",
+    entityId: id,
+    action: "update",
+    before: { status: before.status } as unknown as Record<string, unknown>,
+    after: { status: after.status } as unknown as Record<string, unknown>,
+  });
+  revalidatePath("/jobs");
+  revalidatePath(`/jobs/${id}`);
+}
+
+export async function bulkSetJobStatus(ids: string[], status: string) {
+  const user = await requireUser();
+  const allowed = ["SCHEDULED", "IN_PROGRESS", "COMPLETED", "CANCELLED"] as const;
+  if (!allowed.includes(status as (typeof allowed)[number]) || ids.length === 0) return;
+  await prisma.job.updateMany({
+    where: { id: { in: ids } },
+    data: { status: status as (typeof allowed)[number] },
+  });
+  for (const id of ids) {
+    await writeAudit({
+      actorId: user.id,
+      entity: "Job",
+      entityId: id,
+      action: "update",
+      after: { status } as unknown as Record<string, unknown>,
+    });
+  }
+  revalidatePath("/jobs");
+}
+
+export async function deleteJob(id: string) {
+  const user = await requireUser();
+  const existing = await prisma.job.findUnique({ where: { id } });
+  if (!existing) return;
+  // Attachments cascade; also delete files on disk.
+  const attachments = await prisma.attachment.findMany({ where: { jobId: id } });
+  await prisma.job.delete({ where: { id } });
+  for (const a of attachments) await deleteUpload(a.path);
+  await writeAudit({
+    actorId: user.id,
+    entity: "Job",
+    entityId: id,
+    action: "delete",
+    before: existing as unknown as Record<string, unknown>,
+  });
+  revalidatePath("/jobs");
+  revalidatePath(`/clients/${existing.clientId}`);
+  redirect("/jobs");
+}
+
+export type AttachmentState = { error?: string };
+
+export async function uploadAttachment(
+  jobId: string,
+  _prev: AttachmentState,
+  formData: FormData,
+): Promise<AttachmentState> {
+  const user = await requireUser();
+  const file = formData.get("file") as File | null;
+  const caption = (formData.get("caption") as string | null)?.trim() || null;
+  if (!file || file.size === 0) return { error: "noFile" };
+
+  const count = await prisma.attachment.count({ where: { jobId } });
+  if (count >= MAX_FILES_PER_JOB) return { error: "tooManyFiles" };
+
+  let saved;
+  try {
+    saved = await saveJobAttachment({ file, jobId });
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "uploadFailed" };
+  }
+
+  const att = await prisma.attachment.create({
+    data: {
+      jobId,
+      filename: saved.filename,
+      mimeType: saved.mimeType,
+      sizeBytes: saved.sizeBytes,
+      kind: saved.kind,
+      path: saved.path,
+      caption,
+      uploadedById: user.id,
+    },
+  });
+  await writeAudit({
+    actorId: user.id,
+    entity: "Attachment",
+    entityId: att.id,
+    action: "create",
+    after: { jobId, filename: att.filename } as unknown as Record<string, unknown>,
+  });
+  revalidatePath(`/jobs/${jobId}`);
+  return {};
+}
+
+export async function deleteAttachment(id: string) {
+  const user = await requireUser();
+  const att = await prisma.attachment.findUnique({ where: { id } });
+  if (!att) return;
+  await prisma.attachment.delete({ where: { id } });
+  await deleteUpload(att.path);
+  await writeAudit({
+    actorId: user.id,
+    entity: "Attachment",
+    entityId: id,
+    action: "delete",
+    before: att as unknown as Record<string, unknown>,
+  });
+  revalidatePath(`/jobs/${att.jobId}`);
+}

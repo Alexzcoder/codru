@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { addContactLog, type ContactLogState } from "./contact-actions";
 
-export function ContactLogForm({ clientId }: { clientId: string }) {
+export function ContactLogForm({ clientId, jobId }: { clientId: string; jobId?: string }) {
   const t = useTranslations("Clients");
   const tSet = useTranslations("Settings");
   const [state, formAction, pending] = useActionState<ContactLogState, FormData>(
@@ -25,6 +25,7 @@ export function ContactLogForm({ clientId }: { clientId: string }) {
       className="space-y-3 rounded-md border border-neutral-200 bg-white p-4"
     >
       <input type="hidden" name="clientId" value={clientId} />
+      {jobId && <input type="hidden" name="jobId" value={jobId} />}
       <div className="grid grid-cols-[200px_1fr] gap-3">
         <div className="space-y-2">
           <Label htmlFor="type">Type</Label>
