@@ -5,7 +5,6 @@ import { Link } from "@/i18n/navigation";
 import { logout } from "./actions";
 import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/prisma";
-import { scanImplicitTriggers } from "@/lib/notifications";
 import { Sidebar } from "./sidebar";
 import { Bell, LogOut } from "lucide-react";
 
@@ -21,6 +20,7 @@ export default async function AppLayout({
   const { locale } = await params;
   setRequestLocale(locale);
 
+  // Resolve user identity first (cheap — 1 DB query at most).
   let email = "dev";
   let userId: string | null = null;
   if (DEV_BYPASS) {
@@ -37,19 +37,17 @@ export default async function AppLayout({
     userId = session.user.id ?? null;
   }
 
-  scanImplicitTriggers().catch(() => {});
-
-  const unreadCount = userId
-    ? await prisma.notification.count({
-        where: { userId, readAt: null },
-      })
-    : 0;
-
-  const t = await getTranslations();
+  // Fetch unread count + translations in parallel.
+  const [unreadCount, t] = await Promise.all([
+    userId
+      ? prisma.notification.count({ where: { userId, readAt: null } })
+      : Promise.resolve(0),
+    getTranslations(),
+  ]);
 
   return (
     <div className="flex flex-1">
-      <Sidebar workspaceEmail={email} userInitial={(email[0] ?? "d")} />
+      <Sidebar workspaceEmail={email} userInitial={email[0] ?? "d"} />
 
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-10 border-b border-border bg-background/90 backdrop-blur">
@@ -67,9 +65,7 @@ export default async function AppLayout({
               )}
             </Link>
             <div className="flex items-center gap-2 rounded-full bg-secondary/60 px-3 py-1.5 text-sm">
-              <span
-                className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground"
-              >
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
                 {(email[0] ?? "d").toUpperCase()}
               </span>
               <span className="text-muted-foreground">{email}</span>

@@ -5,6 +5,7 @@ import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { markAllNotificationsRead, markNotificationRead } from "./actions";
 import { PageHeader } from "@/components/page-header";
+import { scanImplicitTriggers } from "@/lib/notifications";
 
 export default async function NotificationsPage({
   params,
@@ -15,6 +16,9 @@ export default async function NotificationsPage({
   setRequestLocale(locale);
   const user = await requireUser();
   const t = await getTranslations();
+
+  // Force a scan before rendering so the user sees the freshest state.
+  await scanImplicitTriggers({ force: true });
 
   const notifications = await prisma.notification.findMany({
     where: { userId: user.id },

@@ -5,6 +5,7 @@ import { Link } from "@/i18n/navigation";
 import { clientDisplayName } from "@/lib/client-display";
 import { calculateDocument } from "@/lib/line-items";
 import { PageHeader } from "@/components/page-header";
+import { scanImplicitTriggers } from "@/lib/notifications";
 import {
   Briefcase,
   Users,
@@ -39,6 +40,10 @@ export default async function DashboardPage({
   setRequestLocale(locale);
   await requireUser();
   const t = await getTranslations();
+
+  // Fire implicit notification scan (throttled internally to once per 5 min).
+  // Non-blocking so the dashboard renders fast.
+  scanImplicitTriggers().catch(() => {});
 
   const now = new Date();
   const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
