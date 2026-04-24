@@ -47,6 +47,7 @@ model User {
   documentsCreated   Document[]           @relation("DocumentCreator")
   paymentsLogged     Payment[]
   expensesCreated    Expense[]            @relation("ExpenseCreator")
+  recurrencesCreated RecurrenceRule[]     @relation("RecurrenceCreator")
 }
 
 model Invite {
@@ -297,8 +298,12 @@ model Job {
   documents      Document[]
   expenses       Expense[]
 
+  recurrenceRuleId String?
+  recurrenceRule   RecurrenceRule? @relation("JobsFromRule", fields: [recurrenceRuleId], references: [id], onDelete: SetNull)
+
   @@index([clientId])
   @@index([status, scheduledStart])
+  @@index([recurrenceRuleId])
 }
 
 model JobAssignment {
@@ -572,6 +577,10 @@ model Document {
   // M12: payment allocations to this document
   paymentAllocations PaymentAllocation[]
 
+  // M14: recurrence rule that generated this document (if any)
+  recurrenceRuleId   String?
+  recurrenceRule     RecurrenceRule? @relation("DocumentsFromRule", fields: [recurrenceRuleId], references: [id], onDelete: SetNull)
+
   @@unique([type, yearSeries, numberSeq])
   @@index([clientId])
   @@index([jobId])
@@ -734,12 +743,71 @@ model Expense {
   createdById    String
   createdBy      User            @relation("ExpenseCreator", fields: [createdById], references: [id], onDelete: Restrict)
 
+  recurrenceRuleId String?
+  recurrenceRule   RecurrenceRule? @relation("ExpensesFromRule", fields: [recurrenceRuleId], references: [id], onDelete: SetNull)
+
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
 
   @@index([date])
   @@index([categoryId])
   @@index([jobId])
+  @@index([recurrenceRuleId])
+}
+
+// ──────────────────────────────────────────────────────────
+// M14 — Recurring items (PRD §16)
+// ──────────────────────────────────────────────────────────
+
+enum RecurrenceTarget {
+  JOB
+  EXPENSE
+  INVOICE
+}
+
+enum RecurrenceFrequency {
+  WEEKLY
+  MONTHLY
+  QUARTERLY
+  YEARLY
+  CUSTOM
+}
+
+model RecurrenceRule {
+  id            String              @id @default(cuid())
+  name          String
+  targetKind    RecurrenceTarget
+  frequency     RecurrenceFrequency
+  customDays    Int?                // required when frequency = CUSTOM
+  startDate     DateTime
+  endDate       DateTime?
+  daysInAdvance Int                 @default(0)
+  autoGenerate  Boolean             @default(true)
+
+  // Next scheduled fire time (advances after each run).
+  nextRunAt     DateTime
+
+  // Operational flags
+  pausedAt      DateTime?
+  lastRunAt     DateTime?
+  lastError     String?
+
+  // JSON template payload — schema depends on targetKind.
+  // See src/lib/recurrence-payloads.ts for each variant.
+  payload       Json
+
+  createdById   String
+  createdBy     User                @relation("RecurrenceCreator", fields: [createdById], references: [id], onDelete: Restrict)
+
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  jobs          Job[]               @relation("JobsFromRule")
+  expenses      Expense[]           @relation("ExpensesFromRule")
+  documents     Document[]          @relation("DocumentsFromRule")
+
+  @@index([nextRunAt, pausedAt])
+  @@index([targetKind])
 }
 
 // Rate-limit login attempts by IP (PRD §23 brute-force protection).

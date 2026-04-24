@@ -1,8 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { clientDisplayName } from "@/lib/client-display";
+import { upcomingRuns } from "@/lib/recurrence";
 import type { CalendarItem } from "./calendar-item";
 
 const FALLBACK_COLOR = "#6b7280";
+const RECURRENCE_COLOR = "#8b5cf6"; // soft violet — distinct from user colors
 
 export async function loadCalendarItems({
   start,
@@ -13,7 +15,7 @@ export async function loadCalendarItems({
   end: Date;
   assigneeId?: string;
 }): Promise<CalendarItem[]> {
-  const [jobs, events] = await Promise.all([
+  const [jobs, events, rules] = await Promise.all([
     prisma.job.findMany({
       where: {
         scheduledStart: { gte: start, lt: end },
@@ -34,6 +36,15 @@ export async function loadCalendarItems({
       include: {
         assignee: { select: { id: true, calendarColor: true } },
         client: { select: { type: true, companyName: true, fullName: true, anonymizedAt: true } },
+      },
+    }),
+    // Recurring rules with at least one upcoming run in or before the view end
+    // (we expand into multiple synthetic items below).
+    prisma.recurrenceRule.findMany({
+      where: {
+        pausedAt: null,
+        nextRunAt: { lte: end },
+        OR: [{ endDate: null }, { endDate: { gte: start } }],
       },
     }),
   ]);
@@ -74,6 +85,28 @@ export async function loadCalendarItems({
       assigneeIds: e.assigneeId ? [e.assigneeId] : [],
       type: e.type,
     });
+  }
+
+  // Synthetic recurrence items: PRD §16.5 "Upcoming generations shown on the calendar."
+  for (const r of rules) {
+    const horizonDays = Math.ceil((end.getTime() - Date.now()) / 86_400_000) + 30;
+    for (const d of upcomingRuns(r, Math.max(horizonDays, 1))) {
+      if (d < start || d >= end) continue;
+      items.push({
+        id: `${r.id}:${d.getTime()}`,
+        kind: "EVENT",
+        title: `↻ ${r.name}`,
+        subtitle: r.targetKind.toLowerCase(),
+        start: d,
+        end: null,
+        allDay: true,
+        color: RECURRENCE_COLOR,
+        href: `/recurring/${r.id}`,
+        completedAt: null,
+        assigneeIds: [],
+        type: "OTHER",
+      });
+    }
   }
 
   items.sort((a, b) => a.start.getTime() - b.start.getTime());

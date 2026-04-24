@@ -54,6 +54,49 @@
     "recentContacts": "Poslední kontakty",
     "upcomingJobs": "Nadcházející zakázky (7 dní)"
   },
+  "Recurring": {
+    "title": "Opakované",
+    "new": "Nové opakované pravidlo",
+    "empty": "Zatím žádná opakování.",
+    "kinds": {
+      "JOB": "Zakázka",
+      "EXPENSE": "Výdaj",
+      "INVOICE": "Faktura"
+    },
+    "frequency": {
+      "WEEKLY": "Týdně",
+      "MONTHLY": "Měsíčně",
+      "QUARTERLY": "Čtvrtletně",
+      "YEARLY": "Ročně",
+      "CUSTOM": "Vlastní (N dní)"
+    },
+    "fields": {
+      "name": "Název pravidla",
+      "frequency": "Frekvence",
+      "customDays": "Vlastní interval (dny)",
+      "startDate": "Datum začátku",
+      "endDate": "Datum konce (volitelné)",
+      "daysInAdvance": "Generovat x dní dopředu",
+      "autoGenerate": "Automaticky generovat (vypnuto = jen připomínka)",
+      "nextRunAt": "Příští spuštění",
+      "lastRunAt": "Poslední spuštění",
+      "lastError": "Poslední chyba"
+    },
+    "status": {
+      "active": "Aktivní",
+      "paused": "Pozastaveno",
+      "ended": "Ukončeno"
+    },
+    "actions": {
+      "pause": "Pozastavit",
+      "resume": "Obnovit",
+      "end": "Ukončit nyní",
+      "runNow": "Spustit nyní",
+      "delete": "Smazat pravidlo"
+    },
+    "pickKind": "Co chcete opakovat:",
+    "generatedInstances": "Vygenerované instance"
+  },
   "Expenses": {
     "title": "Výdaje",
     "new": "Nový výdaj",

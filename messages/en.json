@@ -54,6 +54,49 @@
     "recentContacts": "Recent contact log",
     "upcomingJobs": "Upcoming jobs (next 7 days)"
   },
+  "Recurring": {
+    "title": "Recurring",
+    "new": "New recurring rule",
+    "empty": "No recurring rules yet.",
+    "kinds": {
+      "JOB": "Job",
+      "EXPENSE": "Expense",
+      "INVOICE": "Invoice"
+    },
+    "frequency": {
+      "WEEKLY": "Weekly",
+      "MONTHLY": "Monthly",
+      "QUARTERLY": "Quarterly",
+      "YEARLY": "Yearly",
+      "CUSTOM": "Custom (N days)"
+    },
+    "fields": {
+      "name": "Rule name",
+      "frequency": "Frequency",
+      "customDays": "Custom days",
+      "startDate": "Start date",
+      "endDate": "End date (optional)",
+      "daysInAdvance": "Generate days in advance",
+      "autoGenerate": "Auto-generate (off = reminder only)",
+      "nextRunAt": "Next run",
+      "lastRunAt": "Last run",
+      "lastError": "Last error"
+    },
+    "status": {
+      "active": "Active",
+      "paused": "Paused",
+      "ended": "Ended"
+    },
+    "actions": {
+      "pause": "Pause",
+      "resume": "Resume",
+      "end": "End now",
+      "runNow": "Run now",
+      "delete": "Delete rule"
+    },
+    "pickKind": "Choose what to recur:",
+    "generatedInstances": "Generated instances"
+  },
   "Expenses": {
     "title": "Expenses",
     "new": "New expense",
