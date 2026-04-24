@@ -36,12 +36,76 @@
     "title": "Přehled",
     "empty": "Zde se objeví souhrn, jakmile přidáte první klienty a zakázky."
   },
+  "Clients": {
+    "title": "Klienti",
+    "newClient": "Nový klient",
+    "empty": "Zatím žádní klienti.",
+    "emptyCTA": "Přidat prvního klienta",
+    "searchPlaceholder": "Hledat podle jména, IČO, e-mailu…",
+    "filterStatus": "Stav",
+    "filterAll": "Vše",
+    "type": {
+      "INDIVIDUAL": "Fyzická osoba",
+      "COMPANY": "Firma"
+    },
+    "status": {
+      "POTENTIAL": "Potenciální",
+      "ACTIVE": "Aktivní",
+      "PAST": "Ukončený",
+      "FAILED": "Neúspěšný"
+    },
+    "contactType": {
+      "PHONE": "Telefon",
+      "EMAIL": "E-mail",
+      "MEETING": "Schůzka",
+      "SITE_VISIT": "Návštěva",
+      "OTHER": "Jiný"
+    },
+    "detail": {
+      "contactLog": "Záznamy kontaktů",
+      "jobs": "Zakázky",
+      "financials": "Finanční přehled",
+      "totalBilled": "Fakturováno",
+      "totalPaid": "Zaplaceno",
+      "outstanding": "Nezaplaceno",
+      "addContactLog": "Zaznamenat kontakt",
+      "customFields": "Vlastní pole"
+    },
+    "form": {
+      "type": "Typ",
+      "fullName": "Jméno",
+      "companyName": "Název firmy",
+      "ico": "IČO",
+      "dic": "DIČ",
+      "email": "E-mail",
+      "phone": "Telefon",
+      "street": "Ulice",
+      "city": "Město",
+      "zip": "PSČ",
+      "country": "Země",
+      "notes": "Poznámky",
+      "status": "Stav",
+      "language": "Výchozí jazyk",
+      "currency": "Preferovaná měna",
+      "icoInvalid": "Kontrolní součet IČO neodpovídá. Zaškrtněte, chcete-li přesto uložit.",
+      "icoOverride": "Uložit i přes nesouhlas kontrolního součtu",
+      "dicInvalid": "DIČ musí začínat CZ a obsahovat 8–10 číslic.",
+      "duplicate": "Klient s tímto {field} už existuje:"
+    },
+    "delete": "Smazat",
+    "anonymize": "Anonymizovat",
+    "anonymizeExplain": "Tento klient má odeslané doklady; data budou anonymizována místo smazání (GDPR §24.2).",
+    "confirmDelete": "Smazat tohoto klienta?",
+    "exportCsv": "Export CSV",
+    "importCsv": "Import CSV"
+  },
   "Settings": {
     "title": "Nastavení",
     "navProfile": "Můj profil",
     "navCompanyProfiles": "Firemní profily",
     "navTaxRates": "Sazby DPH",
     "navCategories": "Kategorie položek",
+    "navCustomFields": "Vlastní pole klientů",
     "navUsers": "Uživatelé",
     "saved": "Uloženo.",
     "save": "Uložit",

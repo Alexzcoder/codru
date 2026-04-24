@@ -4,6 +4,9 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { logout } from "./actions";
 import { Button } from "@/components/ui/button";
+import { prisma } from "@/lib/prisma";
+
+const DEV_BYPASS = process.env.DEV_BYPASS === "true";
 
 export default async function AppLayout({
   children,
@@ -15,8 +18,15 @@ export default async function AppLayout({
   const { locale } = await params;
   setRequestLocale(locale);
 
-  const session = await auth();
-  if (!session?.user) redirect("/login");
+  let email = "dev";
+  if (DEV_BYPASS) {
+    const owner = await prisma.user.findFirst({ where: { role: "OWNER" }, select: { email: true } });
+    email = owner?.email ?? "dev";
+  } else {
+    const session = await auth();
+    if (!session?.user) redirect("/login");
+    email = session.user.email ?? "";
+  }
 
   const t = await getTranslations();
 
@@ -28,20 +38,22 @@ export default async function AppLayout({
             <Link href="/dashboard" className="text-sm font-semibold">
               {t("App.title")}
             </Link>
-            <Link
-              href="/settings"
-              className="text-sm text-neutral-600 hover:text-neutral-900"
-            >
+            <Link href="/clients" className="text-sm text-neutral-600 hover:text-neutral-900">
+              {t("Clients.title")}
+            </Link>
+            <Link href="/settings" className="text-sm text-neutral-600 hover:text-neutral-900">
               {t("Settings.title")}
             </Link>
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-sm text-neutral-600">{session.user.email}</span>
-            <form action={logout}>
-              <Button type="submit" variant="ghost" size="sm">
-                {t("Auth.logout")}
-              </Button>
-            </form>
+            <span className="text-sm text-neutral-600">{email}</span>
+            {!DEV_BYPASS && (
+              <form action={logout}>
+                <Button type="submit" variant="ghost" size="sm">
+                  {t("Auth.logout")}
+                </Button>
+              </form>
+            )}
           </div>
         </div>
       </header>

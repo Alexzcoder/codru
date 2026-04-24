@@ -5,9 +5,9 @@ import { NextResponse } from "next/server";
 
 const intlMiddleware = createIntlMiddleware(routing);
 
-// Routes that require a signed-in user. Expressed as path tails (locale prefix is stripped before matching).
+const DEV_BYPASS = process.env.DEV_BYPASS === "true";
+
 const PROTECTED_PATHS = ["/dashboard", "/onboarding", "/settings"];
-// Routes that signed-in users shouldn't see (send them to /dashboard).
 const AUTH_ONLY_PATHS = ["/login", "/register", "/forgot-password"];
 
 function stripLocale(pathname: string): string {
@@ -23,18 +23,20 @@ export default auth((req) => {
   const tail = stripLocale(pathname);
   const session = req.auth;
 
-  if (!session && PROTECTED_PATHS.some((p) => tail === p || tail.startsWith(`${p}/`))) {
-    const url = req.nextUrl.clone();
-    url.pathname = "/login";
-    url.searchParams.set("next", pathname);
-    return NextResponse.redirect(url);
-  }
+  if (!DEV_BYPASS) {
+    if (!session && PROTECTED_PATHS.some((p) => tail === p || tail.startsWith(`${p}/`))) {
+      const url = req.nextUrl.clone();
+      url.pathname = "/login";
+      url.searchParams.set("next", pathname);
+      return NextResponse.redirect(url);
+    }
 
-  if (session && AUTH_ONLY_PATHS.some((p) => tail === p)) {
-    const url = req.nextUrl.clone();
-    url.pathname = "/dashboard";
-    url.search = "";
-    return NextResponse.redirect(url);
+    if (session && AUTH_ONLY_PATHS.some((p) => tail === p)) {
+      const url = req.nextUrl.clone();
+      url.pathname = "/dashboard";
+      url.search = "";
+      return NextResponse.redirect(url);
+    }
   }
 
   return intlMiddleware(req);

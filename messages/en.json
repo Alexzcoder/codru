@@ -36,12 +36,76 @@
     "title": "Dashboard",
     "empty": "A summary will appear here once you've added your first clients and jobs."
   },
+  "Clients": {
+    "title": "Clients",
+    "newClient": "New client",
+    "empty": "No clients yet.",
+    "emptyCTA": "Add your first client",
+    "searchPlaceholder": "Search by name, IČO, email…",
+    "filterStatus": "Status",
+    "filterAll": "All",
+    "type": {
+      "INDIVIDUAL": "Individual",
+      "COMPANY": "Company"
+    },
+    "status": {
+      "POTENTIAL": "Potential",
+      "ACTIVE": "Active",
+      "PAST": "Past",
+      "FAILED": "Failed"
+    },
+    "contactType": {
+      "PHONE": "Phone call",
+      "EMAIL": "Email",
+      "MEETING": "Meeting",
+      "SITE_VISIT": "Site visit",
+      "OTHER": "Other"
+    },
+    "detail": {
+      "contactLog": "Contact log",
+      "jobs": "Jobs",
+      "financials": "Financial summary",
+      "totalBilled": "Total billed",
+      "totalPaid": "Total paid",
+      "outstanding": "Outstanding",
+      "addContactLog": "Log contact",
+      "customFields": "Custom fields"
+    },
+    "form": {
+      "type": "Type",
+      "fullName": "Full name",
+      "companyName": "Company name",
+      "ico": "IČO",
+      "dic": "DIČ",
+      "email": "Email",
+      "phone": "Phone",
+      "street": "Street",
+      "city": "City",
+      "zip": "ZIP",
+      "country": "Country",
+      "notes": "Notes",
+      "status": "Status",
+      "language": "Default language",
+      "currency": "Preferred currency",
+      "icoInvalid": "IČO checksum doesn't match. Tick below to save anyway.",
+      "icoOverride": "Save despite checksum mismatch",
+      "dicInvalid": "DIČ format must be CZ followed by 8–10 digits.",
+      "duplicate": "A client with this {field} already exists:"
+    },
+    "delete": "Delete",
+    "anonymize": "Anonymize",
+    "anonymizeExplain": "This client has sent documents; data will be anonymized instead of deleted (GDPR §24.2).",
+    "confirmDelete": "Delete this client?",
+    "exportCsv": "Export CSV",
+    "importCsv": "Import CSV"
+  },
   "Settings": {
     "title": "Settings",
     "navProfile": "My profile",
     "navCompanyProfiles": "Company profiles",
     "navTaxRates": "VAT rates",
     "navCategories": "Item categories",
+    "navCustomFields": "Client custom fields",
     "navUsers": "Users",
     "saved": "Saved.",
     "save": "Save",

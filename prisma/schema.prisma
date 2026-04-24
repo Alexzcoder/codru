@@ -39,6 +39,7 @@ model User {
   invitesCreated     Invite[]             @relation("InviteCreator")
   passwordResets     PasswordResetToken[]
   auditLogs          AuditLog[]
+  contactLogs        ContactLog[]
 }
 
 model Invite {
@@ -127,6 +128,117 @@ model AuditLog {
 
   @@index([entity, entityId])
   @@index([actorId, createdAt])
+}
+
+// ──────────────────────────────────────────────────────────
+// M3 — Client CRM (PRD §4)
+// ──────────────────────────────────────────────────────────
+
+enum ClientType {
+  INDIVIDUAL
+  COMPANY
+}
+
+enum ClientStatus {
+  POTENTIAL
+  ACTIVE
+  PAST
+  FAILED
+}
+
+model Client {
+  id                String       @id @default(cuid())
+  type              ClientType   @default(COMPANY)
+  status            ClientStatus @default(POTENTIAL)
+
+  // Company (B2B)
+  companyName       String?
+  ico               String?
+  dic               String?
+  icoOverride       Boolean      @default(false)
+
+  // Individual (B2C)
+  fullName          String?
+
+  // Shared contact
+  email             String?
+  phone             String?
+  addressStreet     String?
+  addressCity       String?
+  addressZip        String?
+  addressCountry    String       @default("CZ")
+
+  notes             String?
+  defaultLanguage   UserLocale   @default(cs)
+  preferredCurrency String       @default("CZK")
+
+  // GDPR §24.2 — anonymization takes precedence when fiscal records require retention.
+  anonymizedAt      DateTime?
+  deletedAt         DateTime?
+
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  contactLogs       ContactLog[]
+  customFieldValues CustomFieldValue[]
+
+  @@index([status])
+  @@index([email])
+  @@index([ico])
+}
+
+enum ContactLogType {
+  PHONE
+  EMAIL
+  MEETING
+  SITE_VISIT
+  OTHER
+}
+
+model ContactLog {
+  id         String         @id @default(cuid())
+  clientId   String
+  client     Client         @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  // jobId nullable until M4; contact logs can be attached to a Job too.
+  jobId      String?
+  date       DateTime       @default(now())
+  type       ContactLogType
+  notes      String
+  loggedById String
+  loggedBy   User           @relation(fields: [loggedById], references: [id], onDelete: Restrict)
+  createdAt  DateTime       @default(now())
+
+  @@index([clientId, date])
+  @@index([jobId])
+}
+
+enum CustomFieldType {
+  TEXT
+  NUMBER
+  DATE
+}
+
+model CustomFieldDef {
+  id         String          @id @default(cuid())
+  label      String          @unique
+  fieldType  CustomFieldType
+  archivedAt DateTime?
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  values     CustomFieldValue[]
+}
+
+model CustomFieldValue {
+  id         String         @id @default(cuid())
+  clientId   String
+  client     Client         @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  fieldDefId String
+  fieldDef   CustomFieldDef @relation(fields: [fieldDefId], references: [id], onDelete: Cascade)
+  value      String
+
+  @@unique([clientId, fieldDefId])
+  @@index([fieldDefId])
 }
 
 // Rate-limit login attempts by IP (PRD §23 brute-force protection).
