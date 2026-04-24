@@ -66,6 +66,68 @@
       "fromMarkup": "unit price = cost × (1 + markup%)"
     }
   },
+  "Quotes": {
+    "title": "Quotes",
+    "newQuote": "New quote",
+    "empty": "No quotes yet.",
+    "draftBadge": "Draft",
+    "fields": {
+      "number": "Number",
+      "client": "Client",
+      "job": "Job",
+      "issueDate": "Issue date",
+      "validUntil": "Valid until",
+      "validForDays": "Valid for (days)",
+      "locale": "Language",
+      "currency": "Currency",
+      "template": "Template",
+      "companyProfile": "Company profile",
+      "reverseCharge": "Reverse charge (§92e, B2B only)",
+      "notesInternal": "Internal notes",
+      "notesToClient": "Notes to client",
+      "documentDiscount": "Document discount"
+    },
+    "status": {
+      "UNSENT": "Draft",
+      "SENT": "Sent",
+      "ACCEPTED": "Accepted",
+      "REJECTED": "Rejected",
+      "EXPIRED": "Expired"
+    },
+    "actions": {
+      "markSent": "Mark as Sent",
+      "markAccepted": "Mark Accepted",
+      "markRejected": "Mark Rejected",
+      "delete": "Delete draft",
+      "downloadPdf": "Download PDF",
+      "previewPdf": "Preview PDF",
+      "editWarning": "This quote is already sent. Edits won't affect the archived snapshot."
+    },
+    "lineItems": {
+      "title": "Line items",
+      "addLine": "Add line",
+      "fromTemplate": "From template",
+      "position": "#",
+      "name": "Name",
+      "description": "Description",
+      "qty": "Qty",
+      "unit": "Unit",
+      "unitPrice": "Unit price",
+      "taxRate": "VAT rate",
+      "taxMode": "Tax mode",
+      "lineDiscount": "Line discount",
+      "lineTotal": "Line total",
+      "emptyRow": "No line items yet.",
+      "remove": "Remove"
+    },
+    "totals": {
+      "subtotal": "Subtotal",
+      "documentDiscount": "Discount",
+      "tax": "VAT",
+      "totalGross": "Total"
+    },
+    "reverseChargeWarning": "Reverse charge requires a client with IČO (B2B)."
+  },
   "Calendar": {
     "title": "Calendar",
     "newEvent": "New event",

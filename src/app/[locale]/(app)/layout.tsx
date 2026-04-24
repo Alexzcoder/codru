@@ -47,6 +47,9 @@ export default async function AppLayout({
             <Link href="/calendar" className="text-sm text-neutral-600 hover:text-neutral-900">
               {t("Calendar.title")}
             </Link>
+            <Link href="/quotes" className="text-sm text-neutral-600 hover:text-neutral-900">
+              {t("Quotes.title")}
+            </Link>
             <Link href="/settings/profile" className="text-sm text-neutral-600 hover:text-neutral-900">
               {t("Settings.title")}
             </Link>

@@ -44,6 +44,7 @@ model User {
   attachmentsUploaded Attachment[]        @relation("AttachmentUploader")
   calendarEventsCreated  CalendarEvent[]  @relation("CalendarEventCreator")
   calendarEventsAssigned CalendarEvent[]  @relation("CalendarEventAssignee")
+  documentsCreated   Document[]           @relation("DocumentCreator")
 }
 
 model Invite {
@@ -94,6 +95,7 @@ model CompanyProfile {
   updatedAt              DateTime @updatedAt
 
   documentTemplates      DocumentTemplate[]
+  documents              Document[]
 }
 
 // User-configurable VAT rates. Pre-filled: 21, 12, 0. Used by line items starting M6.
@@ -193,6 +195,7 @@ model Client {
   customFieldValues CustomFieldValue[]
   jobs              Job[]
   calendarEvents    CalendarEvent[]
+  documents         Document[]
 
   @@index([status])
   @@index([email])
@@ -288,6 +291,7 @@ model Job {
   contactLogs    ContactLog[]
   attachments    Attachment[]
   calendarEvents CalendarEvent[]
+  documents      Document[]
 
   @@index([clientId])
   @@index([status, scheduledStart])
@@ -446,6 +450,170 @@ model DocumentTemplate {
   updatedAt        DateTime     @updatedAt
 
   @@index([type, isDefault])
+
+  documents         Document[]
+}
+
+// ──────────────────────────────────────────────────────────
+// M8+ — Documents (Quotes, Advance Invoices, Final Invoices, Credit Notes)
+// PRD §3, §8, §10–§13, §21.3
+// ──────────────────────────────────────────────────────────
+
+enum DocumentStatus {
+  UNSENT                  // Draft, no number yet
+  SENT                    // Issued (for quotes: waiting; for invoices: unpaid)
+  ACCEPTED                // Quote only
+  REJECTED                // Quote only
+  EXPIRED                 // Quote only (auto when validUntil passed)
+  PARTIALLY_PAID          // Invoice
+  PAID                    // Invoice or credit note
+  OVERDUE                 // Invoice (derived from dueDate)
+  PAID_PENDING_COMPLETION // Advance invoice paid but linked job not COMPLETED
+  APPLIED                 // Credit note applied to original
+}
+
+enum AdvanceAmountMode {
+  PERCENT
+  FIXED
+}
+
+model Document {
+  id                 String         @id @default(cuid())
+  type               DocumentType
+  status             DocumentStatus @default(UNSENT)
+
+  // Gapless numbering — assigned at UNSENT → SENT transition (PRD §3, §21.3)
+  number             String?        // e.g. "Q-2026-0001"
+  yearSeries         Int?
+  numberSeq          Int?
+
+  // Relations
+  clientId           String
+  client             Client           @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  jobId              String?
+  job                Job?             @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  companyProfileId   String
+  companyProfile     CompanyProfile   @relation(fields: [companyProfileId], references: [id], onDelete: Restrict)
+  documentTemplateId String
+  documentTemplate   DocumentTemplate @relation(fields: [documentTemplateId], references: [id], onDelete: Restrict)
+  createdById        String
+  createdBy          User             @relation("DocumentCreator", fields: [createdById], references: [id], onDelete: Restrict)
+
+  // Money + currency (PRD §22.2)
+  currency           String         @default("CZK")
+  exchangeRateToCzk  Decimal        @db.Decimal(12, 6) @default(1)
+
+  // Language the document itself is written in (PRD §22.1)
+  locale             UserLocale     @default(cs)
+
+  // Dates
+  issueDate          DateTime
+  taxPointDate       DateTime?      // Invoices; shown on PDF only when different from issue date
+  dueDate            DateTime?      // Invoices
+  validUntilDate     DateTime?      // Quotes
+
+  // Toggles
+  reverseCharge      Boolean        @default(false)
+
+  // Document-level discount (PRD §8.1)
+  documentDiscountPercent Decimal?  @db.Decimal(5, 2)
+  documentDiscountAmount  Decimal?  @db.Decimal(12, 2)
+
+  // Notes
+  notesInternal      String?
+  notesToClient      String?
+
+  // Totals override flag (PRD §8.2 rule 7)
+  totalsOverride     Boolean        @default(false)
+  totalNetOverride   Decimal?       @db.Decimal(12, 2)
+  totalTaxOverride   Decimal?       @db.Decimal(12, 2)
+  totalGrossOverride Decimal?       @db.Decimal(12, 2)
+
+  // Advance-invoice specifics (PRD §11)
+  advanceAmountMode    AdvanceAmountMode?
+  advanceAmountPercent Decimal?     @db.Decimal(5, 2)
+  advanceAmountFixed   Decimal?     @db.Decimal(12, 2)
+  sourceQuoteId        String?
+  sourceQuote          Document?    @relation("QuoteToInvoice", fields: [sourceQuoteId], references: [id], onDelete: SetNull)
+  derivedInvoices      Document[]   @relation("QuoteToInvoice")
+
+  // Credit-note specifics (PRD §13)
+  originalDocumentId String?
+  originalDocument   Document?      @relation("DocumentCredits", fields: [originalDocumentId], references: [id], onDelete: SetNull)
+  creditNotes        Document[]     @relation("DocumentCredits")
+  creditReason       String?
+
+  // Lifecycle timestamps
+  sentAt             DateTime?
+  acceptedAt         DateTime?
+  rejectedAt         DateTime?
+  expiredAt          DateTime?
+  completedAt        DateTime?      // advance → job marked Completed
+  paidAt             DateTime?
+
+  // Soft-delete — only allowed while UNSENT (PRD §21.3)
+  deletedAt          DateTime?
+
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+
+  lineItems          DocumentLineItem[]
+  pdfSnapshots       PdfSnapshot[]
+
+  @@unique([type, yearSeries, numberSeq])
+  @@index([clientId])
+  @@index([jobId])
+  @@index([status])
+  @@index([issueDate])
+  @@index([sourceQuoteId])
+  @@index([originalDocumentId])
+}
+
+model DocumentLineItem {
+  id                  String   @id @default(cuid())
+  documentId          String
+  document            Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  position            Int
+  name                String
+  description         String?
+  quantity            Decimal  @db.Decimal(12, 3)
+  unit                String
+  unitPrice           Decimal  @db.Decimal(12, 2)
+  taxRatePercent      Decimal  @db.Decimal(5, 2)
+  taxMode             TaxMode  @default(NET)
+  lineDiscountPercent Decimal? @db.Decimal(5, 2)
+  lineDiscountAmount  Decimal? @db.Decimal(12, 2)
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@unique([documentId, position])
+  @@index([documentId])
+}
+
+// Gapless numbering state (PRD §21.3). One row per (type, year).
+// Allocation happens inside a transaction; atomically bumps nextSeq.
+model NumberSeries {
+  type      DocumentType
+  year      Int
+  nextSeq   Int          @default(1)
+  updatedAt DateTime     @updatedAt
+
+  @@id([type, year])
+}
+
+// Frozen PDF archive (PRD §9.5). Generated when document transitions to SENT.
+// Retained 10 years per Czech law. Edits update the data but not the snapshot.
+model PdfSnapshot {
+  id          String   @id @default(cuid())
+  documentId  String
+  document    Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  filePath    String
+  contentHash String
+  sizeBytes   Int
+  createdAt   DateTime @default(now())
+
+  @@index([documentId])
 }
 
 // Rate-limit login attempts by IP (PRD §23 brute-force protection).

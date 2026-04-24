@@ -66,6 +66,68 @@
       "fromMarkup": "jedn. cena = náklad × (1 + marže%)"
     }
   },
+  "Quotes": {
+    "title": "Nabídky",
+    "newQuote": "Nová nabídka",
+    "empty": "Zatím žádné nabídky.",
+    "draftBadge": "Koncept",
+    "fields": {
+      "number": "Číslo",
+      "client": "Klient",
+      "job": "Zakázka",
+      "issueDate": "Datum vystavení",
+      "validUntil": "Platnost do",
+      "validForDays": "Platnost (dny)",
+      "locale": "Jazyk",
+      "currency": "Měna",
+      "template": "Šablona",
+      "companyProfile": "Firemní profil",
+      "reverseCharge": "Přenesená DPH (§92e, jen B2B)",
+      "notesInternal": "Interní poznámka",
+      "notesToClient": "Poznámka pro klienta",
+      "documentDiscount": "Sleva na dokument"
+    },
+    "status": {
+      "UNSENT": "Koncept",
+      "SENT": "Odesláno",
+      "ACCEPTED": "Schváleno",
+      "REJECTED": "Zamítnuto",
+      "EXPIRED": "Propadlo"
+    },
+    "actions": {
+      "markSent": "Označit jako odeslané",
+      "markAccepted": "Označit jako schválené",
+      "markRejected": "Označit jako zamítnuté",
+      "delete": "Smazat koncept",
+      "downloadPdf": "Stáhnout PDF",
+      "previewPdf": "Náhled PDF",
+      "editWarning": "Tato nabídka už byla odeslána. Úpravy neovlivní archivovanou verzi."
+    },
+    "lineItems": {
+      "title": "Položky",
+      "addLine": "Přidat položku",
+      "fromTemplate": "Ze šablony",
+      "position": "#",
+      "name": "Název",
+      "description": "Popis",
+      "qty": "Množství",
+      "unit": "MJ",
+      "unitPrice": "Cena/MJ",
+      "taxRate": "Sazba DPH",
+      "taxMode": "Režim DPH",
+      "lineDiscount": "Sleva",
+      "lineTotal": "Celkem",
+      "emptyRow": "Zatím žádné položky.",
+      "remove": "Odebrat"
+    },
+    "totals": {
+      "subtotal": "Mezisoučet",
+      "documentDiscount": "Sleva",
+      "tax": "DPH",
+      "totalGross": "Celkem"
+    },
+    "reverseChargeWarning": "Přenesená DPH je možná jen u klienta s IČO (B2B)."
+  },
   "Calendar": {
     "title": "Kalendář",
     "newEvent": "Nová událost",
