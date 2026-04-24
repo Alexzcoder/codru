@@ -47,7 +47,7 @@ export default async function AppLayout({
 
   return (
     <div className="flex flex-1">
-      <Sidebar workspaceEmail={email} userInitial={email[0] ?? "d"} />
+      <Sidebar workspaceEmail={email} />
 
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-10 border-b border-border bg-background/90 backdrop-blur">

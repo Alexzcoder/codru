@@ -19,10 +19,8 @@ import { SidebarLink } from "./sidebar-link";
 
 export async function Sidebar({
   workspaceEmail,
-  userInitial,
 }: {
   workspaceEmail: string;
-  userInitial: string;
 }) {
   const t = await getTranslations();
 
@@ -74,17 +72,15 @@ export async function Sidebar({
       {/* Workspace header */}
       <div className="px-5 pt-6 pb-5">
         <div className="flex items-center gap-2.5">
-          <div
-            className="flex h-8 w-8 items-center justify-center rounded-md font-semibold"
-            style={{
-              background: "var(--sidebar-primary)",
-              color: "var(--sidebar-primary-foreground)",
-            }}
-          >
-            {userInitial.toUpperCase()}
-          </div>
+          <img
+            src="/logos/codru_v4_white_transparent.svg"
+            alt="Codru"
+            className="h-8 w-8"
+          />
           <div className="min-w-0">
-            <p className="text-sm font-semibold">{t("App.title")}</p>
+            <p className="text-sm font-semibold tracking-tight">
+              {t("App.title")}
+            </p>
             <p className="truncate text-[11px] opacity-70">{workspaceEmail}</p>
           </div>
         </div>

@@ -19,8 +19,11 @@ const mono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CRM",
-  description: "CRM + invoicing for Czech trades businesses",
+  title: "Codru",
+  description: "Codru — CRM + invoicing for Czech trades businesses",
+  icons: {
+    icon: "/logos/codru_v4_light_forest.svg",
+  },
 };
 
 export const dynamic = "force-dynamic";
