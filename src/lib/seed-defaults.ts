@@ -26,4 +26,17 @@ export async function seedDefaults() {
       ],
     });
   }
+
+  const unitCount = await prisma.unit.count();
+  if (unitCount === 0) {
+    await prisma.unit.createMany({
+      data: [
+        { name: "hour" },
+        { name: "m²" },
+        { name: "m" },
+        { name: "piece" },
+        { name: "flat fee" },
+      ],
+    });
+  }
 }

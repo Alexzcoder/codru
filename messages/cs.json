@@ -36,6 +36,36 @@
     "title": "Přehled",
     "empty": "Zde se objeví souhrn, jakmile přidáte první klienty a zakázky."
   },
+  "ItemTemplates": {
+    "title": "Šablony položek",
+    "new": "Nová šablona",
+    "edit": "Upravit šablonu",
+    "empty": "Zatím žádné šablony.",
+    "fields": {
+      "name": "Název",
+      "description": "Popis",
+      "category": "Kategorie",
+      "unit": "Jednotka",
+      "defaultQuantity": "Výchozí množství",
+      "defaultCost": "Výchozí náklad",
+      "defaultMarkupPercent": "Výchozí marže %",
+      "defaultUnitPrice": "Výchozí jednotková cena",
+      "defaultTaxRate": "Výchozí sazba DPH",
+      "defaultTaxMode": "Režim DPH",
+      "taxModeNet": "Cena bez DPH",
+      "taxModeGross": "Cena s DPH"
+    },
+    "preview": {
+      "title": "Náhled",
+      "qty": "Množství",
+      "unitPrice": "Jedn. cena",
+      "rate": "Sazba",
+      "net": "Bez DPH",
+      "tax": "DPH",
+      "gross": "S DPH",
+      "fromMarkup": "jedn. cena = náklad × (1 + marže%)"
+    }
+  },
   "Calendar": {
     "title": "Kalendář",
     "newEvent": "Nová událost",
@@ -188,6 +218,8 @@
     "navCompanyProfiles": "Firemní profily",
     "navTaxRates": "Sazby DPH",
     "navCategories": "Kategorie položek",
+    "navUnits": "Jednotky",
+    "navItemTemplates": "Šablony položek",
     "navCustomFields": "Vlastní pole klientů",
     "navUsers": "Uživatelé",
     "saved": "Uloženo.",

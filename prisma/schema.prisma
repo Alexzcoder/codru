@@ -104,6 +104,8 @@ model TaxRate {
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 
+  itemTemplates ItemTemplate[]
+
   @@unique([label])
 }
 
@@ -114,6 +116,8 @@ model ItemCategory {
   archivedAt DateTime?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
+
+  itemTemplates ItemTemplate[]
 
   @@unique([name])
 }
@@ -356,6 +360,54 @@ model CalendarEvent {
 
   @@index([startsAt])
   @@index([assigneeId, startsAt])
+}
+
+// ──────────────────────────────────────────────────────────
+// M6 — Units + Item Templates (PRD §7, §8, §22.6)
+// ──────────────────────────────────────────────────────────
+
+enum TaxMode {
+  NET    // "price is before tax"
+  GROSS  // "price is after tax" (price already includes VAT)
+}
+
+model Unit {
+  id         String    @id @default(cuid())
+  name       String    @unique
+  archivedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  itemTemplates ItemTemplate[]
+}
+
+model ItemTemplate {
+  id                   String        @id @default(cuid())
+  name                 String
+  description          String?
+
+  categoryId           String?
+  category             ItemCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  unitId               String
+  unit                 Unit          @relation(fields: [unitId], references: [id], onDelete: Restrict)
+
+  // PRD §22.6: money 2dp, quantity 3dp, percent 2dp
+  defaultQuantity      Decimal       @db.Decimal(12, 3) @default(1)
+  defaultCost          Decimal?      @db.Decimal(12, 2)
+  defaultMarkupPercent Decimal?      @db.Decimal(5, 2)
+  defaultUnitPrice     Decimal       @db.Decimal(12, 2)
+
+  defaultTaxRateId     String
+  defaultTaxRate       TaxRate       @relation(fields: [defaultTaxRateId], references: [id], onDelete: Restrict)
+  defaultTaxMode       TaxMode       @default(NET)
+
+  archivedAt           DateTime?
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+
+  @@index([categoryId])
+  @@index([archivedAt])
 }
 
 // Rate-limit login attempts by IP (PRD §23 brute-force protection).

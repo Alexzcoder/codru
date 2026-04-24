@@ -1,6 +1,6 @@
-import { Link } from "@/i18n/navigation";
-import { addDays, sameDay, startOfWeek } from "@/lib/calendar-dates";
+import { addDays, sameDay, startOfDay, startOfWeek } from "@/lib/calendar-dates";
 import type { CalendarItem } from "./calendar-item";
+import { HourAxis, TimeGridColumn, AllDayStrip } from "./time-grid";
 
 export function WeekView({
   anchorDate,
@@ -20,62 +20,57 @@ export function WeekView({
       items: items.filter((it) => sameDay(it.start, d)),
     });
   }
-
   const today = new Date();
 
+  // All-day items for the week to pin above the grid
+  const allDayByDay = days.map((d) => d.items.filter((i) => i.allDay));
+  const hasAllDay = allDayByDay.some((arr) => arr.length > 0);
+
   return (
-    <div className="grid grid-cols-1 gap-3 md:grid-cols-7">
-      {days.map(({ date, items }, i) => {
-        const isToday = sameDay(date, today);
-        return (
-          <div
-            key={i}
-            className="rounded-md border border-neutral-200 bg-white p-3"
-          >
-            <div className="flex items-baseline justify-between">
-              <span className="text-xs uppercase tracking-wider text-neutral-500">
+    <div className="rounded-md border border-neutral-200 bg-white">
+      <div className="flex border-b border-neutral-200">
+        <div className="w-14 shrink-0" />
+        {days.map(({ date }, i) => {
+          const isToday = sameDay(date, today);
+          return (
+            <div
+              key={i}
+              className="flex-1 border-l border-neutral-200 px-2 py-2 text-center"
+            >
+              <div className="text-xs uppercase tracking-wider text-neutral-500">
                 {weekdays[i]}
-              </span>
-              <span
-                className={`text-sm font-medium ${isToday ? "rounded bg-neutral-900 px-1.5 py-0.5 text-white" : ""}`}
+              </div>
+              <div
+                className={`mt-0.5 text-sm font-medium ${isToday ? "inline-block rounded bg-neutral-900 px-1.5 py-0.5 text-white" : ""}`}
               >
                 {date.getDate()}
-              </span>
+              </div>
             </div>
-            <ul className="mt-2 space-y-1">
-              {items.length === 0 && (
-                <li className="text-[11px] text-neutral-400">—</li>
-              )}
-              {items.map((it) => (
-                <li key={`${it.kind}:${it.id}`}>
-                  <Link
-                    href={it.href}
-                    className="block rounded px-2 py-1 text-xs hover:underline"
-                    style={{
-                      background: `${it.color}22`,
-                      color: it.color,
-                      textDecoration: it.completedAt ? "line-through" : undefined,
-                    }}
-                  >
-                    <span className="font-semibold">{it.title}</span>
-                    <br />
-                    <span className="text-[10px] opacity-75">
-                      {it.allDay
-                        ? "all day"
-                        : `${formatTime(it.start)}${it.end ? "–" + formatTime(it.end) : ""}`}
-                      {it.subtitle ? ` · ${it.subtitle}` : ""}
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
+          );
+        })}
+      </div>
+
+      {hasAllDay && (
+        <div className="flex border-b border-neutral-200">
+          <div className="w-14 shrink-0 py-1 pl-2 text-[10px] uppercase text-neutral-500">
+            all day
           </div>
-        );
-      })}
+          {allDayByDay.map((arr, i) => (
+            <div key={i} className="flex-1 border-l border-neutral-200 p-1">
+              <AllDayStrip items={arr} />
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="flex overflow-auto" style={{ maxHeight: "70vh" }}>
+        <HourAxis />
+        {days.map(({ date, items }, i) => (
+          <div key={i} className="flex-1 min-w-0">
+            <TimeGridColumn dayStart={startOfDay(date)} items={items} />
+          </div>
+        ))}
+      </div>
     </div>
   );
-}
-
-function formatTime(d: Date) {
-  return `${d.getHours().toString().padStart(2, "0")}:${d.getMinutes().toString().padStart(2, "0")}`;
 }

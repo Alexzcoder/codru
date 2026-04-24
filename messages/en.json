@@ -36,6 +36,36 @@
     "title": "Dashboard",
     "empty": "A summary will appear here once you've added your first clients and jobs."
   },
+  "ItemTemplates": {
+    "title": "Item templates",
+    "new": "New item template",
+    "edit": "Edit item template",
+    "empty": "No item templates yet.",
+    "fields": {
+      "name": "Name",
+      "description": "Description",
+      "category": "Category",
+      "unit": "Unit",
+      "defaultQuantity": "Default quantity",
+      "defaultCost": "Default cost",
+      "defaultMarkupPercent": "Default markup %",
+      "defaultUnitPrice": "Default unit price",
+      "defaultTaxRate": "Default VAT rate",
+      "defaultTaxMode": "Tax mode",
+      "taxModeNet": "Price is before tax",
+      "taxModeGross": "Price is after tax"
+    },
+    "preview": {
+      "title": "Preview",
+      "qty": "Qty",
+      "unitPrice": "Unit price",
+      "rate": "Rate",
+      "net": "Net",
+      "tax": "Tax",
+      "gross": "Gross",
+      "fromMarkup": "unit price = cost × (1 + markup%)"
+    }
+  },
   "Calendar": {
     "title": "Calendar",
     "newEvent": "New event",
@@ -188,6 +218,8 @@
     "navCompanyProfiles": "Company profiles",
     "navTaxRates": "VAT rates",
     "navCategories": "Item categories",
+    "navUnits": "Units",
+    "navItemTemplates": "Item templates",
     "navCustomFields": "Client custom fields",
     "navUsers": "Users",
     "saved": "Saved.",
