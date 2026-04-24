@@ -9,6 +9,7 @@ import { setJobStatus, deleteJob, deleteAttachment } from "../actions";
 import { AttachmentUploader } from "./attachment-uploader";
 import { ContactLogForm } from "../../clients/[id]/contact-log-form";
 import { computeJobProfitability } from "@/lib/job-profitability";
+import { BackLink } from "@/components/back-link";
 
 export default async function JobDetailPage({
   params,
@@ -54,6 +55,7 @@ export default async function JobDetailPage({
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-8">
+      <BackLink href="/jobs" label={t("Jobs.title")} />
       <div className="flex items-start justify-between">
         <div>
           <p className="text-xs text-muted-foreground">

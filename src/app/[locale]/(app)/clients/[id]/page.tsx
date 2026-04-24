@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { clientDisplayName } from "@/lib/client-display";
 import { ContactLogForm } from "./contact-log-form";
 import { deleteClient, anonymizeClient } from "../actions";
+import { BackLink } from "@/components/back-link";
 
 export default async function ClientDetailPage({
   params,
@@ -61,12 +62,9 @@ export default async function ClientDetailPage({
 
   return (
     <div className="mx-auto max-w-5xl px-8 py-8">
+      <BackLink href="/clients" label={t("Clients.title")} />
       <div className="mb-8">
         <p className="mb-1 text-xs text-muted-foreground">
-          <Link href="/clients" className="hover:underline">
-            {t("Clients.title")}
-          </Link>
-          {" · "}
           {t(`Clients.type.${client.type}`)}
         </p>
         <div className="flex flex-wrap items-start justify-between gap-4">

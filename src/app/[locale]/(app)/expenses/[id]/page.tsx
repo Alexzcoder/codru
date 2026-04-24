@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { deleteExpense } from "../actions";
+import { BackLink } from "@/components/back-link";
 
 export default async function ExpenseDetailPage({
   params,
@@ -33,19 +34,14 @@ export default async function ExpenseDetailPage({
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-8">
-      <p className="text-xs text-muted-foreground">
-        <Link href="/expenses" className="hover:underline">
-          {t("Expenses.title")}
-        </Link>
-        {e.job && (
-          <>
-            {" · "}
-            <Link href={`/jobs/${e.job.id}`} className="hover:underline">
-              {e.job.title}
-            </Link>
-          </>
-        )}
-      </p>
+      <BackLink href="/expenses" label={t("Expenses.title")} />
+      {e.job && (
+        <p className="text-xs text-muted-foreground">
+          <Link href={`/jobs/${e.job.id}`} className="hover:underline">
+            {e.job.title}
+          </Link>
+        </p>
+      )}
       <div className="mt-1 flex items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold tracking-tight">{e.description}</h1>
         <span className="rounded-full bg-secondary px-3 py-1 text-sm font-medium tabular-nums">

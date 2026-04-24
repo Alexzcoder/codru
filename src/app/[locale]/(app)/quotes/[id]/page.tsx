@@ -13,6 +13,7 @@ import {
   markQuoteRejected,
   markQuoteSent,
 } from "../actions";
+import { BackLink } from "@/components/back-link";
 
 export default async function QuoteDetailPage({
   params,
@@ -76,19 +77,14 @@ export default async function QuoteDetailPage({
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-8">
-      <p className="text-xs text-muted-foreground">
-        <Link href="/quotes" className="hover:underline">
-          {t("Quotes.title")}
-        </Link>
-        {doc.client && (
-          <>
-            {" · "}
-            <Link href={`/clients/${doc.client.id}`} className="hover:underline">
-              {clientDisplayName(doc.client)}
-            </Link>
-          </>
-        )}
-      </p>
+      <BackLink href="/quotes" label={t("Quotes.title")} />
+      {doc.client && (
+        <p className="text-xs text-muted-foreground">
+          <Link href={`/clients/${doc.client.id}`} className="hover:underline">
+            {clientDisplayName(doc.client)}
+          </Link>
+        </p>
+      )}
       <div className="mt-1 flex items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold tracking-tight">
           {doc.number ?? (

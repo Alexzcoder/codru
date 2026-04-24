@@ -6,6 +6,7 @@ import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { pauseRule, resumeRule, endRule, deleteRule, runNow } from "../actions";
 import { upcomingRuns } from "@/lib/recurrence";
+import { BackLink } from "@/components/back-link";
 
 export default async function RecurrenceRuleDetailPage({
   params,
@@ -39,11 +40,9 @@ export default async function RecurrenceRuleDetailPage({
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-8">
+      <BackLink href="/recurring" label={t("Recurring.title")} />
       <p className="text-xs text-muted-foreground">
-        <Link href="/recurring" className="hover:underline">
-          {t("Recurring.title")}
-        </Link>{" "}
-        · {t(`Recurring.kinds.${rule.targetKind}`)}
+        {t(`Recurring.kinds.${rule.targetKind}`)}
       </p>
       <div className="mt-1 flex items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold tracking-tight">{rule.name}</h1>

@@ -10,6 +10,7 @@ import {
   deleteCreditNoteDraft,
   markCreditNoteSent,
 } from "../actions";
+import { BackLink } from "@/components/back-link";
 
 export default async function CreditNoteDetailPage({
   params,
@@ -63,27 +64,22 @@ export default async function CreditNoteDetailPage({
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-8">
-      <p className="text-xs text-muted-foreground">
-        <Link href="/credit-notes" className="hover:underline">
-          {t("CreditNotes.title")}
-        </Link>
-        {doc.client && (
-          <>
-            {" · "}
+      <BackLink href="/credit-notes" label={t("CreditNotes.title")} />
+      {(doc.client || doc.originalDocument) && (
+        <p className="text-xs text-muted-foreground">
+          {doc.client && (
             <Link href={`/clients/${doc.client.id}`} className="hover:underline">
               {clientDisplayName(doc.client)}
             </Link>
-          </>
-        )}
-        {doc.originalDocument && (
-          <>
-            {" · "}
+          )}
+          {doc.client && doc.originalDocument && " · "}
+          {doc.originalDocument && (
             <Link href={originalHref} className="hover:underline">
               {doc.originalDocument.number ?? "original draft"}
             </Link>
-          </>
-        )}
-      </p>
+          )}
+        </p>
+      )}
       <div className="mt-1 flex items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold tracking-tight">
           {doc.number ?? (

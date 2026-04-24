@@ -6,6 +6,7 @@ import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { clientDisplayName } from "@/lib/client-display";
 import { deletePayment } from "../actions";
+import { BackLink } from "@/components/back-link";
 
 export default async function PaymentDetailPage({
   params,
@@ -40,11 +41,8 @@ export default async function PaymentDetailPage({
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-8">
+      <BackLink href="/payments" label={t("Payments.title")} />
       <p className="text-xs text-muted-foreground">
-        <Link href="/payments" className="hover:underline">
-          {t("Payments.title")}
-        </Link>
-        {" · "}
         <Link href={`/clients/${payment.client.id}`} className="hover:underline">
           {clientDisplayName(payment.client)}
         </Link>

@@ -13,6 +13,7 @@ import {
   markAdvanceSent,
 } from "../actions";
 import { loadCreditNotesForOriginal } from "@/lib/credit-notes-summary";
+import { BackLink } from "@/components/back-link";
 
 export default async function AdvanceInvoiceDetailPage({
   params,
@@ -73,27 +74,22 @@ export default async function AdvanceInvoiceDetailPage({
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-8">
-      <p className="text-xs text-muted-foreground">
-        <Link href="/advance-invoices" className="hover:underline">
-          {t("AdvanceInvoices.title")}
-        </Link>
-        {doc.client && (
-          <>
-            {" · "}
+      <BackLink href="/advance-invoices" label={t("AdvanceInvoices.title")} />
+      {(doc.client || doc.sourceQuote) && (
+        <p className="text-xs text-muted-foreground">
+          {doc.client && (
             <Link href={`/clients/${doc.client.id}`} className="hover:underline">
               {clientDisplayName(doc.client)}
             </Link>
-          </>
-        )}
-        {doc.sourceQuote && (
-          <>
-            {" · "}
+          )}
+          {doc.client && doc.sourceQuote && " · "}
+          {doc.sourceQuote && (
             <Link href={`/quotes/${doc.sourceQuote.id}`} className="hover:underline">
               {doc.sourceQuote.number ?? "draft quote"}
             </Link>
-          </>
-        )}
-      </p>
+          )}
+        </p>
+      )}
       <div className="mt-1 flex items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold tracking-tight">
           {doc.number ?? (
