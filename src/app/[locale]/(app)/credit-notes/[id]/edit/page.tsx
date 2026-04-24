@@ -7,6 +7,7 @@ import { updateCreditNote } from "../../actions";
 import { loadCreditNoteFormData } from "../../load-form-data";
 import { negateLines } from "../../negate-lines";
 import { clientDisplayName } from "@/lib/client-display";
+import { BackLink } from "@/components/back-link";
 import type { EditorLine } from "../../../quotes/line-items-editor";
 
 export default async function EditCreditNotePage({
@@ -46,7 +47,7 @@ export default async function EditCreditNotePage({
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-8">
-      <p className="text-xs text-muted-foreground">{t("CreditNotes.title")}</p>
+      <BackLink href={`/credit-notes/${id}`} label={doc.number ?? t("Quotes.draftBadge")} />
       <h1 className="text-2xl font-semibold tracking-tight">
         {doc.number ?? t("Quotes.draftBadge")}
       </h1>

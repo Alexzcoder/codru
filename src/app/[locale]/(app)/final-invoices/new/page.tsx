@@ -5,6 +5,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { FinalInvoiceForm } from "../final-invoice-form";
 import { createFinalInvoice } from "../actions";
 import { loadFinalInvoiceFormData } from "../load-form-data";
+import { BackLink } from "@/components/back-link";
 import { redirect } from "next/navigation";
 
 export default async function NewFinalInvoicePage({
@@ -48,6 +49,7 @@ export default async function NewFinalInvoicePage({
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-8">
+      <BackLink href="/final-invoices" label={t("FinalInvoices.title")} />
       <h1 className="text-2xl font-semibold tracking-tight">{t("FinalInvoices.new")}</h1>
       <div className="mt-8">
         <FinalInvoiceForm

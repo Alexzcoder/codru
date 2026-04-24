@@ -4,6 +4,7 @@ import { seedDefaults } from "@/lib/seed-defaults";
 import { QuoteForm } from "../quote-form";
 import { createQuote } from "../actions";
 import { loadQuoteFormData } from "../load-form-data";
+import { BackLink } from "@/components/back-link";
 import { redirect } from "next/navigation";
 
 export default async function NewQuotePage({
@@ -24,6 +25,7 @@ export default async function NewQuotePage({
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-8">
+      <BackLink href="/quotes" label={t("Quotes.title")} />
       <h1 className="text-2xl font-semibold tracking-tight">{t("Quotes.newQuote")}</h1>
       <div className="mt-8">
         <QuoteForm

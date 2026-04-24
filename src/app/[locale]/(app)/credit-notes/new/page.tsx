@@ -8,6 +8,7 @@ import { createCreditNote } from "../actions";
 import { loadCreditNoteFormData } from "../load-form-data";
 import { negateLines } from "../negate-lines";
 import { clientDisplayName } from "@/lib/client-display";
+import { BackLink } from "@/components/back-link";
 
 export default async function NewCreditNotePage({
   params,
@@ -26,6 +27,7 @@ export default async function NewCreditNotePage({
   if (!fromInvoice) {
     return (
       <div className="mx-auto max-w-2xl px-6 py-8">
+        <BackLink href="/credit-notes" label={t("CreditNotes.title")} />
         <h1 className="text-2xl font-semibold tracking-tight">
           {t("CreditNotes.new")}
         </h1>
@@ -49,6 +51,14 @@ export default async function NewCreditNotePage({
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-8">
+      <BackLink
+        href={
+          original.type === "FINAL_INVOICE"
+            ? `/final-invoices/${original.id}`
+            : `/advance-invoices/${original.id}`
+        }
+        label={original.number ?? t("Quotes.draftBadge")}
+      />
       <h1 className="text-2xl font-semibold tracking-tight">{t("CreditNotes.new")}</h1>
       <div className="mt-8">
         <CreditNoteForm

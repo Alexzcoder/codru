@@ -5,6 +5,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { AdvanceInvoiceForm } from "../advance-invoice-form";
 import { createAdvanceInvoice } from "../actions";
 import { loadAdvanceFormData } from "../load-form-data";
+import { BackLink } from "@/components/back-link";
 import { redirect } from "next/navigation";
 
 export default async function NewAdvanceInvoicePage({
@@ -46,6 +47,7 @@ export default async function NewAdvanceInvoicePage({
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-8">
+      <BackLink href="/advance-invoices" label={t("AdvanceInvoices.title")} />
       <h1 className="text-2xl font-semibold tracking-tight">{t("AdvanceInvoices.new")}</h1>
       <div className="mt-8">
         <AdvanceInvoiceForm

@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { FinalInvoiceForm } from "../../final-invoice-form";
 import { updateFinalInvoice } from "../../actions";
 import { loadFinalInvoiceFormData } from "../../load-form-data";
+import { BackLink } from "@/components/back-link";
 import type { EditorLine } from "../../../quotes/line-items-editor";
 
 export default async function EditFinalInvoicePage({
@@ -53,7 +54,7 @@ export default async function EditFinalInvoicePage({
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-8">
-      <p className="text-xs text-muted-foreground">{t("FinalInvoices.title")}</p>
+      <BackLink href={`/final-invoices/${id}`} label={doc.number ?? t("Quotes.draftBadge")} />
       <h1 className="text-2xl font-semibold tracking-tight">
         {doc.number ?? t("Quotes.draftBadge")}
       </h1>

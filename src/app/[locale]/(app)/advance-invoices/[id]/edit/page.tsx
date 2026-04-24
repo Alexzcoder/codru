@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { AdvanceInvoiceForm } from "../../advance-invoice-form";
 import { updateAdvanceInvoice } from "../../actions";
 import { loadAdvanceFormData } from "../../load-form-data";
+import { BackLink } from "@/components/back-link";
 import type { EditorLine } from "../../../quotes/line-items-editor";
 
 export default async function EditAdvanceInvoicePage({
@@ -40,7 +41,7 @@ export default async function EditAdvanceInvoicePage({
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-8">
-      <p className="text-xs text-muted-foreground">{t("AdvanceInvoices.title")}</p>
+      <BackLink href={`/advance-invoices/${id}`} label={doc.number ?? t("Quotes.draftBadge")} />
       <h1 className="text-2xl font-semibold tracking-tight">
         {doc.number ?? t("Quotes.draftBadge")}
       </h1>

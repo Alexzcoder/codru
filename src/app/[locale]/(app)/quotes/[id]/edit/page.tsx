@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { QuoteForm } from "../../quote-form";
 import { updateQuote } from "../../actions";
 import { loadQuoteFormData } from "../../load-form-data";
+import { BackLink } from "@/components/back-link";
 import type { EditorLine } from "../../line-items-editor";
 
 export default async function EditQuotePage({
@@ -40,7 +41,7 @@ export default async function EditQuotePage({
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-8">
-      <p className="text-xs text-muted-foreground">{t("Quotes.title")}</p>
+      <BackLink href={`/quotes/${id}`} label={doc.number ?? t("Quotes.draftBadge")} />
       <h1 className="text-2xl font-semibold tracking-tight">
         {doc.number ?? t("Quotes.draftBadge")}
       </h1>
