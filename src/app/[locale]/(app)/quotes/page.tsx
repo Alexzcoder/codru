@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { clientDisplayName } from "@/lib/client-display";
 import { calculateDocument } from "@/lib/line-items";
 import { PageHeader } from "@/components/page-header";
+import { ClickableRow } from "@/components/clickable-row";
 import { Plus } from "lucide-react";
 import type { DocumentStatus } from "@prisma/client";
 
@@ -126,7 +127,7 @@ export default async function QuotesPage({
                   reverseCharge: q.reverseCharge,
                 });
                 return (
-                  <tr key={q.id} className="hover:bg-secondary/40">
+                  <ClickableRow key={q.id} href={`/quotes/${q.id}`}>
                     <td className="px-4 py-3 font-medium">
                       <Link href={`/quotes/${q.id}`} className="hover:underline">
                         {q.number ?? (
@@ -155,7 +156,7 @@ export default async function QuotesPage({
                         {t(`Quotes.status.${q.status}`)}
                       </span>
                     </td>
-                  </tr>
+                  </ClickableRow>
                 );
               })}
             </tbody>

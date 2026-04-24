@@ -81,7 +81,7 @@ function methodLabel(m: ReceiptData["method"], locale: PdfLocale): string {
   return L.other;
 }
 
-export function ReceiptPdf({ data, accent = "#1d4ed8" }: { data: ReceiptData; accent?: string }) {
+export function ReceiptPdf({ data, accent = "#059669" }: { data: ReceiptData; accent?: string }) {
   const styles = buildStyles(accent);
   const L = LABELS[data.locale];
 

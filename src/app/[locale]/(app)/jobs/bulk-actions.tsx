@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
+import { ClickableRow } from "@/components/clickable-row";
 import { bulkSetJobStatus } from "./actions";
 import type { JobStatus } from "@prisma/client";
 
@@ -80,7 +81,7 @@ export function BulkActions({ jobs }: { jobs: Row[] }) {
           </thead>
           <tbody className="divide-y divide-border">
             {jobs.map((j) => (
-              <tr key={j.id} className="hover:bg-secondary/40">
+              <ClickableRow key={j.id} href={`/jobs/${j.id}`}>
                 <td className="px-3 py-2">
                   <input
                     type="checkbox"
@@ -116,7 +117,7 @@ export function BulkActions({ jobs }: { jobs: Row[] }) {
                 <td className="px-4 py-2">
                   <StatusBadge status={j.status} label={t(`status.${j.status}`)} />
                 </td>
-              </tr>
+              </ClickableRow>
             ))}
           </tbody>
         </table>

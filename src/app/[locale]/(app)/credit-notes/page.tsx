@@ -5,6 +5,7 @@ import { Link } from "@/i18n/navigation";
 import { clientDisplayName } from "@/lib/client-display";
 import { calculateDocument } from "@/lib/line-items";
 import { PageHeader } from "@/components/page-header";
+import { ClickableRow } from "@/components/clickable-row";
 
 const PAGE_SIZE = 50;
 
@@ -72,7 +73,7 @@ export default async function CreditNotesPage({
                   reverseCharge: d.reverseCharge,
                 });
                 return (
-                  <tr key={d.id} className="hover:bg-secondary/40">
+                  <ClickableRow key={d.id} href={`/credit-notes/${d.id}`}>
                     <td className="px-4 py-2 font-medium">
                       <Link href={`/credit-notes/${d.id}`} className="hover:underline">
                         {d.number ?? <span className="italic text-muted-foreground">Draft</span>}
@@ -97,7 +98,7 @@ export default async function CreditNotesPage({
                         {t(`CreditNotes.status.${d.status === "PAID" ? "APPLIED" : d.status}`)}
                       </span>
                     </td>
-                  </tr>
+                  </ClickableRow>
                 );
               })}
             </tbody>

@@ -89,6 +89,11 @@ export function DocumentPdf({
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        {/* Letterhead banner (optional, renders above header) */}
+        {options.letterheadAbsolutePath && (
+          <Image style={styles.letterhead} src={options.letterheadAbsolutePath} />
+        )}
+
         {/* Header */}
         <View style={styles.headerRow}>
           <View>
@@ -258,30 +263,34 @@ export function DocumentPdf({
           </View>
         )}
 
-        {/* Signature */}
-        {options.showSignature && (
-          <View style={styles.signatureBox}>
-            {data.signatureAbsolutePath && (
-              <Image
-                style={styles.signatureImage}
-                src={data.signatureAbsolutePath}
-              />
+        {/* Signature + QR footer row (flows, no overlap) */}
+        {(options.showSignature || (showQr && qrDataUrl)) && (
+          <View style={styles.footerBlock}>
+            {options.showSignature ? (
+              <View style={styles.signatureBox}>
+                {data.signatureAbsolutePath && (
+                  <Image
+                    style={styles.signatureImage}
+                    src={data.signatureAbsolutePath}
+                  />
+                )}
+                <Text style={styles.signatureLine}>
+                  {data.issuedByName
+                    ? `${L.issuedBy}: ${data.issuedByName}`
+                    : L.signature}
+                  {" · "}
+                  {formatDate(data.issueDate, data.locale)}
+                </Text>
+              </View>
+            ) : (
+              <View />
             )}
-            <Text style={styles.signatureLine}>
-              {data.issuedByName
-                ? `${L.issuedBy}: ${data.issuedByName}`
-                : L.signature}
-              {" · "}
-              {formatDate(data.issueDate, data.locale)}
-            </Text>
-          </View>
-        )}
-
-        {/* QR platba (floats bottom-right of first page only) */}
-        {showQr && qrDataUrl && (
-          <View style={styles.qrWrap} fixed>
-            <Image style={styles.qrImage} src={qrDataUrl} />
-            <Text style={styles.qrLabel}>{L.qrLabel}</Text>
+            {showQr && qrDataUrl && (
+              <View style={styles.qrWrap}>
+                <Image style={styles.qrImage} src={qrDataUrl} />
+                <Text style={styles.qrLabel}>{L.qrLabel}</Text>
+              </View>
+            )}
           </View>
         )}
 

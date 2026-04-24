@@ -32,6 +32,12 @@ export function buildStyles(accent: string) {
     },
 
     // Header
+    letterhead: {
+      width: "100%",
+      maxHeight: 90,
+      objectFit: "contain",
+      marginBottom: 16,
+    },
     headerRow: {
       flexDirection: "row",
       alignItems: "flex-start",
@@ -149,14 +155,18 @@ export function buildStyles(accent: string) {
       color: "#7c6a10",
     },
 
+    footerBlock: {
+      marginTop: 28,
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "flex-end",
+      gap: 24,
+    },
     qrWrap: {
-      position: "absolute",
-      right: 42,
-      bottom: 90,
-      width: 110,
+      width: 100,
       alignItems: "center",
     },
-    qrImage: { width: 100, height: 100 },
+    qrImage: { width: 90, height: 90 },
     qrLabel: {
       marginTop: 3,
       fontSize: 7,
@@ -166,7 +176,6 @@ export function buildStyles(accent: string) {
     },
 
     signatureBox: {
-      marginTop: 32,
       width: 200,
     },
     signatureImage: { height: 40, maxWidth: 180, objectFit: "contain" },

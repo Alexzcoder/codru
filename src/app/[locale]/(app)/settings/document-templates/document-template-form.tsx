@@ -76,7 +76,7 @@ export function DocumentTemplateForm({
           id="accentColor"
           name="accentColor"
           type="color"
-          defaultValue={initial?.accentColor ?? "#1d4ed8"}
+          defaultValue={initial?.accentColor ?? "#059669"}
           className="h-10 w-24 p-1"
         />
       </div>
@@ -100,6 +100,30 @@ export function DocumentTemplateForm({
           initial={initial?.showReverseChargeNote ?? true}
         />
       </fieldset>
+
+      <div className="space-y-2">
+        <Label htmlFor="letterhead">Letterhead image (optional)</Label>
+        <p className="text-xs text-muted-foreground">
+          PNG or JPG, shown as a full-width banner at the top of the PDF. Use this
+          for a pre-printed header with your brand mark, address, or registration
+          details. Max 5 MB.
+        </p>
+        <Input id="letterhead" name="letterhead" type="file" accept="image/png,image/jpeg" />
+        {initial?.letterheadImagePath && (
+          <div className="flex items-center gap-3 rounded-md border border-input bg-secondary/40 p-2">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={initial.letterheadImagePath}
+              alt="Current letterhead"
+              className="h-10 max-w-[200px] object-contain"
+            />
+            <label className="flex items-center gap-2 text-xs text-muted-foreground">
+              <input type="checkbox" name="removeLetterhead" />
+              Remove current letterhead
+            </label>
+          </div>
+        )}
+      </div>
 
       <div className="space-y-2">
         <Label htmlFor="customHeaderText">Custom header text (optional)</Label>

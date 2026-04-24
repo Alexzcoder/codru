@@ -19,7 +19,7 @@ const schema = z.object({
   iban: z.string().trim().max(40).optional().or(z.literal("")),
   swift: z.string().trim().max(20).optional().or(z.literal("")),
   accountNumber: z.string().trim().max(40).optional().or(z.literal("")),
-  brandColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).default("#1d4ed8"),
+  brandColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).default("#059669"),
   defaultHeaderText: z.string().trim().max(500).optional().or(z.literal("")),
   defaultFooterText: z.string().trim().max(500).optional().or(z.literal("")),
   defaultPaymentTermsDays: z.coerce.number().int().min(0).max(365).default(14),

@@ -5,6 +5,7 @@ import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { runDueRecurrences } from "@/lib/recurrence";
 import { PageHeader } from "@/components/page-header";
+import { ClickableRow } from "@/components/clickable-row";
 import { Plus } from "lucide-react";
 
 export default async function RecurringPage({
@@ -67,7 +68,7 @@ export default async function RecurringPage({
                 const instances =
                   r._count.jobs + r._count.expenses + r._count.documents;
                 return (
-                  <tr key={r.id} className="hover:bg-secondary/40">
+                  <ClickableRow key={r.id} href={`/recurring/${r.id}`}>
                     <td className="px-4 py-2 font-medium">
                       <Link href={`/recurring/${r.id}`} className="hover:underline">
                         {r.name}
@@ -97,7 +98,7 @@ export default async function RecurringPage({
                       </span>
                     </td>
                     <td className="px-4 py-2 text-right tabular-nums">{instances}</td>
-                  </tr>
+                  </ClickableRow>
                 );
               })}
             </tbody>

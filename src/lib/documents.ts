@@ -134,6 +134,10 @@ export async function renderDocumentPdf(doc: DocumentWithLines): Promise<Buffer>
         showReverseChargeNote: template.showReverseChargeNote,
         customHeaderText: template.customHeaderText,
         customFooterText: template.customFooterText,
+        letterheadAbsolutePath:
+          template.letterheadImagePath && template.letterheadImagePath.startsWith("/uploads/")
+            ? path.join(process.cwd(), "public", template.letterheadImagePath)
+            : null,
       },
       qrDataUrl: qr,
     }),

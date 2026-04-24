@@ -7,6 +7,7 @@ import { clientDisplayName } from "@/lib/client-display";
 import { ClientListFilters } from "./list-filters";
 import { createDemoClient } from "./actions";
 import { PageHeader } from "@/components/page-header";
+import { ClickableRow } from "@/components/clickable-row";
 import { Plus, Download, Sparkles } from "lucide-react";
 import type { ClientStatus } from "@prisma/client";
 
@@ -108,7 +109,7 @@ export default async function ClientsPage({
             </thead>
             <tbody className="divide-y divide-border">
               {clients.map((c) => (
-                <tr key={c.id} className="hover:bg-secondary/40">
+                <ClickableRow key={c.id} href={`/clients/${c.id}`}>
                   <td className="px-4 py-3 text-xs text-muted-foreground">
                     {t(`Clients.type.${c.type}`)}
                   </td>
@@ -125,7 +126,7 @@ export default async function ClientsPage({
                   <td className="px-4 py-3">
                     <StatusBadge status={c.status} label={t(`Clients.status.${c.status}`)} />
                   </td>
-                </tr>
+                </ClickableRow>
               ))}
             </tbody>
           </table>

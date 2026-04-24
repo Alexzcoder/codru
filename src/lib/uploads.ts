@@ -21,7 +21,7 @@ export async function saveImageUpload({
   subdir,
 }: {
   file: File;
-  subdir: "logos" | "signatures";
+  subdir: "logos" | "signatures" | "letterheads";
 }): Promise<string> {
   if (file.size === 0) throw new Error("Empty file");
   if (file.size > MAX_BYTES) throw new Error("File too large (max 5 MB)");

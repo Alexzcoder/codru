@@ -71,4 +71,5 @@ export type PdfTemplateOptions = {
   showReverseChargeNote: boolean;
   customHeaderText?: string | null;
   customFooterText?: string | null;
+  letterheadAbsolutePath?: string | null;
 };

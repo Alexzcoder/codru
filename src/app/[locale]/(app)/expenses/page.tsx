@@ -5,6 +5,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/page-header";
+import { ClickableRow } from "@/components/clickable-row";
 import { Plus } from "lucide-react";
 
 const PAGE_SIZE = 50;
@@ -185,7 +186,7 @@ export default async function ExpensesPage({
             </thead>
             <tbody className="divide-y divide-border">
               {expenses.map((e) => (
-                <tr key={e.id} className="hover:bg-secondary/40">
+                <ClickableRow key={e.id} href={`/expenses/${e.id}`}>
                   <td className="px-4 py-2 text-muted-foreground">
                     <Link href={`/expenses/${e.id}`} className="hover:underline">
                       {e.date.toISOString().slice(0, 10)}
@@ -206,7 +207,7 @@ export default async function ExpensesPage({
                   <td className="px-4 py-2 text-right tabular-nums">
                     {e.totalAmount.toString()} {e.currency}
                   </td>
-                </tr>
+                </ClickableRow>
               ))}
             </tbody>
           </table>

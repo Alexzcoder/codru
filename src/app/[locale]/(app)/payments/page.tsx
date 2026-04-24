@@ -5,6 +5,7 @@ import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { clientDisplayName } from "@/lib/client-display";
 import { PageHeader } from "@/components/page-header";
+import { ClickableRow } from "@/components/clickable-row";
 import { Plus } from "lucide-react";
 
 const PAGE_SIZE = 50;
@@ -57,7 +58,7 @@ export default async function PaymentsPage({
             </thead>
             <tbody className="divide-y divide-border">
               {payments.map((p) => (
-                <tr key={p.id} className="hover:bg-secondary/40">
+                <ClickableRow key={p.id} href={`/payments/${p.id}`}>
                   <td className="px-4 py-3 text-muted-foreground">
                     <Link href={`/payments/${p.id}`} className="hover:underline">
                       {p.date.toISOString().slice(0, 10)}
@@ -73,7 +74,7 @@ export default async function PaymentsPage({
                   <td className="px-4 py-3 text-center text-xs text-muted-foreground">
                     {p.allocations.length}
                   </td>
-                </tr>
+                </ClickableRow>
               ))}
             </tbody>
           </table>

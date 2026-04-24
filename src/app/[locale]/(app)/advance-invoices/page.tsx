@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { clientDisplayName } from "@/lib/client-display";
 import { calculateDocument } from "@/lib/line-items";
 import { PageHeader } from "@/components/page-header";
+import { ClickableRow } from "@/components/clickable-row";
 import { Plus } from "lucide-react";
 
 const PAGE_SIZE = 50;
@@ -83,7 +84,7 @@ export default async function AdvanceInvoicesPage({
                   reverseCharge: d.reverseCharge,
                 });
                 return (
-                  <tr key={d.id} className="hover:bg-secondary/40">
+                  <ClickableRow key={d.id} href={`/advance-invoices/${d.id}`}>
                     <td className="px-4 py-2 font-medium">
                       <Link href={`/advance-invoices/${d.id}`} className="hover:underline">
                         {d.number ?? (
@@ -110,7 +111,7 @@ export default async function AdvanceInvoicesPage({
                         {t(`AdvanceInvoices.status.${d.status}`)}
                       </span>
                     </td>
-                  </tr>
+                  </ClickableRow>
                 );
               })}
             </tbody>

@@ -64,7 +64,7 @@ export function CompanyProfileForm({
             id="brandColor"
             name="brandColor"
             type="color"
-            defaultValue={initial?.brandColor ?? "#1d4ed8"}
+            defaultValue={initial?.brandColor ?? "#059669"}
             className="h-10 p-1"
           />
         </div>

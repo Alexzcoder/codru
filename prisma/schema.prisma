@@ -89,7 +89,7 @@ model CompanyProfile {
   swift                  String?
   accountNumber          String?
   logoPath               String?
-  brandColor             String   @default("#1d4ed8")
+  brandColor             String   @default("#059669")
   defaultHeaderText      String?
   defaultFooterText      String?
   defaultPaymentTermsDays Int     @default(14)
@@ -445,7 +445,7 @@ model DocumentTemplate {
   companyProfileId String?
   companyProfile   CompanyProfile? @relation(fields: [companyProfileId], references: [id], onDelete: SetNull)
 
-  accentColor      String       @default("#1d4ed8")
+  accentColor      String       @default("#059669")
   fontChoice       String       @default("Roboto")
   headerPosition   String       @default("TOP")  // reserved for future layouts
   showLogo         Boolean      @default(true)
@@ -454,6 +454,7 @@ model DocumentTemplate {
   showReverseChargeNote Boolean  @default(true)
   customHeaderText String?
   customFooterText String?
+  letterheadImagePath String?
 
   isDefault        Boolean      @default(false)
   archivedAt       DateTime?

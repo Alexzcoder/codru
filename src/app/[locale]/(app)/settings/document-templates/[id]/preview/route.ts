@@ -1,3 +1,4 @@
+import path from "node:path";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import { renderToBuffer } from "@react-pdf/renderer";
@@ -54,6 +55,10 @@ export async function GET(
         showReverseChargeNote: template.showReverseChargeNote,
         customHeaderText: template.customHeaderText,
         customFooterText: template.customFooterText,
+        letterheadAbsolutePath:
+          template.letterheadImagePath && template.letterheadImagePath.startsWith("/uploads/")
+            ? path.join(process.cwd(), "public", template.letterheadImagePath)
+            : null,
       },
       qrDataUrl: qr,
     }),
