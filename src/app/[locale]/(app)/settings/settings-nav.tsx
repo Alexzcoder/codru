@@ -12,6 +12,7 @@ export function SettingsNav({ isOwner }: { isOwner: boolean }) {
     { href: "/settings/company-profiles", label: t("navCompanyProfiles"), ownerOnly: true },
     { href: "/settings/tax-rates", label: t("navTaxRates"), ownerOnly: true },
     { href: "/settings/categories", label: t("navCategories"), ownerOnly: true },
+    { href: "/settings/expense-categories", label: t("navExpenseCategories"), ownerOnly: true },
     { href: "/settings/units", label: t("navUnits"), ownerOnly: true },
     { href: "/settings/item-templates", label: t("navItemTemplates"), ownerOnly: true },
     { href: "/settings/document-templates", label: t("navDocumentTemplates"), ownerOnly: true },

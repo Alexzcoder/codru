@@ -46,6 +46,7 @@ model User {
   calendarEventsAssigned CalendarEvent[]  @relation("CalendarEventAssignee")
   documentsCreated   Document[]           @relation("DocumentCreator")
   paymentsLogged     Payment[]
+  expensesCreated    Expense[]            @relation("ExpenseCreator")
 }
 
 model Invite {
@@ -294,6 +295,7 @@ model Job {
   attachments    Attachment[]
   calendarEvents CalendarEvent[]
   documents      Document[]
+  expenses       Expense[]
 
   @@index([clientId])
   @@index([status, scheduledStart])
@@ -682,6 +684,62 @@ model PaymentAllocation {
 
   @@index([paymentId])
   @@index([documentId])
+}
+
+// ──────────────────────────────────────────────────────────
+// M13 — Expenses (PRD §15)
+// ──────────────────────────────────────────────────────────
+
+model ExpenseCategory {
+  id         String    @id @default(cuid())
+  name       String    @unique
+  archivedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  expenses   Expense[]
+}
+
+enum ExpensePaymentMethod {
+  BANK
+  CASH
+}
+
+model Expense {
+  id             String          @id @default(cuid())
+  date           DateTime
+  categoryId     String
+  category       ExpenseCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  supplier       String?
+  description    String
+
+  netAmount      Decimal         @db.Decimal(12, 2)
+  vatRatePercent Decimal         @db.Decimal(5, 2)  // 0 / 12 / 21 / 0 + reverseCharge
+  vatAmount      Decimal         @db.Decimal(12, 2)
+  totalAmount    Decimal         @db.Decimal(12, 2)
+  currency       String          @default("CZK")
+  reverseCharge  Boolean         @default(false)
+
+  paymentMethod  ExpensePaymentMethod @default(BANK)
+
+  receiptPath    String?
+
+  jobId          String?
+  job            Job?            @relation(fields: [jobId], references: [id], onDelete: SetNull)
+
+  taxDeductible  Boolean         @default(true)
+  notes          String?
+
+  createdById    String
+  createdBy      User            @relation("ExpenseCreator", fields: [createdById], references: [id], onDelete: Restrict)
+
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([date])
+  @@index([categoryId])
+  @@index([jobId])
 }
 
 // Rate-limit login attempts by IP (PRD §23 brute-force protection).

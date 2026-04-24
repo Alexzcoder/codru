@@ -54,6 +54,73 @@
     "recentContacts": "Poslední kontakty",
     "upcomingJobs": "Nadcházející zakázky (7 dní)"
   },
+  "Expenses": {
+    "title": "Výdaje",
+    "new": "Nový výdaj",
+    "empty": "Zatím žádné výdaje.",
+    "fields": {
+      "date": "Datum",
+      "category": "Kategorie",
+      "supplier": "Dodavatel",
+      "description": "Popis",
+      "netAmount": "Bez DPH",
+      "vatRate": "Sazba DPH",
+      "vatAmount": "DPH",
+      "totalAmount": "Celkem",
+      "currency": "Měna",
+      "paymentMethod": "Způsob úhrady",
+      "receipt": "Účtenka (obrázek / PDF)",
+      "job": "Zakázka",
+      "taxDeductible": "Daňově uznatelné",
+      "notes": "Poznámky",
+      "reverseCharge": "Přenesená DPH (§92e)"
+    },
+    "methods": {
+      "BANK": "Bankou",
+      "CASH": "Hotově"
+    },
+    "filters": {
+      "from": "Od",
+      "to": "Do",
+      "category": "Kategorie",
+      "job": "Zakázka"
+    },
+    "summary": {
+      "title": "Měsíční přehled",
+      "total": "Celkem výdaje",
+      "vatPaid": "Zaplacené DPH",
+      "byCategory": "Podle kategorie"
+    },
+    "profitability": {
+      "title": "Rentabilita",
+      "revenue": "Výnosy (faktury)",
+      "expenses": "Výdaje (propojené)",
+      "profit": "Zisk"
+    },
+    "actions": {
+      "save": "Uložit výdaj",
+      "delete": "Smazat výdaj"
+    }
+  },
+  "Accounting": {
+    "title": "Účetnictví",
+    "revenue": {
+      "title": "Výnosy",
+      "thisMonth": "Tento měsíc",
+      "thisQuarter": "Toto čtvrtletí",
+      "thisYear": "Tento rok",
+      "vsPrev": "oproti předchozímu"
+    },
+    "unpaidInvoices": "Nezaplacené faktury",
+    "staleQuotes": "Staré nabídky",
+    "ppcAdvances": "Uhrazené zálohy, nedokončené zakázky",
+    "upcomingDue": "Blížící se splatnost (7 dní)",
+    "perJobProfit": "Rentabilita zakázek",
+    "topProfit": "Top 5",
+    "bottomProfit": "Spodních 5",
+    "creditNotesThisPeriod": "Opravné doklady toto období",
+    "monthlyTrend": "Výnosy vs výdaje (12 měsíců)"
+  },
   "Payments": {
     "title": "Platby",
     "new": "Zaznamenat platbu",
@@ -415,6 +482,7 @@
     "navCompanyProfiles": "Firemní profily",
     "navTaxRates": "Sazby DPH",
     "navCategories": "Kategorie položek",
+    "navExpenseCategories": "Kategorie výdajů",
     "navUnits": "Jednotky",
     "navItemTemplates": "Šablony položek",
     "navDocumentTemplates": "Šablony dokladů",

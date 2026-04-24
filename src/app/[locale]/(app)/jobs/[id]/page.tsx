@@ -8,6 +8,7 @@ import { clientDisplayName } from "@/lib/client-display";
 import { setJobStatus, deleteJob, deleteAttachment } from "../actions";
 import { AttachmentUploader } from "./attachment-uploader";
 import { ContactLogForm } from "../../clients/[id]/contact-log-form";
+import { computeJobProfitability } from "@/lib/job-profitability";
 
 export default async function JobDetailPage({
   params,
@@ -163,9 +164,36 @@ export default async function JobDetailPage({
 
         <aside className="rounded-md border border-neutral-200 bg-white p-5">
           <h2 className="text-sm font-medium text-neutral-500">
-            {t("Jobs.detail.documents")}
+            {t("Expenses.profitability.title")}
           </h2>
-          <p className="mt-3 text-xs text-neutral-400">{t("Jobs.detail.noDocs")}</p>
+          {await (async () => {
+            const p = await computeJobProfitability(id);
+            return (
+              <dl className="mt-3 space-y-1 text-sm">
+                <div className="flex justify-between">
+                  <dt className="text-neutral-500">{t("Expenses.profitability.revenue")}</dt>
+                  <dd className="tabular-nums">{p.revenue.toFixed(2)} CZK</dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt className="text-neutral-500">{t("Expenses.profitability.expenses")}</dt>
+                  <dd className="tabular-nums">−{p.expenses.toFixed(2)} CZK</dd>
+                </div>
+                <div className="flex justify-between border-t border-neutral-200 pt-1 font-medium">
+                  <dt>{t("Expenses.profitability.profit")}</dt>
+                  <dd
+                    className={`tabular-nums ${p.profit >= 0 ? "text-green-700" : "text-red-600"}`}
+                  >
+                    {p.profit.toFixed(2)} CZK
+                  </dd>
+                </div>
+              </dl>
+            );
+          })()}
+          <Link href={`/expenses/new?jobId=${id}`} className="mt-3 inline-block">
+            <Button variant="outline" size="sm">
+              + {t("Expenses.new")}
+            </Button>
+          </Link>
         </aside>
       </div>
 

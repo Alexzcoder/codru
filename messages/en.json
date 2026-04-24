@@ -54,6 +54,73 @@
     "recentContacts": "Recent contact log",
     "upcomingJobs": "Upcoming jobs (next 7 days)"
   },
+  "Expenses": {
+    "title": "Expenses",
+    "new": "New expense",
+    "empty": "No expenses logged yet.",
+    "fields": {
+      "date": "Date",
+      "category": "Category",
+      "supplier": "Supplier / payee",
+      "description": "Description",
+      "netAmount": "Net amount",
+      "vatRate": "VAT rate",
+      "vatAmount": "VAT amount",
+      "totalAmount": "Total",
+      "currency": "Currency",
+      "paymentMethod": "Payment method",
+      "receipt": "Receipt (image / PDF)",
+      "job": "Linked job",
+      "taxDeductible": "Tax-deductible",
+      "notes": "Notes",
+      "reverseCharge": "Reverse charge (§92e)"
+    },
+    "methods": {
+      "BANK": "Bank",
+      "CASH": "Cash"
+    },
+    "filters": {
+      "from": "From",
+      "to": "To",
+      "category": "Category",
+      "job": "Job"
+    },
+    "summary": {
+      "title": "Monthly summary",
+      "total": "Total expenses",
+      "vatPaid": "VAT paid",
+      "byCategory": "By category"
+    },
+    "profitability": {
+      "title": "Profitability",
+      "revenue": "Revenue (invoices)",
+      "expenses": "Expenses (linked)",
+      "profit": "Profit"
+    },
+    "actions": {
+      "save": "Save expense",
+      "delete": "Delete expense"
+    }
+  },
+  "Accounting": {
+    "title": "Accounting",
+    "revenue": {
+      "title": "Revenue",
+      "thisMonth": "This month",
+      "thisQuarter": "This quarter",
+      "thisYear": "This year",
+      "vsPrev": "vs previous"
+    },
+    "unpaidInvoices": "Unpaid invoices",
+    "staleQuotes": "Stale quotes",
+    "ppcAdvances": "Advances paid, job not complete",
+    "upcomingDue": "Upcoming due dates (7 days)",
+    "perJobProfit": "Per-job profitability",
+    "topProfit": "Top 5",
+    "bottomProfit": "Bottom 5",
+    "creditNotesThisPeriod": "Credit notes this period",
+    "monthlyTrend": "Revenue vs expenses (12 months)"
+  },
   "Payments": {
     "title": "Payments",
     "new": "Log payment",
@@ -415,6 +482,7 @@
     "navCompanyProfiles": "Company profiles",
     "navTaxRates": "VAT rates",
     "navCategories": "Item categories",
+    "navExpenseCategories": "Expense categories",
     "navUnits": "Units",
     "navItemTemplates": "Item templates",
     "navDocumentTemplates": "Document templates",

@@ -40,6 +40,20 @@ export async function seedDefaults() {
     });
   }
 
+  const expCatCount = await prisma.expenseCategory.count();
+  if (expCatCount === 0) {
+    await prisma.expenseCategory.createMany({
+      data: [
+        { name: "Materials" },
+        { name: "Fuel" },
+        { name: "Tools" },
+        { name: "Subcontractor" },
+        { name: "Office" },
+        { name: "Other" },
+      ],
+    });
+  }
+
   const templateCount = await prisma.documentTemplate.count();
   if (templateCount === 0) {
     const firstCompany = await prisma.companyProfile.findFirst({
