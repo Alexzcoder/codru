@@ -236,41 +236,30 @@ export async function markFinalSent(id: string) {
   revalidatePath(`/final-invoices/${id}`);
 }
 
+// Mark-paid shortcut: creates a CASH payment for the outstanding amount,
+// allocates to this invoice, then flips deducted advances to PAID as well.
+// Full "Log payment" flow with split allocation lives at /payments/new.
 export async function markFinalPaid(id: string) {
   const user = await requireUser();
+  const { quickMarkInvoicePaid } = await import("@/lib/quick-pay");
+  await quickMarkInvoicePaid(user.id, id);
+
+  // Preserve M10 §12.2 cascade: deducted advances also flip to PAID.
   const doc = await prisma.document.findUnique({
     where: { id },
     include: { advanceDeductions: true },
   });
-  if (!doc || doc.type !== "FINAL_INVOICE") return;
-  if (doc.status !== "SENT" && doc.status !== "OVERDUE") return;
-
-  await prisma.$transaction(async (tx) => {
-    await tx.document.update({
-      where: { id },
+  const advanceIds = doc?.advanceDeductions.map((d) => d.advanceId) ?? [];
+  if (advanceIds.length) {
+    await prisma.document.updateMany({
+      where: {
+        id: { in: advanceIds },
+        status: { in: ["SENT", "PAID_PENDING_COMPLETION", "OVERDUE", "PARTIALLY_PAID"] },
+      },
       data: { status: "PAID", paidAt: new Date() },
     });
-    // PRD §12.2 — "When Final Invoice is marked Paid, deducted advances
-    // transition to PAID". Handles PPC and SENT cases.
-    const advanceIds = doc.advanceDeductions.map((d) => d.advanceId);
-    if (advanceIds.length) {
-      await tx.document.updateMany({
-        where: {
-          id: { in: advanceIds },
-          status: { in: ["SENT", "PAID_PENDING_COMPLETION", "OVERDUE"] },
-        },
-        data: { status: "PAID", paidAt: new Date() },
-      });
-    }
-  });
+  }
 
-  await writeAudit({
-    actorId: user.id,
-    entity: "Document",
-    entityId: id,
-    action: "update",
-    after: { status: "PAID" } as unknown as Record<string, unknown>,
-  });
   revalidatePath("/final-invoices");
   revalidatePath(`/final-invoices/${id}`);
   revalidatePath("/advance-invoices");

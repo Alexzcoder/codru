@@ -45,6 +45,7 @@ model User {
   calendarEventsCreated  CalendarEvent[]  @relation("CalendarEventCreator")
   calendarEventsAssigned CalendarEvent[]  @relation("CalendarEventAssignee")
   documentsCreated   Document[]           @relation("DocumentCreator")
+  paymentsLogged     Payment[]
 }
 
 model Invite {
@@ -196,6 +197,7 @@ model Client {
   jobs              Job[]
   calendarEvents    CalendarEvent[]
   documents         Document[]
+  payments          Payment[]
 
   @@index([status])
   @@index([email])
@@ -565,6 +567,9 @@ model Document {
   // M10: final invoices deducting THIS advance
   deductedOn         AdvanceDeduction[] @relation("AdvanceDeducted")
 
+  // M12: payment allocations to this document
+  paymentAllocations PaymentAllocation[]
+
   @@unique([type, yearSeries, numberSeq])
   @@index([clientId])
   @@index([jobId])
@@ -632,6 +637,50 @@ model PdfSnapshot {
   sizeBytes   Int
   createdAt   DateTime @default(now())
 
+  @@index([documentId])
+}
+
+// ──────────────────────────────────────────────────────────
+// M12 — Payments + split allocation (PRD §14)
+// ──────────────────────────────────────────────────────────
+
+enum PaymentMethod {
+  BANK_TRANSFER
+  CASH
+  OTHER
+}
+
+model Payment {
+  id          String        @id @default(cuid())
+  clientId    String
+  client      Client        @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  date        DateTime      @default(now())
+  method      PaymentMethod @default(BANK_TRANSFER)
+  amount      Decimal       @db.Decimal(12, 2)
+  currency    String        @default("CZK")
+  reference   String?
+  notes       String?
+  loggedById  String
+  loggedBy    User          @relation(fields: [loggedById], references: [id], onDelete: Restrict)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  allocations PaymentAllocation[]
+
+  @@index([clientId, date])
+}
+
+// Split-payment support (PRD §14.2): one Payment spreads across many invoices.
+model PaymentAllocation {
+  id         String   @id @default(cuid())
+  paymentId  String
+  payment    Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  documentId String
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Restrict)
+  amount     Decimal  @db.Decimal(12, 2)
+  createdAt  DateTime @default(now())
+
+  @@index([paymentId])
   @@index([documentId])
 }
 

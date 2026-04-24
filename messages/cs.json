@@ -34,7 +34,62 @@
   },
   "Dashboard": {
     "title": "Přehled",
-    "empty": "Zde se objeví souhrn, jakmile přidáte první klienty a zakázky."
+    "empty": "Zde se objeví souhrn, jakmile přidáte první klienty a zakázky.",
+    "jobs": {
+      "title": "Zakázky",
+      "SCHEDULED": "Naplánováno",
+      "IN_PROGRESS": "Probíhá",
+      "COMPLETED": "Dokončeno",
+      "CANCELLED": "Zrušeno"
+    },
+    "clients": {
+      "title": "Klienti podle stavu",
+      "POTENTIAL": "Potenciální",
+      "ACTIVE": "Aktivní",
+      "PAST": "Ukončený",
+      "FAILED": "Neúspěšný",
+      "newPotential": "Noví potenciální (posledních 7 dní)"
+    },
+    "topClients": "Top klienti (posledních 12 měsíců)",
+    "recentContacts": "Poslední kontakty",
+    "upcomingJobs": "Nadcházející zakázky (7 dní)"
+  },
+  "Payments": {
+    "title": "Platby",
+    "new": "Zaznamenat platbu",
+    "empty": "Zatím žádné platby.",
+    "fields": {
+      "date": "Datum přijetí",
+      "method": "Způsob",
+      "amount": "Částka",
+      "currency": "Měna",
+      "reference": "Reference",
+      "notes": "Poznámky",
+      "client": "Klient"
+    },
+    "methods": {
+      "BANK_TRANSFER": "Bankovní převod",
+      "CASH": "Hotovost",
+      "OTHER": "Jiný"
+    },
+    "allocations": {
+      "title": "Rozdělení",
+      "pickClientFirst": "Vyberte klienta pro zobrazení nezaplacených faktur.",
+      "noOpenInvoices": "Klient nemá žádné nezaplacené faktury.",
+      "outstanding": "Zbývá",
+      "allocated": "Přiděleno",
+      "fillRemaining": "Vyplnit zbytek",
+      "distribute": "Rozdělit proporcionálně",
+      "total": "Celkem",
+      "remainder": "Zbývá",
+      "overpayment": "Přeplatek {amount} {currency} — řešte manuálně (vrátit, převést do dalšího období, opravit záznam)."
+    },
+    "actions": {
+      "save": "Uložit platbu",
+      "delete": "Smazat platbu",
+      "downloadReceipt": "Doklad o přijetí platby"
+    },
+    "receiptTitle": "Doklad o přijetí platby"
   },
   "ItemTemplates": {
     "title": "Šablony položek",

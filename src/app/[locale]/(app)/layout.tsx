@@ -59,6 +59,9 @@ export default async function AppLayout({
             <Link href="/credit-notes" className="text-sm text-neutral-600 hover:text-neutral-900">
               {t("CreditNotes.title")}
             </Link>
+            <Link href="/payments" className="text-sm text-neutral-600 hover:text-neutral-900">
+              {t("Payments.title")}
+            </Link>
             <Link href="/settings/profile" className="text-sm text-neutral-600 hover:text-neutral-900">
               {t("Settings.title")}
             </Link>

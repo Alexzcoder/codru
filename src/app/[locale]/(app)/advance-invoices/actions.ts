@@ -193,35 +193,13 @@ export async function markAdvanceSent(id: string) {
 }
 
 // Simplified for M9 — M12 will replace this with real payment allocation.
-// PRD §11.2: when all linked Jobs reach Completed AND the advance is Paid,
-// transition from PAID_PENDING_COMPLETION → PAID. We use PPC only when the
-// linked job exists and isn't Completed at mark-paid time.
+// Mark-paid shortcut now routes through the payment system: it creates a
+// CASH payment for the remaining outstanding amount and allocates it to this
+// document, then recomputes status. Full "Log payment" UX is at /payments/new.
 export async function markAdvancePaid(id: string) {
   const user = await requireUser();
-  const doc = await prisma.document.findUnique({
-    where: { id },
-    include: { job: true },
-  });
-  if (!doc || doc.type !== "ADVANCE_INVOICE") return;
-  if (doc.status !== "SENT" && doc.status !== "OVERDUE") return;
-
-  const shouldWait = doc.job && doc.job.status !== "COMPLETED";
-  await prisma.document.update({
-    where: { id },
-    data: {
-      status: shouldWait ? "PAID_PENDING_COMPLETION" : "PAID",
-      paidAt: new Date(),
-    },
-  });
-  await writeAudit({
-    actorId: user.id,
-    entity: "Document",
-    entityId: id,
-    action: "update",
-    after: {
-      status: shouldWait ? "PAID_PENDING_COMPLETION" : "PAID",
-    } as unknown as Record<string, unknown>,
-  });
+  const { quickMarkInvoicePaid } = await import("@/lib/quick-pay");
+  await quickMarkInvoicePaid(user.id, id);
   revalidatePath("/advance-invoices");
   revalidatePath(`/advance-invoices/${id}`);
 }

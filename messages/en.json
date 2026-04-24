@@ -34,7 +34,62 @@
   },
   "Dashboard": {
     "title": "Dashboard",
-    "empty": "A summary will appear here once you've added your first clients and jobs."
+    "empty": "Start adding clients and jobs to populate this dashboard.",
+    "jobs": {
+      "title": "Jobs",
+      "SCHEDULED": "Scheduled",
+      "IN_PROGRESS": "In progress",
+      "COMPLETED": "Completed",
+      "CANCELLED": "Cancelled"
+    },
+    "clients": {
+      "title": "Clients by status",
+      "POTENTIAL": "Potential",
+      "ACTIVE": "Active",
+      "PAST": "Past",
+      "FAILED": "Failed",
+      "newPotential": "New potential (last 7 days)"
+    },
+    "topClients": "Top clients (last 12 months)",
+    "recentContacts": "Recent contact log",
+    "upcomingJobs": "Upcoming jobs (next 7 days)"
+  },
+  "Payments": {
+    "title": "Payments",
+    "new": "Log payment",
+    "empty": "No payments logged yet.",
+    "fields": {
+      "date": "Date received",
+      "method": "Method",
+      "amount": "Amount",
+      "currency": "Currency",
+      "reference": "Reference",
+      "notes": "Notes",
+      "client": "Client"
+    },
+    "methods": {
+      "BANK_TRANSFER": "Bank transfer",
+      "CASH": "Cash",
+      "OTHER": "Other"
+    },
+    "allocations": {
+      "title": "Allocations",
+      "pickClientFirst": "Pick a client to see open invoices.",
+      "noOpenInvoices": "No unpaid invoices for this client.",
+      "outstanding": "Outstanding",
+      "allocated": "Allocated",
+      "fillRemaining": "Fill with remaining",
+      "distribute": "Distribute proportionally",
+      "total": "Total",
+      "remainder": "Remainder",
+      "overpayment": "Overpayment: excess of {amount} {currency} — handle manually (refund, carry-forward, or correct this entry)."
+    },
+    "actions": {
+      "save": "Save payment",
+      "delete": "Delete payment",
+      "downloadReceipt": "Payment receipt"
+    },
+    "receiptTitle": "Payment receipt"
   },
   "ItemTemplates": {
     "title": "Item templates",
