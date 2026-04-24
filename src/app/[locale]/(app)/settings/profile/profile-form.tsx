@@ -23,11 +23,7 @@ export function ProfileForm({ initial }: { initial: Initial }) {
   );
 
   return (
-    <form
-      action={formAction}
-      encType="multipart/form-data"
-      className="space-y-5 max-w-lg"
-    >
+    <form action={formAction} className="space-y-5 max-w-lg">
       <div className="space-y-2">
         <Label htmlFor="name">{t("fields.name")}</Label>
         <Input id="name" name="name" defaultValue={initial.name} required />

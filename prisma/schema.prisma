@@ -92,6 +92,8 @@ model CompanyProfile {
   archivedAt             DateTime?
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
+
+  documentTemplates      DocumentTemplate[]
 }
 
 // User-configurable VAT rates. Pre-filled: 21, 12, 0. Used by line items starting M6.
@@ -408,6 +410,42 @@ model ItemTemplate {
 
   @@index([categoryId])
   @@index([archivedAt])
+}
+
+// ──────────────────────────────────────────────────────────
+// M7 — Document templates (PRD §9)
+// ──────────────────────────────────────────────────────────
+
+enum DocumentType {
+  QUOTE
+  ADVANCE_INVOICE
+  FINAL_INVOICE
+  CREDIT_NOTE
+}
+
+model DocumentTemplate {
+  id               String       @id @default(cuid())
+  name             String
+  type             DocumentType
+  companyProfileId String?
+  companyProfile   CompanyProfile? @relation(fields: [companyProfileId], references: [id], onDelete: SetNull)
+
+  accentColor      String       @default("#1d4ed8")
+  fontChoice       String       @default("Roboto")
+  headerPosition   String       @default("TOP")  // reserved for future layouts
+  showLogo         Boolean      @default(true)
+  showSignature    Boolean      @default(true)
+  showQrPlatba     Boolean      @default(true)
+  showReverseChargeNote Boolean  @default(true)
+  customHeaderText String?
+  customFooterText String?
+
+  isDefault        Boolean      @default(false)
+  archivedAt       DateTime?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  @@index([type, isDefault])
 }
 
 // Rate-limit login attempts by IP (PRD §23 brute-force protection).

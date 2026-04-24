@@ -39,4 +39,19 @@ export async function seedDefaults() {
       ],
     });
   }
+
+  const templateCount = await prisma.documentTemplate.count();
+  if (templateCount === 0) {
+    const firstCompany = await prisma.companyProfile.findFirst({
+      where: { isDefault: true, archivedAt: null },
+    });
+    await prisma.documentTemplate.createMany({
+      data: [
+        { name: "Default quote",           type: "QUOTE",           companyProfileId: firstCompany?.id ?? null, isDefault: true },
+        { name: "Default advance invoice", type: "ADVANCE_INVOICE", companyProfileId: firstCompany?.id ?? null, isDefault: true },
+        { name: "Default final invoice",   type: "FINAL_INVOICE",   companyProfileId: firstCompany?.id ?? null, isDefault: true },
+        { name: "Default credit note",     type: "CREDIT_NOTE",     companyProfileId: firstCompany?.id ?? null, isDefault: true },
+      ],
+    });
+  }
 }

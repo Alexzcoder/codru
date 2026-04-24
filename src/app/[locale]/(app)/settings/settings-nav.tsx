@@ -14,6 +14,7 @@ export function SettingsNav({ isOwner }: { isOwner: boolean }) {
     { href: "/settings/categories", label: t("navCategories"), ownerOnly: true },
     { href: "/settings/units", label: t("navUnits"), ownerOnly: true },
     { href: "/settings/item-templates", label: t("navItemTemplates"), ownerOnly: true },
+    { href: "/settings/document-templates", label: t("navDocumentTemplates"), ownerOnly: true },
     { href: "/settings/custom-fields", label: t("navCustomFields"), ownerOnly: true },
     { href: "/settings/users", label: t("navUsers"), ownerOnly: true },
   ].filter((i) => !i.ownerOnly || isOwner);

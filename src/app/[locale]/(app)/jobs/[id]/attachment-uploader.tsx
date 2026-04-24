@@ -20,7 +20,6 @@ export function AttachmentUploader({ jobId }: { jobId: string }) {
     <form
       ref={ref}
       action={formAction}
-      encType="multipart/form-data"
       className="flex flex-wrap items-end gap-3 rounded-md border border-neutral-200 bg-white p-3"
     >
       <div className="flex-1 min-w-[200px]">

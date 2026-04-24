@@ -26,7 +26,7 @@ export function CompanyProfileForm({
   >(action, {});
 
   return (
-    <form action={formAction} encType="multipart/form-data" className="space-y-5">
+    <form action={formAction} className="space-y-5">
       <Field name="name" label={t("name")} defaultValue={initial?.name} required />
 
       <div className="grid grid-cols-2 gap-3">
