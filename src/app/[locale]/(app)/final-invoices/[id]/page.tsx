@@ -12,6 +12,7 @@ import {
   markFinalPaid,
   markFinalSent,
 } from "../actions";
+import { loadCreditNotesForOriginal } from "@/lib/credit-notes-summary";
 
 export default async function FinalInvoiceDetailPage({
   params,
@@ -67,6 +68,10 @@ export default async function FinalInvoiceDetailPage({
   };
 
   const snapshot = doc.pdfSnapshots[0];
+  const creditNotes = await loadCreditNotesForOriginal(id);
+  const effectiveGross =
+    (Number.parseFloat(totals.totalGross) -
+      Number.parseFloat(creditNotes.effectiveReduction)).toFixed(2);
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-8">
@@ -133,6 +138,13 @@ export default async function FinalInvoiceDetailPage({
               {t("FinalInvoices.actions.delete")}
             </Button>
           </form>
+        )}
+        {!isDraft && (
+          <Link href={`/credit-notes/new?fromInvoice=${id}`}>
+            <Button variant="outline" size="sm">
+              → {t("CreditNotes.new")}
+            </Button>
+          </Link>
         )}
       </div>
 
@@ -221,6 +233,35 @@ export default async function FinalInvoiceDetailPage({
           </tfoot>
         </table>
       </div>
+
+      {creditNotes.notes.length > 0 && (
+        <div className="mt-6 rounded-md border border-neutral-200 bg-white p-4 text-sm">
+          <p className="text-xs uppercase tracking-wider text-neutral-500">
+            {t("CreditNotes.linkedCreditNotes")}
+          </p>
+          <ul className="mt-2 space-y-1">
+            {creditNotes.notes.map((n) => (
+              <li key={n.id} className="flex items-center justify-between">
+                <Link href={`/credit-notes/${n.id}`} className="hover:underline">
+                  {n.number ?? "(draft)"} ·{" "}
+                  <span className="text-xs text-neutral-500">
+                    {t(`CreditNotes.status.${n.status === "PAID" ? "APPLIED" : n.status}`)}
+                  </span>
+                </Link>
+                <span className="tabular-nums">
+                  {n.totalGross} {n.currency}
+                </span>
+              </li>
+            ))}
+          </ul>
+          <div className="mt-3 flex items-center justify-between border-t border-neutral-200 pt-3 font-medium">
+            <span>{t("CreditNotes.effectiveBalance")}</span>
+            <span className="tabular-nums">
+              {effectiveGross} {doc.currency}
+            </span>
+          </div>
+        </div>
+      )}
 
       {snapshot && (
         <div className="mt-8 rounded-md border border-neutral-200 bg-white p-4 text-sm">

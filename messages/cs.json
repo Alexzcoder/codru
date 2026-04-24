@@ -66,6 +66,28 @@
       "fromMarkup": "jedn. cena = náklad × (1 + marže%)"
     }
   },
+  "CreditNotes": {
+    "title": "Opravné doklady",
+    "new": "Vystavit opravný doklad",
+    "empty": "Zatím žádné opravné doklady.",
+    "fields": {
+      "originalDocument": "Původní doklad",
+      "creditReason": "Důvod opravy",
+      "creditReasonPlaceholder": "např. Dodatečná sleva; Oprava sazby DPH; Vrácené zboží"
+    },
+    "status": {
+      "UNSENT": "Koncept",
+      "SENT": "Odesláno",
+      "APPLIED": "Uplatněno"
+    },
+    "actions": {
+      "markSent": "Označit jako odeslané",
+      "delete": "Smazat koncept"
+    },
+    "linesHint": "Položky jsou předvyplněné podle původního dokladu v záporných hodnotách. Upravte podle potřeby (částečný odpočet, vymazání položek).",
+    "effectiveBalance": "Zůstatek po opravných dokladech",
+    "linkedCreditNotes": "Propojené opravné doklady"
+  },
   "FinalInvoices": {
     "title": "Faktury",
     "new": "Nová faktura",

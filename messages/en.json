@@ -66,6 +66,28 @@
       "fromMarkup": "unit price = cost × (1 + markup%)"
     }
   },
+  "CreditNotes": {
+    "title": "Credit notes",
+    "new": "Issue credit note",
+    "empty": "No credit notes yet.",
+    "fields": {
+      "originalDocument": "Original document",
+      "creditReason": "Reason for correction",
+      "creditReasonPlaceholder": "e.g. Retroactive discount; Corrected tax rate; Returned items"
+    },
+    "status": {
+      "UNSENT": "Draft",
+      "SENT": "Sent",
+      "APPLIED": "Applied"
+    },
+    "actions": {
+      "markSent": "Mark as sent",
+      "delete": "Delete draft"
+    },
+    "linesHint": "Lines pre-populated with the original at negative amounts. Edit to credit partially or remove lines you don't want to credit.",
+    "effectiveBalance": "Effective balance after credit notes",
+    "linkedCreditNotes": "Linked credit notes"
+  },
   "FinalInvoices": {
     "title": "Final invoices",
     "new": "New final invoice",
