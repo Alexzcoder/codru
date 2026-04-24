@@ -24,8 +24,8 @@ export default async function UnitsPage({
 
   return (
     <div>
-      <h2 className="text-lg font-medium">{t("Settings.navUnits")}</h2>
-      <ul className="mt-6 divide-y divide-neutral-200 rounded-md border border-neutral-200 bg-white">
+      <h2 className="text-lg font-semibold tracking-tight">{t("Settings.navUnits")}</h2>
+      <ul className="mt-6 divide-y divide-border rounded-xl border border-border bg-card shadow-sm">
         {units.map((u) => (
           <li key={u.id} className="flex items-center justify-between px-4 py-2">
             <span>{u.name}</span>

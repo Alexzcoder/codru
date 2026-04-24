@@ -29,7 +29,7 @@ export default async function EditPaymentPage({
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-8">
-      <p className="text-xs text-neutral-500">{t("Payments.title")}</p>
+      <p className="text-xs text-muted-foreground">{t("Payments.title")}</p>
       <h1 className="text-2xl font-semibold tracking-tight">
         {payment.date.toISOString().slice(0, 10)} · {payment.amount.toString()}{" "}
         {payment.currency}

@@ -21,7 +21,7 @@ export function SettingsNav({ isOwner }: { isOwner: boolean }) {
   ].filter((i) => !i.ownerOnly || isOwner);
 
   return (
-    <nav className="flex flex-col gap-1 text-sm">
+    <nav className="flex flex-col gap-0.5 text-sm">
       {items.map((i) => {
         const active = path === i.href || path.startsWith(i.href + "/");
         return (
@@ -30,8 +30,8 @@ export function SettingsNav({ isOwner }: { isOwner: boolean }) {
             href={i.href}
             className={
               active
-                ? "rounded-md bg-neutral-900 px-3 py-2 font-medium text-white"
-                : "rounded-md px-3 py-2 text-neutral-700 hover:bg-neutral-100"
+                ? "rounded-md bg-primary/10 px-3 py-2 font-medium text-primary"
+                : "rounded-md px-3 py-2 text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
             }
           >
             {i.label}

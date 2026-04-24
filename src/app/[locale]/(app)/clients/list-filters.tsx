@@ -45,7 +45,7 @@ export function ClientListFilters({
           setStatus(v);
           update(q, v);
         }}
-        className="h-9 rounded-md border border-neutral-300 bg-white px-2 text-sm"
+        className="h-9 rounded-md border border-input bg-background px-2 text-sm"
       >
         {STATUSES.map((s) => (
           <option key={s} value={s}>

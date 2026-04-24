@@ -35,7 +35,7 @@ export default async function EditItemTemplatePage({
 
   return (
     <div>
-      <h2 className="text-lg font-medium">{t("ItemTemplates.edit")}</h2>
+      <h2 className="text-lg font-semibold tracking-tight">{t("ItemTemplates.edit")}</h2>
       <div className="mt-6">
         <ItemTemplateForm
           initial={{

@@ -56,7 +56,7 @@ export default async function JobDetailPage({
     <div className="mx-auto max-w-5xl px-6 py-8">
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-xs text-neutral-500">
+          <p className="text-xs text-muted-foreground">
             <Link href={`/clients/${job.client.id}`} className="hover:underline">
               {clientDisplayName(job.client)}
             </Link>{" "}
@@ -79,7 +79,7 @@ export default async function JobDetailPage({
       </div>
 
       <div className="mt-6 flex flex-wrap items-center gap-2">
-        <span className="text-xs text-neutral-500">Status:</span>
+        <span className="text-xs text-muted-foreground">Status:</span>
         {(["SCHEDULED", "IN_PROGRESS", "COMPLETED", "CANCELLED"] as const).map((s) => {
           const bound = async () => {
             "use server";
@@ -101,9 +101,9 @@ export default async function JobDetailPage({
       </div>
 
       <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-3">
-        <section className="md:col-span-2 rounded-md border border-neutral-200 bg-white p-5">
+        <section className="md:col-span-2 rounded-xl border border-border bg-card shadow-sm p-5">
           <dl className="grid grid-cols-[140px_1fr] gap-y-2 text-sm">
-            <dt className="text-neutral-500">Client</dt>
+            <dt className="text-muted-foreground">Client</dt>
             <dd>
               <Link
                 href={`/clients/${job.client.id}`}
@@ -112,27 +112,27 @@ export default async function JobDetailPage({
                 {clientDisplayName(job.client)}
               </Link>
             </dd>
-            <dt className="text-neutral-500">{t("Jobs.form.start")}</dt>
+            <dt className="text-muted-foreground">{t("Jobs.form.start")}</dt>
             <dd>
               {job.scheduledStart
                 ? job.scheduledStart.toISOString().slice(0, 16).replace("T", " ")
                 : "—"}
             </dd>
-            <dt className="text-neutral-500">{t("Jobs.form.end")}</dt>
+            <dt className="text-muted-foreground">{t("Jobs.form.end")}</dt>
             <dd>
               {job.scheduledEnd
                 ? job.scheduledEnd.toISOString().slice(0, 16).replace("T", " ")
                 : "—"}
             </dd>
-            <dt className="text-neutral-500">{t("Jobs.detail.siteAddress")}</dt>
+            <dt className="text-muted-foreground">{t("Jobs.detail.siteAddress")}</dt>
             <dd>
               {site ?? (
-                <span className="text-neutral-500">
+                <span className="text-muted-foreground">
                   {t("Jobs.detail.usesClientAddress")} — {clientAddress}
                 </span>
               )}
             </dd>
-            <dt className="text-neutral-500">{t("Jobs.form.assignees")}</dt>
+            <dt className="text-muted-foreground">{t("Jobs.form.assignees")}</dt>
             <dd>
               {job.assignments.length === 0 ? (
                 "—"
@@ -141,7 +141,7 @@ export default async function JobDetailPage({
                   {job.assignments.map((a) => (
                     <span
                       key={a.userId}
-                      className="inline-flex items-center gap-1.5 rounded-full bg-neutral-100 px-2 py-0.5 text-xs"
+                      className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-2 py-0.5 text-xs"
                     >
                       <span
                         className="inline-block h-2 w-2 rounded-full"
@@ -156,14 +156,14 @@ export default async function JobDetailPage({
           </dl>
           {job.notes && (
             <>
-              <h3 className="mt-6 text-sm font-medium text-neutral-500">Notes</h3>
+              <h3 className="mt-6 text-sm font-medium text-muted-foreground">Notes</h3>
               <p className="mt-2 whitespace-pre-wrap text-sm">{job.notes}</p>
             </>
           )}
         </section>
 
-        <aside className="rounded-md border border-neutral-200 bg-white p-5">
-          <h2 className="text-sm font-medium text-neutral-500">
+        <aside className="rounded-xl border border-border bg-card shadow-sm p-5">
+          <h2 className="text-sm font-medium text-muted-foreground">
             {t("Expenses.profitability.title")}
           </h2>
           {await (async () => {
@@ -171,14 +171,14 @@ export default async function JobDetailPage({
             return (
               <dl className="mt-3 space-y-1 text-sm">
                 <div className="flex justify-between">
-                  <dt className="text-neutral-500">{t("Expenses.profitability.revenue")}</dt>
+                  <dt className="text-muted-foreground">{t("Expenses.profitability.revenue")}</dt>
                   <dd className="tabular-nums">{p.revenue.toFixed(2)} CZK</dd>
                 </div>
                 <div className="flex justify-between">
-                  <dt className="text-neutral-500">{t("Expenses.profitability.expenses")}</dt>
+                  <dt className="text-muted-foreground">{t("Expenses.profitability.expenses")}</dt>
                   <dd className="tabular-nums">−{p.expenses.toFixed(2)} CZK</dd>
                 </div>
-                <div className="flex justify-between border-t border-neutral-200 pt-1 font-medium">
+                <div className="flex justify-between border-t border-border pt-1 font-medium">
                   <dt>{t("Expenses.profitability.profit")}</dt>
                   <dd
                     className={`tabular-nums ${p.profit >= 0 ? "text-green-700" : "text-red-600"}`}
@@ -199,13 +199,13 @@ export default async function JobDetailPage({
 
       <section className="mt-10">
         <h2 className="text-lg font-medium">{t("Jobs.detail.attachments")}</h2>
-        <p className="mt-1 text-xs text-neutral-500">{t("Jobs.detail.uploadLimits")}</p>
+        <p className="mt-1 text-xs text-muted-foreground">{t("Jobs.detail.uploadLimits")}</p>
         <div className="mt-3">
           <AttachmentUploader jobId={id} />
         </div>
 
         {job.attachments.length === 0 ? (
-          <p className="mt-4 text-sm text-neutral-500">No attachments yet.</p>
+          <p className="mt-4 text-sm text-muted-foreground">No attachments yet.</p>
         ) : (
           <ul className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
             {job.attachments.map((a) => {
@@ -216,7 +216,7 @@ export default async function JobDetailPage({
               return (
                 <li
                   key={a.id}
-                  className="overflow-hidden rounded-md border border-neutral-200 bg-white"
+                  className="overflow-hidden rounded-xl border border-border bg-card shadow-sm"
                 >
                   {a.kind === "IMAGE" ? (
                     <a href={a.path} target="_blank" rel="noreferrer">
@@ -231,12 +231,12 @@ export default async function JobDetailPage({
                       href={a.path}
                       target="_blank"
                       rel="noreferrer"
-                      className="flex h-32 items-center justify-center bg-neutral-50 text-sm text-neutral-700"
+                      className="flex h-32 items-center justify-center bg-secondary/40 text-sm text-foreground"
                     >
                       📄 PDF
                     </a>
                   ) : (
-                    <div className="flex h-32 items-center justify-center bg-neutral-50 text-sm text-neutral-500">
+                    <div className="flex h-32 items-center justify-center bg-secondary/40 text-sm text-muted-foreground">
                       file
                     </div>
                   )}
@@ -244,11 +244,11 @@ export default async function JobDetailPage({
                     <p className="truncate font-medium" title={a.filename}>
                       {a.filename}
                     </p>
-                    <p className="text-neutral-500">
+                    <p className="text-muted-foreground">
                       {formatBytes(a.sizeBytes)} · {a.uploadedBy.name}
                     </p>
                     {a.caption && (
-                      <p className="mt-1 text-neutral-600">{a.caption}</p>
+                      <p className="mt-1 text-muted-foreground">{a.caption}</p>
                     )}
                     <form action={delBound} className="mt-2">
                       <button
@@ -272,12 +272,12 @@ export default async function JobDetailPage({
           <ContactLogForm clientId={job.client.id} jobId={id} />
         </div>
         {logs.length === 0 ? (
-          <p className="mt-4 text-sm text-neutral-500">No contact logs for this job yet.</p>
+          <p className="mt-4 text-sm text-muted-foreground">No contact logs for this job yet.</p>
         ) : (
-          <ul className="mt-4 divide-y divide-neutral-200 rounded-md border border-neutral-200 bg-white">
+          <ul className="mt-4 divide-y divide-border rounded-xl border border-border bg-card shadow-sm">
             {logs.map((l) => (
               <li key={l.id} className="px-4 py-3">
-                <div className="flex items-center justify-between text-xs text-neutral-500">
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <span>
                     {t(`Clients.contactType.${l.type}`)} · {l.loggedBy.name}
                   </span>

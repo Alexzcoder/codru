@@ -33,15 +33,15 @@ export default async function DocumentTemplatesPage({
   return (
     <div>
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-medium">{t("Settings.navDocumentTemplates")}</h2>
+        <h2 className="text-lg font-semibold tracking-tight">{t("Settings.navDocumentTemplates")}</h2>
         <Link href="/settings/document-templates/new">
           <Button size="sm">New template</Button>
         </Link>
       </div>
 
-      <div className="mt-6 overflow-hidden rounded-md border border-neutral-200 bg-white">
+      <div className="mt-6 overflow-hidden rounded-xl border border-border bg-card shadow-sm">
         <table className="w-full text-sm">
-          <thead className="bg-neutral-50 text-xs uppercase tracking-wider text-neutral-500">
+          <thead className="border-b border-border bg-secondary/40 text-xs uppercase tracking-wider text-muted-foreground">
             <tr>
               <th className="px-4 py-2 text-left">Type</th>
               <th className="px-4 py-2 text-left">Name</th>
@@ -50,13 +50,13 @@ export default async function DocumentTemplatesPage({
               <th className="px-4 py-2"></th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-neutral-200">
+          <tbody className="divide-y divide-border">
             {templates.map((tmpl) => (
               <tr key={tmpl.id}>
-                <td className="px-4 py-2 text-neutral-600">
+                <td className="px-4 py-2 text-muted-foreground">
                   {TYPE_LABELS[tmpl.type][lng]}
                   {tmpl.isDefault && (
-                    <span className="ml-2 rounded-full bg-neutral-900 px-2 py-0.5 text-xs text-white">
+                    <span className="ml-2 rounded-full bg-primary px-2 py-0.5 text-xs text-white">
                       default
                     </span>
                   )}
@@ -64,7 +64,7 @@ export default async function DocumentTemplatesPage({
                 <td className="px-4 py-2">
                   <div className="flex items-center gap-2">
                     <span
-                      className="inline-block h-3 w-3 rounded border border-neutral-200"
+                      className="inline-block h-3 w-3 rounded border border-border"
                       style={{ background: tmpl.accentColor }}
                     />
                     <Link
@@ -75,7 +75,7 @@ export default async function DocumentTemplatesPage({
                     </Link>
                   </div>
                 </td>
-                <td className="px-4 py-2 text-neutral-600">
+                <td className="px-4 py-2 text-muted-foreground">
                   {tmpl.companyProfile?.name ?? "—"}
                 </td>
                 <td className="px-4 py-2 text-right">
@@ -83,7 +83,7 @@ export default async function DocumentTemplatesPage({
                     href={`/settings/document-templates/${tmpl.id}/preview`}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-sm font-medium text-neutral-700 hover:underline"
+                    className="text-sm font-medium text-foreground hover:underline"
                   >
                     Preview PDF ↗
                   </a>
@@ -91,7 +91,7 @@ export default async function DocumentTemplatesPage({
                 <td className="px-4 py-2 text-right">
                   <Link
                     href={`/settings/document-templates/${tmpl.id}`}
-                    className="text-sm font-medium text-neutral-700 hover:underline"
+                    className="text-sm font-medium text-foreground hover:underline"
                   >
                     {t("Settings.edit")}
                   </Link>

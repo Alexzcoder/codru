@@ -27,7 +27,7 @@ export default async function EditCompanyProfilePage({
 
   return (
     <div>
-      <h2 className="text-lg font-medium">{t("Settings.editCompanyProfile")}</h2>
+      <h2 className="text-lg font-semibold tracking-tight">{t("Settings.editCompanyProfile")}</h2>
       <div className="mt-6">
         <CompanyProfileForm initial={profile} action={updateBound} />
       </div>

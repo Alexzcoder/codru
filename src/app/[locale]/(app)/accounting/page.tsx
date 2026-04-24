@@ -211,7 +211,7 @@ export default async function AccountingDashboardPage({
           <p className="text-xl font-semibold tabular-nums">
             {unpaidTotal.toFixed(2)} CZK
           </p>
-          <p className="text-xs text-neutral-500">
+          <p className="text-xs text-muted-foreground">
             {unpaidDetails.length} {unpaidDetails.length === 1 ? "invoice" : "invoices"}
           </p>
           {unpaidDetails.length > 0 && (
@@ -236,7 +236,7 @@ export default async function AccountingDashboardPage({
 
         <Card title={t("Accounting.upcomingDue")}>
           {dueSoon.length === 0 ? (
-            <p className="text-sm text-neutral-500">—</p>
+            <p className="text-sm text-muted-foreground">—</p>
           ) : (
             <ul className="space-y-1 text-sm">
               {dueSoon.map((d) => {
@@ -249,7 +249,7 @@ export default async function AccountingDashboardPage({
                     <Link href={href} className="hover:underline truncate pr-2">
                       {d.number ?? "(draft)"}
                     </Link>
-                    <span className="text-neutral-500 text-xs">
+                    <span className="text-muted-foreground text-xs">
                       {d.dueDate?.toISOString().slice(0, 10)}
                     </span>
                   </li>
@@ -270,7 +270,7 @@ export default async function AccountingDashboardPage({
       <section className="mt-8 grid gap-4 md:grid-cols-2">
         <Card title={t("Accounting.staleQuotes")}>
           {staleQuotes.length === 0 ? (
-            <p className="text-sm text-neutral-500">—</p>
+            <p className="text-sm text-muted-foreground">—</p>
           ) : (
             <ul className="space-y-1 text-sm">
               {staleQuotes.map((q) => (
@@ -278,7 +278,7 @@ export default async function AccountingDashboardPage({
                   <Link href={`/quotes/${q.id}`} className="hover:underline truncate pr-2">
                     {q.number ?? "(draft)"} · {clientDisplayName(q.client)}
                   </Link>
-                  <span className="text-xs text-neutral-500">
+                  <span className="text-xs text-muted-foreground">
                     {q.status === "UNSENT" ? "draft" : q.status}
                   </span>
                 </li>
@@ -289,7 +289,7 @@ export default async function AccountingDashboardPage({
 
         <Card title={t("Accounting.ppcAdvances")}>
           {ppcAdvances.length === 0 ? (
-            <p className="text-sm text-neutral-500">—</p>
+            <p className="text-sm text-muted-foreground">—</p>
           ) : (
             <ul className="space-y-1 text-sm">
               {ppcAdvances.map((a) => (
@@ -300,7 +300,7 @@ export default async function AccountingDashboardPage({
                   >
                     {a.number ?? "(draft)"} · {clientDisplayName(a.client)}
                   </Link>
-                  <span className="text-xs text-neutral-500">
+                  <span className="text-xs text-muted-foreground">
                     {a.job?.title ?? "—"}
                   </span>
                 </li>
@@ -313,9 +313,9 @@ export default async function AccountingDashboardPage({
       <section className="mt-8 grid gap-4 md:grid-cols-2">
         <Card title={`${t("Accounting.perJobProfit")} — ${t("Accounting.topProfit")}`}>
           {topProfit.length === 0 ? (
-            <p className="text-sm text-neutral-500">—</p>
+            <p className="text-sm text-muted-foreground">—</p>
           ) : (
-            <ul className="divide-y divide-neutral-200">
+            <ul className="divide-y divide-border">
               {topProfit.map((j) => (
                 <li key={j.id} className="flex items-center justify-between py-2 text-sm">
                   <Link href={`/jobs/${j.id}`} className="hover:underline truncate pr-2">
@@ -331,9 +331,9 @@ export default async function AccountingDashboardPage({
         </Card>
         <Card title={`${t("Accounting.perJobProfit")} — ${t("Accounting.bottomProfit")}`}>
           {bottomProfit.length === 0 ? (
-            <p className="text-sm text-neutral-500">—</p>
+            <p className="text-sm text-muted-foreground">—</p>
           ) : (
-            <ul className="divide-y divide-neutral-200">
+            <ul className="divide-y divide-border">
               {bottomProfit.map((j) => (
                 <li key={j.id} className="flex items-center justify-between py-2 text-sm">
                   <Link href={`/jobs/${j.id}`} className="hover:underline truncate pr-2">

@@ -22,7 +22,7 @@ export function AssigneeFilter({
 
   return (
     <select
-      className="ml-auto h-9 rounded-md border border-neutral-300 bg-white px-2 text-sm"
+      className="ml-auto h-9 rounded-md border border-input bg-background px-2 text-sm"
       value={assigneeId ?? ""}
       onChange={(e) => {
         const qs = new URLSearchParams({

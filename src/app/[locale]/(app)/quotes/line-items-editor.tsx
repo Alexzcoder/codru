@@ -123,7 +123,7 @@ export function LineItemsEditor({
             id="templatePicker"
             value={templateId}
             onChange={(e) => setTemplateId(e.target.value)}
-            className="h-9 w-full rounded-md border border-neutral-300 bg-white px-2 text-sm"
+            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
           >
             <option value="">—</option>
             {templates.map((t) => (
@@ -147,9 +147,9 @@ export function LineItemsEditor({
         </Button>
       </div>
 
-      <div className="overflow-x-auto rounded-md border border-neutral-200 bg-white">
+      <div className="overflow-x-auto rounded-xl border border-border bg-card shadow-sm">
         <table className="w-full text-sm">
-          <thead className="bg-neutral-50 text-xs uppercase tracking-wider text-neutral-500">
+          <thead className="border-b border-border bg-secondary/40 text-xs uppercase tracking-wider text-muted-foreground">
             <tr>
               <th className="w-6 px-2 py-2 text-left">{t("position")}</th>
               <th className="px-2 py-2 text-left">{t("name")}</th>
@@ -163,10 +163,10 @@ export function LineItemsEditor({
               <th className="w-8"></th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-neutral-200">
+          <tbody className="divide-y divide-border">
             {lines.map((l, i) => (
               <tr key={i}>
-                <td className="px-2 py-1 text-xs text-neutral-400">{i + 1}</td>
+                <td className="px-2 py-1 text-xs text-muted-foreground">{i + 1}</td>
                 <td className="px-2 py-1">
                   <Input
                     value={l.name}
@@ -209,7 +209,7 @@ export function LineItemsEditor({
                   <select
                     value={l.taxRatePercent}
                     onChange={(e) => update(i, { taxRatePercent: e.target.value })}
-                    className="h-8 w-full rounded-md border border-neutral-300 bg-white px-1 text-sm"
+                    className="h-8 w-full rounded-md border border-input bg-background px-1 text-sm"
                   >
                     {taxRates.map((r) => (
                       <option key={r.id} value={r.percent}>
@@ -224,7 +224,7 @@ export function LineItemsEditor({
                     onChange={(e) =>
                       update(i, { taxMode: e.target.value as "NET" | "GROSS" })
                     }
-                    className="h-8 w-full rounded-md border border-neutral-300 bg-white px-1 text-sm"
+                    className="h-8 w-full rounded-md border border-input bg-background px-1 text-sm"
                   >
                     <option value="NET">net</option>
                     <option value="GROSS">gross</option>
@@ -264,7 +264,7 @@ export function LineItemsEditor({
       </div>
 
       <aside className="flex justify-end">
-        <dl className="w-72 divide-y divide-neutral-200 rounded-md border border-neutral-200 bg-white">
+        <dl className="w-72 divide-y divide-border rounded-xl border border-border bg-card shadow-sm">
           <Row label={tTotals("subtotal")} value={formatMoney(totals.subtotalNet, currency)} />
           {totals.documentDiscount !== "0.00" && (
             <Row label={tTotals("documentDiscount")} value={`−${formatMoney(totals.documentDiscount, currency)}`} />
@@ -277,7 +277,7 @@ export function LineItemsEditor({
                 value={formatMoney(b.tax, currency)}
               />
             ))}
-          <div className="flex justify-between px-3 py-2 bg-neutral-900 text-white rounded-b-md">
+          <div className="flex justify-between px-3 py-2 bg-primary text-primary-foreground rounded-b-md">
             <span className="font-bold">{tTotals("totalGross")}</span>
             <span className="font-bold tabular-nums">
               {formatMoney(totals.totalGross, currency)}
@@ -292,7 +292,7 @@ export function LineItemsEditor({
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between px-3 py-1.5 text-sm">
-      <span className="text-neutral-500">{label}</span>
+      <span className="text-muted-foreground">{label}</span>
       <span className="tabular-nums">{value}</span>
     </div>
   );

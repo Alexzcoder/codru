@@ -59,7 +59,7 @@ export function JobForm({
             name="clientId"
             defaultValue={initial?.clientId ?? ""}
             required
-            className="h-9 w-full rounded-md border border-neutral-300 bg-white px-2 text-sm"
+            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
           >
             <option value="" disabled>
               —
@@ -77,7 +77,7 @@ export function JobForm({
             id="status"
             name="status"
             defaultValue={initial?.status ?? "SCHEDULED"}
-            className="h-9 w-full rounded-md border border-neutral-300 bg-white px-2 text-sm"
+            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
           >
             {(["SCHEDULED", "IN_PROGRESS", "COMPLETED", "CANCELLED"] as const).map((s) => (
               <option key={s} value={s}>
@@ -109,8 +109,8 @@ export function JobForm({
         </div>
       </div>
 
-      <fieldset className="rounded-md border border-neutral-200 p-4">
-        <legend className="px-1 text-sm text-neutral-500">
+      <fieldset className="rounded-xl border border-border p-4">
+        <legend className="px-1 text-sm text-muted-foreground">
           {t("form.sitePrefix")}
         </legend>
         <div className="space-y-3">
@@ -147,7 +147,7 @@ export function JobForm({
             return (
               <label
                 key={u.id}
-                className={`flex cursor-pointer items-center gap-2 rounded-full border px-3 py-1 text-sm ${active ? "border-neutral-900 bg-neutral-900 text-white" : "border-neutral-300"}`}
+                className={`flex cursor-pointer items-center gap-2 rounded-full border px-3 py-1 text-sm ${active ? "border-primary bg-primary text-primary-foreground" : "border-input"}`}
               >
                 <input
                   type="checkbox"
@@ -172,7 +172,7 @@ export function JobForm({
           id="notes"
           name="notes"
           defaultValue={initial?.notes ?? ""}
-          className="h-28 w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm"
+          className="h-28 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
         />
       </div>
 

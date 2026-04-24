@@ -40,7 +40,7 @@ export default async function PaymentDetailPage({
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-8">
-      <p className="text-xs text-neutral-500">
+      <p className="text-xs text-muted-foreground">
         <Link href="/payments" className="hover:underline">
           {t("Payments.title")}
         </Link>
@@ -53,7 +53,7 @@ export default async function PaymentDetailPage({
         <h1 className="text-2xl font-semibold tracking-tight">
           {payment.amount.toString()} {payment.currency}
         </h1>
-        <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs">
+        <span className="rounded-full bg-secondary px-3 py-1 text-xs">
           {t(`Payments.methods.${payment.method}`)}
         </span>
       </div>
@@ -85,23 +85,23 @@ export default async function PaymentDetailPage({
 
       {payment.notes && (
         <div className="mt-6">
-          <p className="text-xs uppercase tracking-wider text-neutral-500">
+          <p className="text-xs uppercase tracking-wider text-muted-foreground">
             {t("Payments.fields.notes")}
           </p>
           <p className="mt-1 whitespace-pre-wrap text-sm">{payment.notes}</p>
         </div>
       )}
 
-      <div className="mt-8 overflow-hidden rounded-md border border-neutral-200 bg-white">
+      <div className="mt-8 overflow-hidden rounded-xl border border-border bg-card shadow-sm">
         <table className="w-full text-sm">
-          <thead className="bg-neutral-50 text-xs uppercase tracking-wider text-neutral-500">
+          <thead className="border-b border-border bg-secondary/40 text-xs uppercase tracking-wider text-muted-foreground">
             <tr>
               <th className="px-4 py-2 text-left">Invoice</th>
               <th className="px-4 py-2 text-left">Type</th>
               <th className="px-4 py-2 text-right">Allocated</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-neutral-200">
+          <tbody className="divide-y divide-border">
             {payment.allocations.map((a) => {
               const href =
                 a.document.type === "ADVANCE_INVOICE"
@@ -114,7 +114,7 @@ export default async function PaymentDetailPage({
                       {a.document.number ?? "(draft)"}
                     </Link>
                   </td>
-                  <td className="px-4 py-2 text-neutral-600 text-xs">
+                  <td className="px-4 py-2 text-muted-foreground text-xs">
                     {a.document.type === "ADVANCE_INVOICE" ? "Advance" : "Final"}
                   </td>
                   <td className="px-4 py-2 text-right tabular-nums">
@@ -124,9 +124,9 @@ export default async function PaymentDetailPage({
               );
             })}
           </tbody>
-          <tfoot className="bg-neutral-50 text-sm">
+          <tfoot className="bg-secondary/40 text-sm">
             <tr>
-              <td colSpan={2} className="px-4 py-2 text-right text-neutral-500">
+              <td colSpan={2} className="px-4 py-2 text-right text-muted-foreground">
                 Remainder
               </td>
               <td className="px-4 py-2 text-right tabular-nums">
@@ -143,7 +143,7 @@ export default async function PaymentDetailPage({
 function Info({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <p className="text-xs uppercase tracking-wider text-neutral-500">{label}</p>
+      <p className="text-xs uppercase tracking-wider text-muted-foreground">{label}</p>
       <p className="mt-1 font-medium">{children}</p>
     </div>
   );

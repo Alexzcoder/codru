@@ -22,7 +22,7 @@ export function UnitForm() {
     <form
       ref={ref}
       action={formAction}
-      className="flex items-end gap-3 rounded-md border border-neutral-200 bg-white p-3"
+      className="flex items-end gap-3 rounded-xl border border-border bg-card shadow-sm p-3"
     >
       <div className="flex-1 space-y-1.5">
         <Label htmlFor="name">{t("fields.name")}</Label>

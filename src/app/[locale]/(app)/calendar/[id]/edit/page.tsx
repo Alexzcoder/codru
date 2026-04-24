@@ -49,7 +49,7 @@ export default async function EditEventPage({
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-8">
-      <p className="text-xs text-neutral-500">{t("Calendar.title")}</p>
+      <p className="text-xs text-muted-foreground">{t("Calendar.title")}</p>
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold tracking-tight">{event.title}</h1>
         <div className="flex gap-2">

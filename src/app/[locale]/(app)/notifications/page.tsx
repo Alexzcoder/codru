@@ -4,6 +4,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { markAllNotificationsRead, markNotificationRead } from "./actions";
+import { PageHeader } from "@/components/page-header";
 
 export default async function NotificationsPage({
   params,
@@ -28,31 +29,31 @@ export default async function NotificationsPage({
   };
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-8">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight">
-          {t("Notifications.title")}{" "}
-          {unreadCount > 0 && (
-            <span className="ml-2 rounded-full bg-red-100 px-2 py-0.5 text-sm text-red-800 font-medium align-middle">
-              {unreadCount}
-            </span>
-          )}
-        </h1>
-        {unreadCount > 0 && (
-          <form action={markAllBound}>
-            <Button type="submit" variant="outline" size="sm">
-              {t("Notifications.markAllRead")}
-            </Button>
-          </form>
-        )}
-      </div>
+    <div className="mx-auto max-w-3xl px-8 py-8">
+      <PageHeader
+        title={t("Notifications.title")}
+        description={
+          unreadCount > 0
+            ? `${unreadCount} ${unreadCount === 1 ? "unread" : "unread"}`
+            : "You're all caught up."
+        }
+        actions={
+          unreadCount > 0 ? (
+            <form action={markAllBound}>
+              <Button type="submit" variant="outline" size="sm">
+                {t("Notifications.markAllRead")}
+              </Button>
+            </form>
+          ) : undefined
+        }
+      />
 
       {notifications.length === 0 ? (
-        <div className="mt-12 rounded-md border border-dashed border-neutral-300 bg-white p-12 text-center">
-          <p className="text-sm text-neutral-600">{t("Notifications.empty")}</p>
+        <div className="mt-12 rounded-xl border border-dashed border-border bg-card shadow-sm p-12 text-center">
+          <p className="text-sm text-muted-foreground">{t("Notifications.empty")}</p>
         </div>
       ) : (
-        <ul className="mt-6 divide-y divide-neutral-200 rounded-md border border-neutral-200 bg-white">
+        <ul className="mt-6 divide-y divide-border rounded-xl border border-border bg-card shadow-sm">
           {notifications.map((n) => {
             const markBound = async () => {
               "use server";
@@ -66,7 +67,7 @@ export default async function NotificationsPage({
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="text-xs uppercase tracking-wider text-neutral-500">
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground">
                       {t(`Notifications.triggers.${n.trigger}`)}
                     </p>
                     <p className="mt-0.5 text-sm">
@@ -78,7 +79,7 @@ export default async function NotificationsPage({
                         <span className="font-medium">{n.message}</span>
                       )}
                     </p>
-                    <p className="mt-0.5 text-xs text-neutral-500">
+                    <p className="mt-0.5 text-xs text-muted-foreground">
                       {n.createdAt.toISOString().slice(0, 16).replace("T", " ")}
                     </p>
                   </div>

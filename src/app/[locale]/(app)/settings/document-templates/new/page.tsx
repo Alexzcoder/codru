@@ -22,7 +22,7 @@ export default async function NewDocumentTemplatePage({
 
   return (
     <div>
-      <h2 className="text-lg font-medium">New document template</h2>
+      <h2 className="text-lg font-semibold tracking-tight">New document template</h2>
       <div className="mt-6">
         <DocumentTemplateForm
           companyProfiles={companyProfiles.map((c) => ({ id: c.id, name: c.name }))}

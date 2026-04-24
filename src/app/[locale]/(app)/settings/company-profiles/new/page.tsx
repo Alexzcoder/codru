@@ -15,7 +15,7 @@ export default async function NewCompanyProfilePage({
 
   return (
     <div>
-      <h2 className="text-lg font-medium">{t("Settings.newCompanyProfile")}</h2>
+      <h2 className="text-lg font-semibold tracking-tight">{t("Settings.newCompanyProfile")}</h2>
       <div className="mt-6">
         <CompanyProfileForm action={createCompanyProfile} />
       </div>

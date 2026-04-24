@@ -13,8 +13,8 @@ export function DayView({
   const dateLabel = anchorDate.toLocaleDateString(undefined, { dateStyle: "full" });
 
   return (
-    <div className="rounded-md border border-neutral-200 bg-white">
-      <div className="border-b border-neutral-200 px-4 py-2 text-sm font-medium">
+    <div className="rounded-xl border border-border bg-card shadow-sm">
+      <div className="border-b border-border px-4 py-2 text-sm font-medium">
         {dateLabel}
       </div>
       <AllDayStrip items={items} />

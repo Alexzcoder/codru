@@ -173,7 +173,7 @@ function StatusBadge({ status, label }: { status: ClientStatus; label: string })
   const cls = {
     POTENTIAL: "bg-amber-100 text-amber-800",
     ACTIVE: "bg-green-100 text-green-800",
-    PAST: "bg-neutral-200 text-neutral-700",
+    PAST: "bg-secondary text-secondary-foreground",
     FAILED: "bg-red-100 text-red-800",
   }[status];
   return (

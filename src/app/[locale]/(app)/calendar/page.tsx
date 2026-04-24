@@ -100,15 +100,15 @@ export default async function CalendarPage({
       </div>
 
       <div className="mt-6 flex flex-wrap items-center gap-3">
-        <div className="flex overflow-hidden rounded-md border border-neutral-300 text-sm">
+        <div className="flex overflow-hidden rounded-md border border-input text-sm">
           {VIEWS.map((v) => (
             <Link
               key={v}
               href={buildHref({ view: v })}
               className={
                 v === view
-                  ? "bg-neutral-900 px-3 py-1.5 text-white"
-                  : "px-3 py-1.5 text-neutral-700 hover:bg-neutral-100"
+                  ? "bg-primary px-3 py-1.5 text-white"
+                  : "px-3 py-1.5 text-foreground hover:bg-secondary"
               }
             >
               {t(`Calendar.views.${v}`)}

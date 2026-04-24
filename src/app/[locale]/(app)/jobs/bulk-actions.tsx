@@ -44,9 +44,9 @@ export function BulkActions({ jobs }: { jobs: Row[] }) {
   return (
     <div className="mt-6">
       {selected.size > 0 && (
-        <div className="mb-3 flex items-center gap-2 rounded-md border border-neutral-300 bg-neutral-100 px-3 py-2 text-sm">
+        <div className="mb-3 flex items-center gap-2 rounded-md border border-input bg-secondary px-3 py-2 text-sm">
           <span>{t("bulk.selected", { count: selected.size })}</span>
-          <span className="ml-auto text-xs text-neutral-500">{t("bulk.changeStatus")}:</span>
+          <span className="ml-auto text-xs text-muted-foreground">{t("bulk.changeStatus")}:</span>
           {STATUSES.map((s) => (
             <Button
               key={s}
@@ -60,9 +60,9 @@ export function BulkActions({ jobs }: { jobs: Row[] }) {
           ))}
         </div>
       )}
-      <div className="overflow-hidden rounded-md border border-neutral-200 bg-white">
+      <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
         <table className="w-full text-sm">
-          <thead className="bg-neutral-50 text-xs uppercase tracking-wider text-neutral-500">
+          <thead className="border-b border-border bg-secondary/40 text-xs uppercase tracking-wider text-muted-foreground">
             <tr>
               <th className="w-8 px-3 py-2">
                 <input
@@ -78,9 +78,9 @@ export function BulkActions({ jobs }: { jobs: Row[] }) {
               <th className="px-4 py-2 text-left">Status</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-neutral-200">
+          <tbody className="divide-y divide-border">
             {jobs.map((j) => (
-              <tr key={j.id} className="hover:bg-neutral-50">
+              <tr key={j.id} className="hover:bg-secondary/40">
                 <td className="px-3 py-2">
                   <input
                     type="checkbox"
@@ -91,13 +91,13 @@ export function BulkActions({ jobs }: { jobs: Row[] }) {
                 <td className="px-4 py-2">
                   <Link
                     href={`/jobs/${j.id}`}
-                    className="font-medium text-neutral-900 hover:underline"
+                    className="font-medium text-foreground hover:underline"
                   >
                     {j.title}
                   </Link>
                 </td>
-                <td className="px-4 py-2 text-neutral-600">{j.clientName}</td>
-                <td className="px-4 py-2 text-neutral-600">
+                <td className="px-4 py-2 text-muted-foreground">{j.clientName}</td>
+                <td className="px-4 py-2 text-muted-foreground">
                   {j.scheduledStart
                     ? j.scheduledStart.slice(0, 16).replace("T", " ")
                     : "—"}
@@ -130,7 +130,7 @@ function StatusBadge({ status, label }: { status: JobStatus; label: string }) {
     SCHEDULED: "bg-amber-100 text-amber-800",
     IN_PROGRESS: "bg-blue-100 text-blue-800",
     COMPLETED: "bg-green-100 text-green-800",
-    CANCELLED: "bg-neutral-200 text-neutral-700",
+    CANCELLED: "bg-secondary text-secondary-foreground",
   }[status];
   return <span className={`rounded-full px-2 py-0.5 text-xs ${cls}`}>{label}</span>;
 }

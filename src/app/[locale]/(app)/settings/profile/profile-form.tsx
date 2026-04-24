@@ -46,7 +46,7 @@ export function ProfileForm({ initial }: { initial: Initial }) {
             id="locale"
             name="locale"
             defaultValue={initial.locale}
-            className="h-9 w-full rounded-md border border-neutral-300 bg-white px-2 text-sm"
+            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
           >
             <option value="cs">Čeština</option>
             <option value="en">English</option>
@@ -58,11 +58,11 @@ export function ProfileForm({ initial }: { initial: Initial }) {
         <Label htmlFor="signature">{t("fields.signature")}</Label>
         <Input id="signature" name="signature" type="file" accept="image/*" />
         {initial.signatureImagePath && (
-          <p className="text-xs text-neutral-500">Current: {initial.signatureImagePath}</p>
+          <p className="text-xs text-muted-foreground">Current: {initial.signatureImagePath}</p>
         )}
       </div>
 
-      <fieldset className="space-y-2 rounded-md border border-neutral-200 p-4">
+      <fieldset className="space-y-2 rounded-xl border border-border p-4">
         <legend className="px-1 text-sm font-medium">Notifications</legend>
         <Toggle
           name="notifyOverdue"

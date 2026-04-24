@@ -158,7 +158,7 @@ export function PaymentForm({
               const c = clients.find((x) => x.id === e.target.value);
               if (c) setCurrency(c.preferredCurrency);
             }}
-            className="h-9 w-full rounded-md border border-neutral-300 bg-white px-2 text-sm"
+            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
             required
           >
             <option value="">—</option>
@@ -185,7 +185,7 @@ export function PaymentForm({
             id="method"
             name="method"
             defaultValue={initial?.method ?? "BANK_TRANSFER"}
-            className="h-9 w-full rounded-md border border-neutral-300 bg-white px-2 text-sm"
+            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
           >
             <option value="BANK_TRANSFER">{t("methods.BANK_TRANSFER")}</option>
             <option value="CASH">{t("methods.CASH")}</option>
@@ -216,7 +216,7 @@ export function PaymentForm({
               setCurrency(e.target.value);
               setAlloc({});
             }}
-            className="h-9 w-full rounded-md border border-neutral-300 bg-white px-2 text-sm"
+            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
           >
             <option value="CZK">CZK</option>
             <option value="EUR">EUR</option>
@@ -233,12 +233,12 @@ export function PaymentForm({
         </div>
       </div>
 
-      <fieldset className="rounded-md border border-neutral-200 p-4">
+      <fieldset className="rounded-xl border border-border p-4">
         <legend className="px-1 text-sm font-medium">{t("allocations.title")}</legend>
         {!clientId ? (
-          <p className="text-sm text-neutral-500">{t("allocations.pickClientFirst")}</p>
+          <p className="text-sm text-muted-foreground">{t("allocations.pickClientFirst")}</p>
         ) : invoicesForClient.length === 0 ? (
-          <p className="text-sm text-neutral-500">{t("allocations.noOpenInvoices")}</p>
+          <p className="text-sm text-muted-foreground">{t("allocations.noOpenInvoices")}</p>
         ) : (
           <>
             <div className="mb-3 flex justify-end">
@@ -258,11 +258,11 @@ export function PaymentForm({
                   className="grid grid-cols-[auto_1fr_auto_auto_auto] items-center gap-3 text-sm"
                 >
                   <span className="font-medium">{i.number ?? "(draft)"}</span>
-                  <span className="text-xs text-neutral-500">
+                  <span className="text-xs text-muted-foreground">
                     {i.type === "ADVANCE_INVOICE" ? "Advance" : "Final"}
                     {i.dueDate ? ` · due ${i.dueDate}` : ""}
                   </span>
-                  <span className="tabular-nums text-xs text-neutral-500">
+                  <span className="tabular-nums text-xs text-muted-foreground">
                     {t("allocations.outstanding")}: {i.outstanding} {i.currency}
                   </span>
                   <Input
@@ -285,15 +285,15 @@ export function PaymentForm({
             </ul>
             <div className="mt-4 flex items-center justify-end gap-6 text-sm">
               <div>
-                <span className="text-neutral-500">{t("allocations.total")}: </span>
+                <span className="text-muted-foreground">{t("allocations.total")}: </span>
                 <span className="tabular-nums font-medium">{total.toFixed(2)}</span>
               </div>
               <div>
-                <span className="text-neutral-500">{t("allocations.allocated")}: </span>
+                <span className="text-muted-foreground">{t("allocations.allocated")}: </span>
                 <span className="tabular-nums font-medium">{allocated.toFixed(2)}</span>
               </div>
               <div>
-                <span className="text-neutral-500">{t("allocations.remainder")}: </span>
+                <span className="text-muted-foreground">{t("allocations.remainder")}: </span>
                 <span
                   className={`tabular-nums font-medium ${remainder < 0 ? "text-amber-700" : remainder > 0 ? "text-red-600" : "text-green-700"}`}
                 >
@@ -319,7 +319,7 @@ export function PaymentForm({
           id="notes"
           name="notes"
           defaultValue={initial?.notes ?? ""}
-          className="h-20 w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm"
+          className="h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
         />
       </div>
 

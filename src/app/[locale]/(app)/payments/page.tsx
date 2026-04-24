@@ -70,7 +70,7 @@ export default async function PaymentsPage({
                   <td className="px-4 py-3 text-right tabular-nums font-medium">
                     {p.amount.toString()} {p.currency}
                   </td>
-                  <td className="px-4 py-3 text-center text-xs text-neutral-500">
+                  <td className="px-4 py-3 text-center text-xs text-muted-foreground">
                     {p.allocations.length}
                   </td>
                 </tr>

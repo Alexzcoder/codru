@@ -52,67 +52,83 @@ export default async function ClientDetailPage({
     .filter(Boolean)
     .join(", ");
 
+  const statusStyle: Record<string, string> = {
+    POTENTIAL: "bg-amber-100 text-amber-800",
+    ACTIVE: "bg-emerald-100 text-emerald-800",
+    PAST: "bg-secondary text-secondary-foreground",
+    FAILED: "bg-red-100 text-red-800",
+  };
+
   return (
-    <div className="mx-auto max-w-5xl px-6 py-8">
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-xs text-neutral-500">
-            {t(`Clients.type.${client.type}`)} · {t(`Clients.status.${client.status}`)}
-          </p>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            {clientDisplayName(client)}
-          </h1>
-          {client.anonymizedAt && (
-            <p className="mt-1 text-xs text-neutral-500">
-              Anonymized {client.anonymizedAt.toISOString().slice(0, 10)}
-            </p>
-          )}
-        </div>
-        {!client.anonymizedAt && (
-          <div className="flex gap-2">
+    <div className="mx-auto max-w-5xl px-8 py-8">
+      <div className="mb-8">
+        <p className="mb-1 text-xs text-muted-foreground">
+          <Link href="/clients" className="hover:underline">
+            {t("Clients.title")}
+          </Link>
+          {" · "}
+          {t(`Clients.type.${client.type}`)}
+        </p>
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <h1 className="text-[26px] font-semibold tracking-tight">
+              {clientDisplayName(client)}
+            </h1>
+            <span
+              className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${statusStyle[client.status] ?? "bg-secondary"}`}
+            >
+              {t(`Clients.status.${client.status}`)}
+            </span>
+          </div>
+          {!client.anonymizedAt && (
             <Link href={`/clients/${id}/edit`}>
               <Button variant="outline" size="sm">
                 {t("Settings.edit")}
               </Button>
             </Link>
-          </div>
+          )}
+        </div>
+        {client.anonymizedAt && (
+          <p className="mt-1 text-xs text-muted-foreground">
+            Anonymized {client.anonymizedAt.toISOString().slice(0, 10)}
+          </p>
         )}
       </div>
 
       <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-3">
-        <section className="md:col-span-2 rounded-md border border-neutral-200 bg-white p-5">
-          <h2 className="text-sm font-medium text-neutral-500">Contact</h2>
+        <section className="md:col-span-2 rounded-xl border border-border bg-card shadow-sm p-5">
+          <h2 className="text-sm font-medium text-muted-foreground">Contact</h2>
           <dl className="mt-3 grid grid-cols-2 gap-y-2 text-sm">
-            <dt className="text-neutral-500">Email</dt>
+            <dt className="text-muted-foreground">Email</dt>
             <dd>{client.email ?? "—"}</dd>
-            <dt className="text-neutral-500">Phone</dt>
+            <dt className="text-muted-foreground">Phone</dt>
             <dd>{client.phone ?? "—"}</dd>
-            <dt className="text-neutral-500">IČO</dt>
+            <dt className="text-muted-foreground">IČO</dt>
             <dd>{client.ico ?? "—"}</dd>
-            <dt className="text-neutral-500">DIČ</dt>
+            <dt className="text-muted-foreground">DIČ</dt>
             <dd>{client.dic ?? "—"}</dd>
-            <dt className="text-neutral-500">Address</dt>
+            <dt className="text-muted-foreground">Address</dt>
             <dd>{address || "—"}</dd>
-            <dt className="text-neutral-500">Language</dt>
+            <dt className="text-muted-foreground">Language</dt>
             <dd>{client.defaultLanguage.toUpperCase()}</dd>
-            <dt className="text-neutral-500">Currency</dt>
+            <dt className="text-muted-foreground">Currency</dt>
             <dd>{client.preferredCurrency}</dd>
           </dl>
           {client.notes && (
             <>
-              <h3 className="mt-6 text-sm font-medium text-neutral-500">Notes</h3>
+              <h3 className="mt-6 text-sm font-medium text-muted-foreground">Notes</h3>
               <p className="mt-2 whitespace-pre-wrap text-sm">{client.notes}</p>
             </>
           )}
           {customDefs.length > 0 && customValues.length > 0 && (
             <>
-              <h3 className="mt-6 text-sm font-medium text-neutral-500">
+              <h3 className="mt-6 text-sm font-medium text-muted-foreground">
                 {t("Clients.detail.customFields")}
               </h3>
               <dl className="mt-2 grid grid-cols-2 gap-y-1 text-sm">
                 {customValues.map((v) => (
                   <div key={v.id} className="contents">
-                    <dt className="text-neutral-500">{v.fieldDef.label}</dt>
+                    <dt className="text-muted-foreground">{v.fieldDef.label}</dt>
                     <dd>{v.value}</dd>
                   </div>
                 ))}
@@ -121,19 +137,19 @@ export default async function ClientDetailPage({
           )}
         </section>
 
-        <aside className="rounded-md border border-neutral-200 bg-white p-5">
-          <h2 className="text-sm font-medium text-neutral-500">
+        <aside className="rounded-xl border border-border bg-card shadow-sm p-5">
+          <h2 className="text-sm font-medium text-muted-foreground">
             {t("Clients.detail.financials")}
           </h2>
           <dl className="mt-3 grid grid-cols-2 gap-y-2 text-sm">
-            <dt className="text-neutral-500">{t("Clients.detail.totalBilled")}</dt>
+            <dt className="text-muted-foreground">{t("Clients.detail.totalBilled")}</dt>
             <dd className="text-right tabular-nums">—</dd>
-            <dt className="text-neutral-500">{t("Clients.detail.totalPaid")}</dt>
+            <dt className="text-muted-foreground">{t("Clients.detail.totalPaid")}</dt>
             <dd className="text-right tabular-nums">—</dd>
-            <dt className="text-neutral-500">{t("Clients.detail.outstanding")}</dt>
+            <dt className="text-muted-foreground">{t("Clients.detail.outstanding")}</dt>
             <dd className="text-right tabular-nums">—</dd>
           </dl>
-          <p className="mt-3 text-xs text-neutral-400">Available from M10.</p>
+          <p className="mt-3 text-xs text-muted-foreground">Available from M10.</p>
         </aside>
       </div>
 
@@ -147,17 +163,17 @@ export default async function ClientDetailPage({
           </Link>
         </div>
         {jobs.length === 0 ? (
-          <p className="mt-3 text-sm text-neutral-500">No jobs yet.</p>
+          <p className="mt-3 text-sm text-muted-foreground">No jobs yet.</p>
         ) : (
-          <ul className="mt-3 divide-y divide-neutral-200 rounded-md border border-neutral-200 bg-white">
+          <ul className="mt-3 divide-y divide-border rounded-xl border border-border bg-card shadow-sm">
             {jobs.map((j) => (
               <li key={j.id}>
                 <Link
                   href={`/jobs/${j.id}`}
-                  className="flex items-center justify-between px-4 py-2 text-sm hover:bg-neutral-50"
+                  className="flex items-center justify-between px-4 py-2 text-sm hover:bg-secondary/40"
                 >
                   <span className="font-medium">{j.title}</span>
-                  <span className="flex items-center gap-3 text-xs text-neutral-500">
+                  <span className="flex items-center gap-3 text-xs text-muted-foreground">
                     {j.scheduledStart
                       ? j.scheduledStart.toISOString().slice(0, 10)
                       : ""}
@@ -177,12 +193,12 @@ export default async function ClientDetailPage({
         </div>
 
         {logs.length === 0 ? (
-          <p className="mt-4 text-sm text-neutral-500">No contact logs yet.</p>
+          <p className="mt-4 text-sm text-muted-foreground">No contact logs yet.</p>
         ) : (
-          <ul className="mt-4 divide-y divide-neutral-200 rounded-md border border-neutral-200 bg-white">
+          <ul className="mt-4 divide-y divide-border rounded-xl border border-border bg-card shadow-sm">
             {logs.map((l) => (
               <li key={l.id} className="px-4 py-3">
-                <div className="flex items-center justify-between text-xs text-neutral-500">
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <span>
                     {t(`Clients.contactType.${l.type}`)} · {l.loggedBy.name}
                   </span>

@@ -97,7 +97,7 @@ export function ItemTemplateForm({
             id="description"
             name="description"
             defaultValue={initial?.description ?? ""}
-            className="h-20 w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm"
+            className="h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
           />
         </div>
 
@@ -108,7 +108,7 @@ export function ItemTemplateForm({
               id="categoryId"
               name="categoryId"
               defaultValue={initial?.categoryId ?? ""}
-              className="h-9 w-full rounded-md border border-neutral-300 bg-white px-2 text-sm"
+              className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
             >
               <option value="">—</option>
               {categories.map((c) => (
@@ -125,7 +125,7 @@ export function ItemTemplateForm({
               name="unitId"
               defaultValue={initial?.unitId ?? units[0]?.id ?? ""}
               required
-              className="h-9 w-full rounded-md border border-neutral-300 bg-white px-2 text-sm"
+              className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
             >
               {units.map((u) => (
                 <option key={u.id} value={u.id}>
@@ -198,7 +198,7 @@ export function ItemTemplateForm({
             )}
           </div>
           {autoPrice && (
-            <p className="text-xs text-neutral-500">
+            <p className="text-xs text-muted-foreground">
               {t("preview.fromMarkup")} = {autoPrice}
             </p>
           )}
@@ -213,7 +213,7 @@ export function ItemTemplateForm({
               value={taxRateId}
               onChange={(e) => setTaxRateId(e.target.value)}
               required
-              className="h-9 w-full rounded-md border border-neutral-300 bg-white px-2 text-sm"
+              className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
             >
               {taxRates.map((r) => (
                 <option key={r.id} value={r.id}>
@@ -229,7 +229,7 @@ export function ItemTemplateForm({
               name="defaultTaxMode"
               value={taxMode}
               onChange={(e) => setTaxMode(e.target.value as "NET" | "GROSS")}
-              className="h-9 w-full rounded-md border border-neutral-300 bg-white px-2 text-sm"
+              className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
             >
               <option value="NET">{t("fields.taxModeNet")}</option>
               <option value="GROSS">{t("fields.taxModeGross")}</option>
@@ -256,30 +256,30 @@ export function ItemTemplateForm({
       </div>
 
       {/* Live preview */}
-      <aside className="rounded-md border border-neutral-200 bg-neutral-50 p-4">
+      <aside className="rounded-xl border border-border bg-secondary/40 p-4">
         <h3 className="text-sm font-medium">{t("preview.title")}</h3>
         {preview ? (
           <dl className="mt-3 grid grid-cols-2 gap-y-1.5 text-sm">
-            <dt className="text-neutral-500">{t("preview.qty")}</dt>
+            <dt className="text-muted-foreground">{t("preview.qty")}</dt>
             <dd className="text-right tabular-nums">{quantity}</dd>
-            <dt className="text-neutral-500">{t("preview.unitPrice")}</dt>
+            <dt className="text-muted-foreground">{t("preview.unitPrice")}</dt>
             <dd className="text-right tabular-nums">{unitPrice}</dd>
-            <dt className="text-neutral-500">{t("preview.rate")}</dt>
+            <dt className="text-muted-foreground">{t("preview.rate")}</dt>
             <dd className="text-right tabular-nums">{ratePercent}%</dd>
-            <dt className="text-neutral-500">Mode</dt>
+            <dt className="text-muted-foreground">Mode</dt>
             <dd className="text-right text-xs">
               {taxMode === "NET" ? "net" : "gross"}
             </dd>
-            <div className="col-span-2 my-2 border-t border-neutral-200" />
-            <dt className="text-neutral-500">{t("preview.net")}</dt>
+            <div className="col-span-2 my-2 border-t border-border" />
+            <dt className="text-muted-foreground">{t("preview.net")}</dt>
             <dd className="text-right tabular-nums">{preview.net}</dd>
-            <dt className="text-neutral-500">{t("preview.tax")}</dt>
+            <dt className="text-muted-foreground">{t("preview.tax")}</dt>
             <dd className="text-right tabular-nums">{preview.tax}</dd>
             <dt className="font-medium">{t("preview.gross")}</dt>
             <dd className="text-right font-medium tabular-nums">{preview.gross}</dd>
           </dl>
         ) : (
-          <p className="mt-3 text-sm text-neutral-500">—</p>
+          <p className="mt-3 text-sm text-muted-foreground">—</p>
         )}
       </aside>
     </form>

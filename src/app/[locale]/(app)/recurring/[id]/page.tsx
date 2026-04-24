@@ -39,7 +39,7 @@ export default async function RecurrenceRuleDetailPage({
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-8">
-      <p className="text-xs text-neutral-500">
+      <p className="text-xs text-muted-foreground">
         <Link href="/recurring" className="hover:underline">
           {t("Recurring.title")}
         </Link>{" "}
@@ -53,7 +53,7 @@ export default async function RecurrenceRuleDetailPage({
               ? "rounded-full bg-green-100 px-3 py-1 text-xs text-green-800"
               : status === "paused"
                 ? "rounded-full bg-amber-100 px-3 py-1 text-xs text-amber-800"
-                : "rounded-full bg-neutral-200 px-3 py-1 text-xs text-neutral-700"
+                : "rounded-full bg-neutral-200 px-3 py-1 text-xs text-foreground"
           }
         >
           {t(`Recurring.status.${status}`)}
@@ -125,13 +125,13 @@ export default async function RecurrenceRuleDetailPage({
       <section className="mt-10">
         <h2 className="text-lg font-medium">Upcoming (next 90 days)</h2>
         {upcoming.length === 0 ? (
-          <p className="mt-2 text-sm text-neutral-500">—</p>
+          <p className="mt-2 text-sm text-muted-foreground">—</p>
         ) : (
           <ul className="mt-3 flex flex-wrap gap-2">
             {upcoming.map((d) => (
               <li
                 key={d.toISOString()}
-                className="rounded-full bg-neutral-100 px-3 py-1 text-xs tabular-nums"
+                className="rounded-full bg-secondary px-3 py-1 text-xs tabular-nums"
               >
                 {d.toISOString().slice(0, 10)}
               </li>
@@ -187,7 +187,7 @@ export default async function RecurrenceRuleDetailPage({
 function Info({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <p className="text-xs uppercase tracking-wider text-neutral-500">{label}</p>
+      <p className="text-xs uppercase tracking-wider text-muted-foreground">{label}</p>
       <p className="mt-0.5 font-medium">{children}</p>
     </div>
   );
@@ -201,18 +201,18 @@ function InstanceList({
   items: { id: string; href: string; label: string; date: string }[];
 }) {
   if (items.length === 0) {
-    return <p className="text-sm text-neutral-500">No instances yet.</p>;
+    return <p className="text-sm text-muted-foreground">No instances yet.</p>;
   }
   return (
     <div>
-      <p className="text-xs uppercase tracking-wider text-neutral-500">{heading}</p>
-      <ul className="mt-2 divide-y divide-neutral-200 rounded-md border border-neutral-200 bg-white">
+      <p className="text-xs uppercase tracking-wider text-muted-foreground">{heading}</p>
+      <ul className="mt-2 divide-y divide-border rounded-xl border border-border bg-card shadow-sm">
         {items.map((i) => (
           <li key={i.id} className="flex justify-between px-3 py-2">
             <Link href={i.href} className="hover:underline truncate pr-2">
               {i.label}
             </Link>
-            <span className="text-xs text-neutral-500">{i.date}</span>
+            <span className="text-xs text-muted-foreground">{i.date}</span>
           </li>
         ))}
       </ul>

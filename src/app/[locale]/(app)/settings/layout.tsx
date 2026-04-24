@@ -1,6 +1,7 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { requireUser } from "@/lib/session";
 import { SettingsNav } from "./settings-nav";
+import { PageHeader } from "@/components/page-header";
 
 export default async function SettingsLayout({
   children,
@@ -15,11 +16,12 @@ export default async function SettingsLayout({
   const t = await getTranslations();
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-8">
-      <h1 className="text-2xl font-semibold tracking-tight">
-        {t("Settings.title")}
-      </h1>
-      <div className="mt-6 flex flex-col gap-8 md:flex-row">
+    <div className="mx-auto max-w-6xl px-8 py-8">
+      <PageHeader
+        title={t("Settings.title")}
+        description="Company profiles, users, tax rates, templates, and your own account."
+      />
+      <div className="flex flex-col gap-8 md:flex-row">
         <aside className="md:w-56 shrink-0">
           <SettingsNav isOwner={user.role === "OWNER"} />
         </aside>

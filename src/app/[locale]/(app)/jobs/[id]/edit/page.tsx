@@ -38,7 +38,7 @@ export default async function EditJobPage({
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-8">
-      <p className="text-xs text-neutral-500">{t("Jobs.title")}</p>
+      <p className="text-xs text-muted-foreground">{t("Jobs.title")}</p>
       <h1 className="text-2xl font-semibold tracking-tight">{job.title}</h1>
       <div className="mt-8">
         <JobForm

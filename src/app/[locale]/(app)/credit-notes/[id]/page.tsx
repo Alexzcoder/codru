@@ -63,7 +63,7 @@ export default async function CreditNoteDetailPage({
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-8">
-      <p className="text-xs text-neutral-500">
+      <p className="text-xs text-muted-foreground">
         <Link href="/credit-notes" className="hover:underline">
           {t("CreditNotes.title")}
         </Link>
@@ -87,10 +87,10 @@ export default async function CreditNoteDetailPage({
       <div className="mt-1 flex items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold tracking-tight">
           {doc.number ?? (
-            <span className="italic text-neutral-400">{t("Quotes.draftBadge")}</span>
+            <span className="italic text-muted-foreground">{t("Quotes.draftBadge")}</span>
           )}
         </h1>
-        <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs">
+        <span className="rounded-full bg-secondary px-3 py-1 text-xs">
           {t(`CreditNotes.status.${doc.status === "PAID" ? "APPLIED" : doc.status}`)}
         </span>
       </div>
@@ -126,16 +126,16 @@ export default async function CreditNoteDetailPage({
 
       {doc.creditReason && (
         <div className="mt-6">
-          <p className="text-xs uppercase tracking-wider text-neutral-500">
+          <p className="text-xs uppercase tracking-wider text-muted-foreground">
             {t("CreditNotes.fields.creditReason")}
           </p>
           <p className="mt-1 whitespace-pre-wrap">{doc.creditReason}</p>
         </div>
       )}
 
-      <div className="mt-8 overflow-hidden rounded-md border border-neutral-200 bg-white">
+      <div className="mt-8 overflow-hidden rounded-xl border border-border bg-card shadow-sm">
         <table className="w-full text-sm">
-          <thead className="bg-neutral-50 text-xs uppercase tracking-wider text-neutral-500">
+          <thead className="border-b border-border bg-secondary/40 text-xs uppercase tracking-wider text-muted-foreground">
             <tr>
               <th className="px-4 py-2 text-left">#</th>
               <th className="px-4 py-2 text-left">Name</th>
@@ -146,14 +146,14 @@ export default async function CreditNoteDetailPage({
               <th className="px-4 py-2 text-right">Line total</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-neutral-200">
+          <tbody className="divide-y divide-border">
             {doc.lineItems.map((l, i) => (
               <tr key={l.id}>
-                <td className="px-4 py-2 text-neutral-500 text-xs">{l.position}</td>
+                <td className="px-4 py-2 text-muted-foreground text-xs">{l.position}</td>
                 <td className="px-4 py-2">
                   <div className="font-medium">{l.name}</div>
                   {l.description && (
-                    <div className="text-xs text-neutral-500">{l.description}</div>
+                    <div className="text-xs text-muted-foreground">{l.description}</div>
                   )}
                 </td>
                 <td className="px-4 py-2 text-right tabular-nums">{l.quantity.toString()}</td>
@@ -166,7 +166,7 @@ export default async function CreditNoteDetailPage({
               </tr>
             ))}
           </tbody>
-          <tfoot className="bg-neutral-50">
+          <tfoot className="bg-secondary/40">
             <tr>
               <td colSpan={5}></td>
               <td className="px-4 py-2 text-right font-medium">Total</td>
@@ -179,11 +179,11 @@ export default async function CreditNoteDetailPage({
       </div>
 
       {snapshot && (
-        <div className="mt-8 rounded-md border border-neutral-200 bg-white p-4 text-sm">
-          <p className="text-xs uppercase tracking-wider text-neutral-500">
+        <div className="mt-8 rounded-xl border border-border bg-card shadow-sm p-4 text-sm">
+          <p className="text-xs uppercase tracking-wider text-muted-foreground">
             Archived PDF
           </p>
-          <p className="mt-1 text-neutral-600">
+          <p className="mt-1 text-muted-foreground">
             Created {snapshot.createdAt.toISOString().slice(0, 19).replace("T", " ")} ·{" "}
             <a href={snapshot.filePath} target="_blank" rel="noreferrer" className="underline">
               Download

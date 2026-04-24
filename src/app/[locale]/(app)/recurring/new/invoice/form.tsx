@@ -78,7 +78,7 @@ export function InvoiceRuleForm({
                 setLocale(c.defaultLanguage);
               }
             }}
-            className="h-9 w-full rounded-md border border-neutral-300 bg-white px-2 text-sm"
+            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
             required
           >
             {clients.map((c) => (
@@ -94,7 +94,7 @@ export function InvoiceRuleForm({
             id="jobId"
             name="jobId"
             defaultValue=""
-            className="h-9 w-full rounded-md border border-neutral-300 bg-white px-2 text-sm"
+            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
           >
             <option value="">—</option>
             {jobsForClient.map((j) => (
@@ -125,7 +125,7 @@ export function InvoiceRuleForm({
             name="currency"
             value={currency}
             onChange={(e) => setCurrency(e.target.value)}
-            className="h-9 w-full rounded-md border border-neutral-300 bg-white px-2 text-sm"
+            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
           >
             <option value="CZK">CZK</option>
             <option value="EUR">EUR</option>
@@ -139,7 +139,7 @@ export function InvoiceRuleForm({
             name="locale"
             value={locale}
             onChange={(e) => setLocale(e.target.value as "cs" | "en")}
-            className="h-9 w-full rounded-md border border-neutral-300 bg-white px-2 text-sm"
+            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
           >
             <option value="cs">Čeština</option>
             <option value="en">English</option>
@@ -151,7 +151,7 @@ export function InvoiceRuleForm({
             id="companyProfileId"
             name="companyProfileId"
             defaultValue={companyProfiles[0]?.id ?? ""}
-            className="h-9 w-full rounded-md border border-neutral-300 bg-white px-2 text-sm"
+            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
             required
           >
             {companyProfiles.map((c) => (
@@ -167,7 +167,7 @@ export function InvoiceRuleForm({
             id="documentTemplateId"
             name="documentTemplateId"
             defaultValue={documentTemplates[0]?.id ?? ""}
-            className="h-9 w-full rounded-md border border-neutral-300 bg-white px-2 text-sm"
+            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
             required
           >
             {documentTemplates.map((c) => (
@@ -208,7 +208,7 @@ export function InvoiceRuleForm({
           <textarea
             id="notesToClient"
             name="notesToClient"
-            className="h-24 w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm"
+            className="h-24 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
           />
         </div>
         <div className="space-y-2">
@@ -216,7 +216,7 @@ export function InvoiceRuleForm({
           <textarea
             id="notesInternal"
             name="notesInternal"
-            className="h-24 w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm"
+            className="h-24 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
           />
         </div>
       </div>

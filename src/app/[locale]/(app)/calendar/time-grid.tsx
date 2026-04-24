@@ -77,7 +77,7 @@ export function TimeGridColumn({
   const positioned = positionDayEvents(items, dayStart);
   return (
     <div
-      className="relative border-l border-neutral-200"
+      className="relative border-l border-border"
       style={{ height: HOUR_PX * 24 }}
     >
       {/* Hour separator lines */}
@@ -104,7 +104,7 @@ export function HourAxis() {
       {Array.from({ length: 24 }).map((_, h) => (
         <div
           key={h}
-          className="absolute right-2 -translate-y-1/2 text-[11px] tabular-nums text-neutral-400"
+          className="absolute right-2 -translate-y-1/2 text-[11px] tabular-nums text-muted-foreground"
           style={{ top: h * HOUR_PX }}
         >
           {String(h).padStart(2, "0")}:00
@@ -151,7 +151,7 @@ export function AllDayStrip({ items }: { items: CalendarItem[] }) {
   const allDay = items.filter((i) => i.allDay);
   if (allDay.length === 0) return null;
   return (
-    <div className="flex flex-wrap gap-1 border-b border-neutral-200 p-1">
+    <div className="flex flex-wrap gap-1 border-b border-border p-1">
       {allDay.map((it) => (
         <Link
           key={`${it.kind}:${it.id}`}

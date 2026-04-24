@@ -72,7 +72,7 @@ export function CompanyProfileForm({
           <Label htmlFor="logo">{t("logo")}</Label>
           <Input id="logo" name="logo" type="file" accept="image/*" />
           {initial?.logoPath && (
-            <p className="text-xs text-neutral-500">Current: {initial.logoPath}</p>
+            <p className="text-xs text-muted-foreground">Current: {initial.logoPath}</p>
           )}
         </div>
       </div>

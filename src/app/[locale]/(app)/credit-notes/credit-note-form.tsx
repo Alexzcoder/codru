@@ -82,8 +82,8 @@ export function CreditNoteForm({
 
       <input type="hidden" name="originalDocumentId" value={original.id} />
 
-      <div className="rounded-md border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm">
-        <p className="text-xs uppercase tracking-wider text-neutral-500">
+      <div className="rounded-xl border border-border bg-secondary/40 px-4 py-3 text-sm">
+        <p className="text-xs uppercase tracking-wider text-muted-foreground">
           {t("fields.originalDocument")}
         </p>
         <p className="mt-1 font-medium">
@@ -99,7 +99,7 @@ export function CreditNoteForm({
           defaultValue={initial?.creditReason ?? ""}
           placeholder={t("fields.creditReasonPlaceholder")}
           required
-          className="h-24 w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm"
+          className="h-24 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
         />
       </div>
 
@@ -129,7 +129,7 @@ export function CreditNoteForm({
             id="currency"
             name="currency"
             defaultValue={initial?.currency ?? original.currency}
-            className="h-9 w-full rounded-md border border-neutral-300 bg-white px-2 text-sm"
+            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
           >
             <option value="CZK">CZK</option>
             <option value="EUR">EUR</option>
@@ -142,7 +142,7 @@ export function CreditNoteForm({
             id="locale"
             name="locale"
             defaultValue={initial?.locale ?? original.locale}
-            className="h-9 w-full rounded-md border border-neutral-300 bg-white px-2 text-sm"
+            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
           >
             <option value="cs">Čeština</option>
             <option value="en">English</option>
@@ -157,7 +157,7 @@ export function CreditNoteForm({
             id="companyProfileId"
             name="companyProfileId"
             defaultValue={initial?.companyProfileId ?? companyProfiles[0]?.id ?? ""}
-            className="h-9 w-full rounded-md border border-neutral-300 bg-white px-2 text-sm"
+            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
             required
           >
             {companyProfiles.map((c) => (
@@ -173,7 +173,7 @@ export function CreditNoteForm({
             id="documentTemplateId"
             name="documentTemplateId"
             defaultValue={initial?.documentTemplateId ?? documentTemplates[0]?.id ?? ""}
-            className="h-9 w-full rounded-md border border-neutral-300 bg-white px-2 text-sm"
+            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
             required
           >
             {documentTemplates.map((c) => (
@@ -196,7 +196,7 @@ export function CreditNoteForm({
 
       <div>
         <h3 className="text-sm font-medium">{tQ("lineItems.title")}</h3>
-        <p className="text-xs text-neutral-500 mb-2">{t("linesHint")}</p>
+        <p className="text-xs text-muted-foreground mb-2">{t("linesHint")}</p>
         <LineItemsEditor
           initialLines={initial?.lines ?? original.negatedLines}
           templates={itemTemplates}
@@ -215,7 +215,7 @@ export function CreditNoteForm({
             id="notesToClient"
             name="notesToClient"
             defaultValue={initial?.notesToClient ?? ""}
-            className="h-24 w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm"
+            className="h-24 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
           />
         </div>
         <div className="space-y-2">
@@ -224,7 +224,7 @@ export function CreditNoteForm({
             id="notesInternal"
             name="notesInternal"
             defaultValue={initial?.notesInternal ?? ""}
-            className="h-24 w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm"
+            className="h-24 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
           />
         </div>
       </div>

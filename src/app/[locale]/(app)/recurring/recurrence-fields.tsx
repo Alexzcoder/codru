@@ -22,7 +22,7 @@ export function RecurrenceFields({
   const [freq, setFreq] = useState(defaults?.frequency ?? "MONTHLY");
 
   return (
-    <fieldset className="rounded-md border border-neutral-200 p-4 space-y-4">
+    <fieldset className="rounded-xl border border-border p-4 space-y-4">
       <legend className="px-1 text-sm font-medium">{t("title")}</legend>
 
       <div className="grid gap-4 md:grid-cols-3">
@@ -45,7 +45,7 @@ export function RecurrenceFields({
             onChange={(e) =>
               setFreq(e.target.value as typeof freq)
             }
-            className="h-9 w-full rounded-md border border-neutral-300 bg-white px-2 text-sm"
+            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
           >
             <option value="WEEKLY">{t("frequency.WEEKLY")}</option>
             <option value="MONTHLY">{t("frequency.MONTHLY")}</option>

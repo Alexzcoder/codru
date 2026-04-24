@@ -53,7 +53,7 @@ export default async function EditFinalInvoicePage({
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-8">
-      <p className="text-xs text-neutral-500">{t("FinalInvoices.title")}</p>
+      <p className="text-xs text-muted-foreground">{t("FinalInvoices.title")}</p>
       <h1 className="text-2xl font-semibold tracking-tight">
         {doc.number ?? t("Quotes.draftBadge")}
       </h1>

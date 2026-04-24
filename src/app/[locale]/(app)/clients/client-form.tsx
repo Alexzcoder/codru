@@ -50,7 +50,7 @@ export function ClientForm({
         {(["COMPANY", "INDIVIDUAL"] as const).map((v) => (
           <label
             key={v}
-            className={`cursor-pointer rounded-md border px-3 py-1.5 ${type === v ? "border-neutral-900 bg-neutral-900 text-white" : "border-neutral-300"}`}
+            className={`cursor-pointer rounded-md border px-3 py-1.5 ${type === v ? "border-primary bg-primary text-primary-foreground" : "border-input"}`}
           >
             <input
               type="radio"
@@ -153,7 +153,7 @@ export function ClientForm({
             id="status"
             name="status"
             defaultValue={initial?.status ?? "POTENTIAL"}
-            className="h-9 w-full rounded-md border border-neutral-300 bg-white px-2 text-sm"
+            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
           >
             {(["POTENTIAL", "ACTIVE", "PAST", "FAILED"] as const).map((s) => (
               <option key={s} value={s}>
@@ -168,7 +168,7 @@ export function ClientForm({
             id="defaultLanguage"
             name="defaultLanguage"
             defaultValue={initial?.defaultLanguage ?? "cs"}
-            className="h-9 w-full rounded-md border border-neutral-300 bg-white px-2 text-sm"
+            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
           >
             <option value="cs">Čeština</option>
             <option value="en">English</option>
@@ -180,7 +180,7 @@ export function ClientForm({
             id="preferredCurrency"
             name="preferredCurrency"
             defaultValue={initial?.preferredCurrency ?? "CZK"}
-            className="h-9 w-full rounded-md border border-neutral-300 bg-white px-2 text-sm"
+            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
           >
             <option value="CZK">CZK</option>
             <option value="EUR">EUR</option>
@@ -195,12 +195,12 @@ export function ClientForm({
           id="notes"
           name="notes"
           defaultValue={initial?.notes ?? ""}
-          className="h-24 w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm"
+          className="h-24 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
         />
       </div>
 
       {customFieldDefs.length > 0 && (
-        <div className="rounded-md border border-neutral-200 p-4">
+        <div className="rounded-xl border border-border p-4">
           <p className="text-sm font-medium">{t("detail.customFields")}</p>
           <div className="mt-3 space-y-3">
             {customFieldDefs.map((def) => (

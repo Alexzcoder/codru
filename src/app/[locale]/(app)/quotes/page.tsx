@@ -12,7 +12,7 @@ import type { DocumentStatus } from "@prisma/client";
 const PAGE_SIZE = 50;
 
 const STATUS_STYLE: Record<string, string> = {
-  UNSENT: "bg-neutral-200 text-neutral-700",
+  UNSENT: "bg-secondary text-secondary-foreground",
   SENT: "bg-blue-100 text-blue-800",
   ACCEPTED: "bg-green-100 text-green-800",
   REJECTED: "bg-red-100 text-red-800",
@@ -80,8 +80,8 @@ export default async function QuotesPage({
               href={s === "ALL" ? "/quotes" : `/quotes?status=${s}`}
               className={
                 active
-                  ? "rounded-full bg-neutral-900 px-3 py-1 text-white"
-                  : "rounded-full bg-neutral-100 px-3 py-1 text-neutral-700 hover:bg-neutral-200"
+                  ? "rounded-full bg-primary px-3 py-1 text-white"
+                  : "rounded-full bg-secondary px-3 py-1 text-foreground hover:bg-neutral-200"
               }
             >
               {s === "ALL" ? "All" : t(`Quotes.status.${s}`)}
@@ -91,14 +91,14 @@ export default async function QuotesPage({
       </div>
 
       {quotes.length === 0 ? (
-        <div className="mt-12 rounded-md border border-dashed border-neutral-300 bg-white p-12 text-center">
-          <p className="text-sm text-neutral-600">{t("Quotes.empty")}</p>
+        <div className="mt-12 rounded-xl border border-dashed border-border bg-card shadow-sm p-12 text-center">
+          <p className="text-sm text-muted-foreground">{t("Quotes.empty")}</p>
           <Link href="/quotes/new" className="mt-4 inline-block">
             <Button size="sm">{t("Quotes.newQuote")}</Button>
           </Link>
         </div>
       ) : (
-        <div className="mt-6 overflow-hidden rounded-md border border-neutral-200 bg-white">
+        <div className="mt-6 overflow-hidden rounded-xl border border-border bg-card shadow-sm">
           <table className="w-full text-sm">
             <thead className="border-b border-border bg-secondary/40 text-xs uppercase tracking-wider text-muted-foreground">
               <tr>
@@ -130,7 +130,7 @@ export default async function QuotesPage({
                     <td className="px-4 py-3 font-medium">
                       <Link href={`/quotes/${q.id}`} className="hover:underline">
                         {q.number ?? (
-                          <span className="italic text-neutral-400">
+                          <span className="italic text-muted-foreground">
                             {t("Quotes.draftBadge")}
                           </span>
                         )}
@@ -150,7 +150,7 @@ export default async function QuotesPage({
                     </td>
                     <td className="px-4 py-3">
                       <span
-                        className={`rounded-full px-2 py-0.5 text-xs ${STATUS_STYLE[q.status] ?? "bg-neutral-100"}`}
+                        className={`rounded-full px-2 py-0.5 text-xs ${STATUS_STYLE[q.status] ?? "bg-secondary"}`}
                       >
                         {t(`Quotes.status.${q.status}`)}
                       </span>

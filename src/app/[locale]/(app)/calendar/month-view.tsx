@@ -28,8 +28,8 @@ export function MonthView({
   const today = new Date();
 
   return (
-    <div className="overflow-hidden rounded-md border border-neutral-200 bg-white">
-      <div className="grid grid-cols-7 bg-neutral-50 text-center text-xs font-medium uppercase tracking-wider text-neutral-500">
+    <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+      <div className="grid grid-cols-7 bg-secondary/40 text-center text-xs font-medium uppercase tracking-wider text-muted-foreground">
         {weekdays.map((w) => (
           <div key={w} className="py-2">
             {w}
@@ -43,10 +43,10 @@ export function MonthView({
           return (
             <div
               key={i}
-              className={`min-h-24 border-t border-r border-neutral-200 p-1.5 text-xs ${(i + 1) % 7 === 0 ? "border-r-0" : ""} ${inMonth ? "bg-white" : "bg-neutral-50/60 text-neutral-400"}`}
+              className={`min-h-24 border-t border-r border-border p-1.5 text-xs ${(i + 1) % 7 === 0 ? "border-r-0" : ""} ${inMonth ? "bg-white" : "bg-secondary/40/60 text-muted-foreground"}`}
             >
               <div
-                className={`mb-1 text-right text-[11px] font-medium ${isToday ? "inline-block rounded bg-neutral-900 px-1.5 py-0.5 text-white" : ""}`}
+                className={`mb-1 text-right text-[11px] font-medium ${isToday ? "inline-block rounded bg-primary px-1.5 py-0.5 text-white" : ""}`}
               >
                 {date.getDate()}
               </div>
@@ -55,7 +55,7 @@ export function MonthView({
                   <EventPill key={`${it.kind}:${it.id}`} item={it} />
                 ))}
                 {items.length > MAX_VISIBLE && (
-                  <p className="px-1 text-[10px] text-neutral-500">
+                  <p className="px-1 text-[10px] text-muted-foreground">
                     +{items.length - MAX_VISIBLE} more
                   </p>
                 )}

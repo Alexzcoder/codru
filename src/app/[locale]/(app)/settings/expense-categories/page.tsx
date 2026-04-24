@@ -24,8 +24,8 @@ export default async function ExpenseCategoriesPage({
 
   return (
     <div>
-      <h2 className="text-lg font-medium">{t("Settings.navExpenseCategories")}</h2>
-      <ul className="mt-6 divide-y divide-neutral-200 rounded-md border border-neutral-200 bg-white">
+      <h2 className="text-lg font-semibold tracking-tight">{t("Settings.navExpenseCategories")}</h2>
+      <ul className="mt-6 divide-y divide-border rounded-xl border border-border bg-card shadow-sm">
         {categories.map((c) => (
           <li key={c.id} className="flex items-center justify-between px-4 py-2">
             <span>{c.name}</span>

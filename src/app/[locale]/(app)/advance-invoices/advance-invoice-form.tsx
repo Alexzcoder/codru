@@ -157,7 +157,7 @@ export function AdvanceInvoiceForm({
                 setLocale(c.defaultLanguage);
               }
             }}
-            className="h-9 w-full rounded-md border border-neutral-300 bg-white px-2 text-sm"
+            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
             required
           >
             <option value="">—</option>
@@ -174,7 +174,7 @@ export function AdvanceInvoiceForm({
             id="jobId"
             name="jobId"
             defaultValue={initial?.jobId ?? ""}
-            className="h-9 w-full rounded-md border border-neutral-300 bg-white px-2 text-sm"
+            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
           >
             <option value="">—</option>
             {availableJobs.map((j) => (
@@ -191,7 +191,7 @@ export function AdvanceInvoiceForm({
             name="sourceQuoteId"
             value={sourceQuoteId}
             onChange={(e) => setSourceQuoteId(e.target.value)}
-            className="h-9 w-full rounded-md border border-neutral-300 bg-white px-2 text-sm"
+            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
           >
             <option value="">—</option>
             {availableQuotes.map((q) => (
@@ -229,7 +229,7 @@ export function AdvanceInvoiceForm({
               name="currency"
               value={currency}
               onChange={(e) => setCurrency(e.target.value)}
-              className="h-9 w-full rounded-md border border-neutral-300 bg-white px-2 text-sm"
+              className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
             >
               <option value="CZK">CZK</option>
               <option value="EUR">EUR</option>
@@ -243,7 +243,7 @@ export function AdvanceInvoiceForm({
               name="locale"
               value={locale}
               onChange={(e) => setLocale(e.target.value as "cs" | "en")}
-              className="h-9 w-full rounded-md border border-neutral-300 bg-white px-2 text-sm"
+              className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
             >
               <option value="cs">Čeština</option>
               <option value="en">English</option>
@@ -259,7 +259,7 @@ export function AdvanceInvoiceForm({
             id="companyProfileId"
             name="companyProfileId"
             defaultValue={initial?.companyProfileId ?? companyProfiles[0]?.id ?? ""}
-            className="h-9 w-full rounded-md border border-neutral-300 bg-white px-2 text-sm"
+            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
             required
           >
             {companyProfiles.map((c) => (
@@ -275,7 +275,7 @@ export function AdvanceInvoiceForm({
             id="documentTemplateId"
             name="documentTemplateId"
             defaultValue={initial?.documentTemplateId ?? documentTemplates[0]?.id ?? ""}
-            className="h-9 w-full rounded-md border border-neutral-300 bg-white px-2 text-sm"
+            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
             required
           >
             {documentTemplates.map((c) => (
@@ -288,7 +288,7 @@ export function AdvanceInvoiceForm({
       </div>
 
       {/* Amount mode */}
-      <fieldset className="rounded-md border border-neutral-200 p-4">
+      <fieldset className="rounded-xl border border-border p-4">
         <legend className="px-1 text-sm font-medium">{t("fields.amountMode")}</legend>
         <div className="flex items-center gap-4">
           {sourceQuoteId && (
@@ -332,7 +332,7 @@ export function AdvanceInvoiceForm({
               placeholder="0.00"
             />
           )}
-          <p className="self-center text-sm text-neutral-600">
+          <p className="self-center text-sm text-muted-foreground">
             {amountMode === "PERCENT" && sourceQuote
               ? `= ${computedAmount} ${currency}`
               : ""}
@@ -371,7 +371,7 @@ export function AdvanceInvoiceForm({
             id="notesToClient"
             name="notesToClient"
             defaultValue={initial?.notesToClient ?? ""}
-            className="h-24 w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm"
+            className="h-24 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
           />
         </div>
         <div className="space-y-2">
@@ -380,7 +380,7 @@ export function AdvanceInvoiceForm({
             id="notesInternal"
             name="notesInternal"
             defaultValue={initial?.notesInternal ?? ""}
-            className="h-24 w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm"
+            className="h-24 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
           />
         </div>
       </div>

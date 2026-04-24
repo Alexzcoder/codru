@@ -33,18 +33,18 @@ export default async function NewRecurringChooser({
   return (
     <div className="mx-auto max-w-3xl px-6 py-8">
       <h1 className="text-2xl font-semibold tracking-tight">{t("Recurring.new")}</h1>
-      <p className="mt-2 text-sm text-neutral-600">{t("Recurring.pickKind")}</p>
+      <p className="mt-2 text-sm text-muted-foreground">{t("Recurring.pickKind")}</p>
       <div className="mt-8 grid gap-4 md:grid-cols-3">
         {cards.map((c) => (
           <Link
             key={c.kind}
             href={c.href}
-            className="rounded-md border border-neutral-200 bg-white p-5 hover:border-neutral-400"
+            className="rounded-xl border border-border bg-card shadow-sm p-5 hover:border-neutral-400"
           >
             <h2 className="text-lg font-semibold">
               {t(`Recurring.kinds.${c.kind}`)}
             </h2>
-            <p className="mt-2 text-xs text-neutral-600">{c.desc}</p>
+            <p className="mt-2 text-xs text-muted-foreground">{c.desc}</p>
           </Link>
         ))}
       </div>

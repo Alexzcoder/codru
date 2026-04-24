@@ -27,7 +27,7 @@ export default async function NewItemTemplatePage({
 
   return (
     <div>
-      <h2 className="text-lg font-medium">{t("ItemTemplates.new")}</h2>
+      <h2 className="text-lg font-semibold tracking-tight">{t("ItemTemplates.new")}</h2>
       <div className="mt-6">
         <ItemTemplateForm
           units={units.map((u) => ({ id: u.id, name: u.name }))}

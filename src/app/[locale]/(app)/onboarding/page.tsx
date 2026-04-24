@@ -29,13 +29,13 @@ export default async function OnboardingPage({
 
   return (
     <div className="mx-auto w-full max-w-xl px-6 py-12">
-      <p className="text-xs uppercase tracking-wider text-neutral-500">
+      <p className="text-xs uppercase tracking-wider text-muted-foreground">
         {t("Onboarding.step", { current: stepNum, total: TOTAL_STEPS })}
       </p>
       <h1 className="mt-2 text-2xl font-semibold tracking-tight">
         {t("Onboarding.welcome")}
       </h1>
-      <p className="mt-1 text-sm text-neutral-600">{t("Onboarding.intro")}</p>
+      <p className="mt-1 text-sm text-muted-foreground">{t("Onboarding.intro")}</p>
 
       <div className="mt-8">
         {stepNum === 1 && <CompanyProfileStep initial={existing} />}

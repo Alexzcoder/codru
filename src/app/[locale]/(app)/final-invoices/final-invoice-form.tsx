@@ -203,7 +203,7 @@ export function FinalInvoiceForm({
                 setLocale(c.defaultLanguage);
               }
             }}
-            className="h-9 w-full rounded-md border border-neutral-300 bg-white px-2 text-sm"
+            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
             required
           >
             <option value="">—</option>
@@ -224,7 +224,7 @@ export function FinalInvoiceForm({
               setJobId(e.target.value);
               setSelectedAdvances(new Set());
             }}
-            className="h-9 w-full rounded-md border border-neutral-300 bg-white px-2 text-sm"
+            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
             required
           >
             <option value="">—</option>
@@ -245,7 +245,7 @@ export function FinalInvoiceForm({
             name="sourceQuoteId"
             value={sourceQuoteId}
             onChange={(e) => setSourceQuoteId(e.target.value)}
-            className="h-9 w-full rounded-md border border-neutral-300 bg-white px-2 text-sm"
+            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
           >
             <option value="">—</option>
             {availableQuotes.map((q) => (
@@ -283,7 +283,7 @@ export function FinalInvoiceForm({
               name="currency"
               value={currency}
               onChange={(e) => setCurrency(e.target.value)}
-              className="h-9 w-full rounded-md border border-neutral-300 bg-white px-2 text-sm"
+              className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
             >
               <option value="CZK">CZK</option>
               <option value="EUR">EUR</option>
@@ -297,7 +297,7 @@ export function FinalInvoiceForm({
               name="locale"
               value={locale}
               onChange={(e) => setLocale(e.target.value as "cs" | "en")}
-              className="h-9 w-full rounded-md border border-neutral-300 bg-white px-2 text-sm"
+              className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
             >
               <option value="cs">Čeština</option>
               <option value="en">English</option>
@@ -313,7 +313,7 @@ export function FinalInvoiceForm({
             id="companyProfileId"
             name="companyProfileId"
             defaultValue={initial?.companyProfileId ?? companyProfiles[0]?.id ?? ""}
-            className="h-9 w-full rounded-md border border-neutral-300 bg-white px-2 text-sm"
+            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
             required
           >
             {companyProfiles.map((c) => (
@@ -329,7 +329,7 @@ export function FinalInvoiceForm({
             id="documentTemplateId"
             name="documentTemplateId"
             defaultValue={initial?.documentTemplateId ?? documentTemplates[0]?.id ?? ""}
-            className="h-9 w-full rounded-md border border-neutral-300 bg-white px-2 text-sm"
+            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
             required
           >
             {documentTemplates.map((c) => (
@@ -342,11 +342,11 @@ export function FinalInvoiceForm({
       </div>
 
       {/* Available advances panel */}
-      <fieldset className="rounded-md border border-neutral-200 p-4">
+      <fieldset className="rounded-xl border border-border p-4">
         <legend className="px-1 text-sm font-medium">{t("fields.availableAdvances")}</legend>
         {jobId ? (
           advancesForJob.length === 0 ? (
-            <p className="text-sm text-neutral-500">{t("noAvailableAdvances")}</p>
+            <p className="text-sm text-muted-foreground">{t("noAvailableAdvances")}</p>
           ) : (
             <ul className="space-y-2">
               {advancesForJob.map((a) => (
@@ -357,7 +357,7 @@ export function FinalInvoiceForm({
                     onChange={() => toggleAdvance(a.id)}
                   />
                   <span className="font-medium">{a.number ?? "(draft)"}</span>
-                  <span className="text-neutral-500">
+                  <span className="text-muted-foreground">
                     {a.bands
                       .map(
                         (b) =>
@@ -373,7 +373,7 @@ export function FinalInvoiceForm({
             </ul>
           )
         ) : (
-          <p className="text-sm text-neutral-500">{t("jobRequiredHint")}</p>
+          <p className="text-sm text-muted-foreground">{t("jobRequiredHint")}</p>
         )}
       </fieldset>
 
@@ -441,7 +441,7 @@ export function FinalInvoiceForm({
             id="notesToClient"
             name="notesToClient"
             defaultValue={initial?.notesToClient ?? ""}
-            className="h-24 w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm"
+            className="h-24 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
           />
         </div>
         <div className="space-y-2">
@@ -450,7 +450,7 @@ export function FinalInvoiceForm({
             id="notesInternal"
             name="notesInternal"
             defaultValue={initial?.notesInternal ?? ""}
-            className="h-24 w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm"
+            className="h-24 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
           />
         </div>
       </div>

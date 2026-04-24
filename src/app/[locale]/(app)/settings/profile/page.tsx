@@ -16,8 +16,8 @@ export default async function ProfilePage({
   return (
     <div className="space-y-10">
       <div>
-        <h2 className="text-lg font-medium">{t("Settings.profile.title")}</h2>
-        <p className="mt-1 text-xs text-neutral-500">{user.email}</p>
+        <h2 className="text-lg font-semibold tracking-tight">{t("Settings.profile.title")}</h2>
+        <p className="mt-1 text-xs text-muted-foreground">{user.email}</p>
         <div className="mt-6">
           <ProfileForm
             initial={{
@@ -32,7 +32,7 @@ export default async function ProfilePage({
       </div>
 
       <div>
-        <h2 className="text-lg font-medium">{t("Settings.profile.changePassword")}</h2>
+        <h2 className="text-lg font-semibold tracking-tight">{t("Settings.profile.changePassword")}</h2>
         <div className="mt-6 max-w-sm">
           <PasswordForm />
         </div>

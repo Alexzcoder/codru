@@ -24,11 +24,11 @@ export default async function TaxRatesPage({
 
   return (
     <div>
-      <h2 className="text-lg font-medium">{t("Settings.navTaxRates")}</h2>
+      <h2 className="text-lg font-semibold tracking-tight">{t("Settings.navTaxRates")}</h2>
 
-      <div className="mt-6 overflow-hidden rounded-md border border-neutral-200 bg-white">
+      <div className="mt-6 overflow-hidden rounded-xl border border-border bg-card shadow-sm">
         <table className="w-full text-sm">
-          <thead className="bg-neutral-50 text-xs uppercase tracking-wider text-neutral-500">
+          <thead className="border-b border-border bg-secondary/40 text-xs uppercase tracking-wider text-muted-foreground">
             <tr>
               <th className="px-4 py-2 text-left">{t("Settings.fields.label")}</th>
               <th className="px-4 py-2 text-right">{t("Settings.fields.percent")}</th>
@@ -36,7 +36,7 @@ export default async function TaxRatesPage({
               <th className="px-4 py-2"></th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-neutral-200">
+          <tbody className="divide-y divide-border">
             {rates.map((r) => (
               <tr key={r.id}>
                 <td className="px-4 py-2">{r.label}</td>
@@ -45,7 +45,7 @@ export default async function TaxRatesPage({
                 </td>
                 <td className="px-4 py-2">
                   {r.isDefault ? (
-                    <span className="rounded-full bg-neutral-900 px-2 py-0.5 text-xs text-white">
+                    <span className="rounded-full bg-primary px-2 py-0.5 text-xs text-white">
                       {t("Settings.fields.isDefault")}
                     </span>
                   ) : (

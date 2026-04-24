@@ -16,7 +16,7 @@ export function TaxRateForm() {
   return (
     <form
       action={formAction}
-      className="flex flex-wrap items-end gap-3 rounded-md border border-neutral-200 bg-white p-3"
+      className="flex flex-wrap items-end gap-3 rounded-xl border border-border bg-card shadow-sm p-3"
     >
       <div className="space-y-1.5">
         <Label htmlFor="label">{t("fields.label")}</Label>

@@ -33,12 +33,12 @@ export default async function EditDocumentTemplatePage({
   return (
     <div>
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-medium">{tmpl.name}</h2>
+        <h2 className="text-lg font-semibold tracking-tight">{tmpl.name}</h2>
         <a
           href={`/settings/document-templates/${id}/preview`}
           target="_blank"
           rel="noreferrer"
-          className="text-sm font-medium text-neutral-700 hover:underline"
+          className="text-sm font-medium text-foreground hover:underline"
         >
           Preview PDF ↗
         </a>

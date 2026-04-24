@@ -22,7 +22,7 @@ export function CustomFieldForm() {
     <form
       ref={ref}
       action={formAction}
-      className="flex items-end gap-3 rounded-md border border-neutral-200 bg-white p-3"
+      className="flex items-end gap-3 rounded-xl border border-border bg-card shadow-sm p-3"
     >
       <div className="flex-1 space-y-1.5">
         <Label htmlFor="label">Label</Label>
@@ -34,7 +34,7 @@ export function CustomFieldForm() {
           id="fieldType"
           name="fieldType"
           defaultValue="TEXT"
-          className="h-9 w-full rounded-md border border-neutral-300 bg-white px-2 text-sm"
+          className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
         >
           <option value="TEXT">Text</option>
           <option value="NUMBER">Number</option>

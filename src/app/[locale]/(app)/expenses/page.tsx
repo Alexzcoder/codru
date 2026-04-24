@@ -4,6 +4,8 @@ import { seedDefaults } from "@/lib/seed-defaults";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/page-header";
+import { Plus } from "lucide-react";
 
 const PAGE_SIZE = 50;
 
@@ -59,43 +61,48 @@ export default async function ExpensesPage({
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-8">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight">{t("Expenses.title")}</h1>
-        <Link href="/expenses/new">
-          <Button size="sm">{t("Expenses.new")}</Button>
-        </Link>
-      </div>
+    <div className="mx-auto max-w-6xl px-8 py-8">
+      <PageHeader
+        title={t("Expenses.title")}
+        description={`${total} ${total === 1 ? "expense" : "expenses"}`}
+        actions={
+          <Link href="/expenses/new">
+            <Button size="sm" className="gap-1.5">
+              <Plus size={14} /> {t("Expenses.new")}
+            </Button>
+          </Link>
+        }
+      />
 
       {/* Monthly summary */}
       <section className="mt-6 grid gap-4 md:grid-cols-3">
-        <div className="rounded-md border border-neutral-200 bg-white p-4">
-          <p className="text-xs uppercase tracking-wider text-neutral-500">
+        <div className="rounded-xl border border-border bg-card shadow-sm p-4">
+          <p className="text-xs uppercase tracking-wider text-muted-foreground">
             {t("Expenses.summary.total")} · {monthSummary.label}
           </p>
           <p className="mt-1 text-xl font-semibold tabular-nums">
             {monthSummary.total.toFixed(2)} CZK
           </p>
         </div>
-        <div className="rounded-md border border-neutral-200 bg-white p-4">
-          <p className="text-xs uppercase tracking-wider text-neutral-500">
+        <div className="rounded-xl border border-border bg-card shadow-sm p-4">
+          <p className="text-xs uppercase tracking-wider text-muted-foreground">
             {t("Expenses.summary.vatPaid")}
           </p>
           <p className="mt-1 text-xl font-semibold tabular-nums">
             {monthSummary.vat.toFixed(2)} CZK
           </p>
         </div>
-        <div className="rounded-md border border-neutral-200 bg-white p-4">
-          <p className="text-xs uppercase tracking-wider text-neutral-500">
+        <div className="rounded-xl border border-border bg-card shadow-sm p-4">
+          <p className="text-xs uppercase tracking-wider text-muted-foreground">
             {t("Expenses.summary.byCategory")}
           </p>
           <ul className="mt-1 space-y-0.5 text-sm">
             {monthSummary.byCategory.length === 0 ? (
-              <li className="text-neutral-500">—</li>
+              <li className="text-muted-foreground">—</li>
             ) : (
               monthSummary.byCategory.map((c) => (
                 <li key={c.name} className="flex justify-between">
-                  <span className="text-neutral-600">{c.name}</span>
+                  <span className="text-muted-foreground">{c.name}</span>
                   <span className="tabular-nums">{c.amount.toFixed(2)}</span>
                 </li>
               ))
@@ -105,31 +112,31 @@ export default async function ExpensesPage({
       </section>
 
       {/* Filters */}
-      <form className="mt-6 flex flex-wrap items-end gap-3 rounded-md border border-neutral-200 bg-white p-3">
-        <label className="flex flex-col text-xs text-neutral-500">
+      <form className="mt-6 flex flex-wrap items-end gap-3 rounded-xl border border-border bg-card shadow-sm p-3">
+        <label className="flex flex-col text-xs text-muted-foreground">
           {t("Expenses.filters.from")}
           <input
             type="date"
             name="from"
             defaultValue={sp.from ?? ""}
-            className="mt-1 h-9 rounded-md border border-neutral-300 bg-white px-2 text-sm"
+            className="mt-1 h-9 rounded-md border border-input bg-background px-2 text-sm"
           />
         </label>
-        <label className="flex flex-col text-xs text-neutral-500">
+        <label className="flex flex-col text-xs text-muted-foreground">
           {t("Expenses.filters.to")}
           <input
             type="date"
             name="to"
             defaultValue={sp.to ?? ""}
-            className="mt-1 h-9 rounded-md border border-neutral-300 bg-white px-2 text-sm"
+            className="mt-1 h-9 rounded-md border border-input bg-background px-2 text-sm"
           />
         </label>
-        <label className="flex flex-col text-xs text-neutral-500">
+        <label className="flex flex-col text-xs text-muted-foreground">
           {t("Expenses.filters.category")}
           <select
             name="categoryId"
             defaultValue={sp.categoryId ?? ""}
-            className="mt-1 h-9 rounded-md border border-neutral-300 bg-white px-2 text-sm"
+            className="mt-1 h-9 rounded-md border border-input bg-background px-2 text-sm"
           >
             <option value="">—</option>
             {categories.map((c) => (
@@ -139,12 +146,12 @@ export default async function ExpensesPage({
             ))}
           </select>
         </label>
-        <label className="flex flex-col text-xs text-neutral-500">
+        <label className="flex flex-col text-xs text-muted-foreground">
           {t("Expenses.filters.job")}
           <select
             name="jobId"
             defaultValue={sp.jobId ?? ""}
-            className="mt-1 h-9 rounded-md border border-neutral-300 bg-white px-2 text-sm"
+            className="mt-1 h-9 rounded-md border border-input bg-background px-2 text-sm"
           >
             <option value="">—</option>
             {jobs.map((j) => (
@@ -160,13 +167,13 @@ export default async function ExpensesPage({
       </form>
 
       {expenses.length === 0 ? (
-        <div className="mt-12 rounded-md border border-dashed border-neutral-300 bg-white p-12 text-center">
-          <p className="text-sm text-neutral-600">{t("Expenses.empty")}</p>
+        <div className="mt-12 rounded-xl border border-dashed border-border bg-card shadow-sm p-12 text-center">
+          <p className="text-sm text-muted-foreground">{t("Expenses.empty")}</p>
         </div>
       ) : (
-        <div className="mt-6 overflow-hidden rounded-md border border-neutral-200 bg-white">
+        <div className="mt-6 overflow-hidden rounded-xl border border-border bg-card shadow-sm">
           <table className="w-full text-sm">
-            <thead className="bg-neutral-50 text-xs uppercase tracking-wider text-neutral-500">
+            <thead className="border-b border-border bg-secondary/40 text-xs uppercase tracking-wider text-muted-foreground">
               <tr>
                 <th className="px-4 py-2 text-left">{t("Expenses.fields.date")}</th>
                 <th className="px-4 py-2 text-left">{t("Expenses.fields.category")}</th>
@@ -176,18 +183,18 @@ export default async function ExpensesPage({
                 <th className="px-4 py-2 text-right">{t("Expenses.fields.totalAmount")}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-neutral-200">
+            <tbody className="divide-y divide-border">
               {expenses.map((e) => (
-                <tr key={e.id} className="hover:bg-neutral-50">
-                  <td className="px-4 py-2 text-neutral-600">
+                <tr key={e.id} className="hover:bg-secondary/40">
+                  <td className="px-4 py-2 text-muted-foreground">
                     <Link href={`/expenses/${e.id}`} className="hover:underline">
                       {e.date.toISOString().slice(0, 10)}
                     </Link>
                   </td>
-                  <td className="px-4 py-2 text-neutral-600">{e.category.name}</td>
-                  <td className="px-4 py-2 text-neutral-600">{e.supplier ?? "—"}</td>
+                  <td className="px-4 py-2 text-muted-foreground">{e.category.name}</td>
+                  <td className="px-4 py-2 text-muted-foreground">{e.supplier ?? "—"}</td>
                   <td className="px-4 py-2 truncate max-w-[24ch]">{e.description}</td>
-                  <td className="px-4 py-2 text-neutral-600">
+                  <td className="px-4 py-2 text-muted-foreground">
                     {e.job ? (
                       <Link href={`/jobs/${e.job.id}`} className="hover:underline">
                         {e.job.title}
@@ -208,7 +215,7 @@ export default async function ExpensesPage({
 
       {totalPages > 1 && (
         <div className="mt-4 flex items-center justify-between text-sm">
-          <p className="text-neutral-500">
+          <p className="text-muted-foreground">
             {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, total)} of {total}
           </p>
           <div className="flex gap-2">

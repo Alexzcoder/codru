@@ -17,7 +17,7 @@ export function InviteForm() {
   return (
     <form
       action={formAction}
-      className="flex flex-wrap items-end gap-3 rounded-md border border-neutral-200 bg-white p-3"
+      className="flex flex-wrap items-end gap-3 rounded-xl border border-border bg-card shadow-sm p-3"
     >
       <div className="space-y-1.5 flex-1 min-w-[240px]">
         <Label htmlFor="email">Email</Label>
@@ -34,8 +34,8 @@ export function InviteForm() {
       )}
       {state.devInviteLink && (
         <div className="basis-full text-sm text-neutral-800">
-          <p className="text-xs text-neutral-500">{t("devInviteLink")}</p>
-          <code className="mt-1 block break-all rounded bg-neutral-100 px-2 py-1">
+          <p className="text-xs text-muted-foreground">{t("devInviteLink")}</p>
+          <code className="mt-1 block break-all rounded bg-secondary px-2 py-1">
             {state.devInviteLink}
           </code>
         </div>

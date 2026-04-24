@@ -67,7 +67,7 @@ export function ExpenseForm({
             id="categoryId"
             name="categoryId"
             defaultValue={initial?.categoryId ?? categories[0]?.id ?? ""}
-            className="h-9 w-full rounded-md border border-neutral-300 bg-white px-2 text-sm"
+            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
             required
           >
             {categories.map((c) => (
@@ -83,7 +83,7 @@ export function ExpenseForm({
             id="paymentMethod"
             name="paymentMethod"
             defaultValue={initial?.paymentMethod ?? "BANK"}
-            className="h-9 w-full rounded-md border border-neutral-300 bg-white px-2 text-sm"
+            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
           >
             <option value="BANK">{t("methods.BANK")}</option>
             <option value="CASH">{t("methods.CASH")}</option>
@@ -102,7 +102,7 @@ export function ExpenseForm({
             id="jobId"
             name="jobId"
             defaultValue={initial?.jobId ?? ""}
-            className="h-9 w-full rounded-md border border-neutral-300 bg-white px-2 text-sm"
+            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
           >
             <option value="">—</option>
             {jobs.map((j) => (
@@ -121,7 +121,7 @@ export function ExpenseForm({
           name="description"
           defaultValue={initial?.description ?? ""}
           required
-          className="h-20 w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm"
+          className="h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
         />
       </div>
 
@@ -159,7 +159,7 @@ export function ExpenseForm({
         </div>
         <div className="space-y-2">
           <Label>{t("fields.totalAmount")}</Label>
-          <div className="h-9 flex items-center rounded-md border border-neutral-200 bg-neutral-50 px-2 text-sm font-medium tabular-nums">
+          <div className="h-9 flex items-center rounded-xl border border-border bg-secondary/40 px-2 text-sm font-medium tabular-nums">
             {total}
           </div>
         </div>
@@ -169,7 +169,7 @@ export function ExpenseForm({
             id="currency"
             name="currency"
             defaultValue={initial?.currency ?? "CZK"}
-            className="h-9 w-full rounded-md border border-neutral-300 bg-white px-2 text-sm"
+            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
           >
             <option value="CZK">CZK</option>
             <option value="EUR">EUR</option>
@@ -206,7 +206,7 @@ export function ExpenseForm({
           accept="image/png,image/jpeg,image/webp,image/heic,image/heif,application/pdf"
         />
         {initial?.receiptPath && (
-          <p className="text-xs text-neutral-500">
+          <p className="text-xs text-muted-foreground">
             Current: <a href={initial.receiptPath} target="_blank" rel="noreferrer" className="underline">{initial.receiptPath}</a>
           </p>
         )}
@@ -218,7 +218,7 @@ export function ExpenseForm({
           id="notes"
           name="notes"
           defaultValue={initial?.notes ?? ""}
-          className="h-20 w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm"
+          className="h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
         />
       </div>
 

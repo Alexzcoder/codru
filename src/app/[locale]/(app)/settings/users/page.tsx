@@ -24,11 +24,11 @@ export default async function UsersPage({
 
   return (
     <div>
-      <h2 className="text-lg font-medium">{t("Settings.navUsers")}</h2>
+      <h2 className="text-lg font-semibold tracking-tight">{t("Settings.navUsers")}</h2>
 
-      <div className="mt-6 overflow-hidden rounded-md border border-neutral-200 bg-white">
+      <div className="mt-6 overflow-hidden rounded-xl border border-border bg-card shadow-sm">
         <table className="w-full text-sm">
-          <thead className="bg-neutral-50 text-xs uppercase tracking-wider text-neutral-500">
+          <thead className="border-b border-border bg-secondary/40 text-xs uppercase tracking-wider text-muted-foreground">
             <tr>
               <th className="px-4 py-2 text-left">{t("Settings.fields.name")}</th>
               <th className="px-4 py-2 text-left">Email</th>
@@ -38,7 +38,7 @@ export default async function UsersPage({
               <th className="px-4 py-2"></th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-neutral-200">
+          <tbody className="divide-y divide-border">
             {users.map((u) => (
               <UserRow key={u.id} user={u} isSelf={u.id === owner.id} />
             ))}
@@ -49,11 +49,11 @@ export default async function UsersPage({
       {pendingInvites.length > 0 && (
         <div className="mt-8">
           <h3 className="text-sm font-medium">Pending invites</h3>
-          <ul className="mt-3 divide-y divide-neutral-200 rounded-md border border-neutral-200 bg-white text-sm">
+          <ul className="mt-3 divide-y divide-border rounded-xl border border-border bg-card shadow-sm text-sm">
             {pendingInvites.map((i) => (
               <li key={i.id} className="flex justify-between px-4 py-2">
                 <span>{i.email}</span>
-                <span className="text-xs text-neutral-500">
+                <span className="text-xs text-muted-foreground">
                   expires {i.expiresAt.toISOString().slice(0, 16).replace("T", " ")}
                 </span>
               </li>

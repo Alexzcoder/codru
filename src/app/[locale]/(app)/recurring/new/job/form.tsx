@@ -47,7 +47,7 @@ export function JobRuleForm({
             id="clientId"
             name="clientId"
             defaultValue={clients[0]?.id ?? ""}
-            className="h-9 w-full rounded-md border border-neutral-300 bg-white px-2 text-sm"
+            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
             required
           >
             {clients.map((c) => (
@@ -103,7 +103,7 @@ export function JobRuleForm({
             return (
               <label
                 key={u.id}
-                className={`flex cursor-pointer items-center gap-2 rounded-full border px-3 py-1 text-sm ${active ? "border-neutral-900 bg-neutral-900 text-white" : "border-neutral-300"}`}
+                className={`flex cursor-pointer items-center gap-2 rounded-full border px-3 py-1 text-sm ${active ? "border-primary bg-primary text-primary-foreground" : "border-input"}`}
               >
                 <input
                   type="checkbox"
@@ -122,8 +122,8 @@ export function JobRuleForm({
         </div>
       </div>
 
-      <fieldset className="rounded-md border border-neutral-200 p-4">
-        <legend className="px-1 text-sm text-neutral-500">{t("form.sitePrefix")}</legend>
+      <fieldset className="rounded-xl border border-border p-4">
+        <legend className="px-1 text-sm text-muted-foreground">{t("form.sitePrefix")}</legend>
         <div className="space-y-3">
           <div className="space-y-2">
             <Label htmlFor="siteStreet">{t("form.street")}</Label>
@@ -151,7 +151,7 @@ export function JobRuleForm({
         <textarea
           id="notes"
           name="notes"
-          className="h-20 w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm"
+          className="h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
         />
       </div>
 

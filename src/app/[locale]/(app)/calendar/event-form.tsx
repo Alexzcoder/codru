@@ -52,7 +52,7 @@ export function EventForm({
             id="type"
             name="type"
             defaultValue={initial?.type ?? "MEETING"}
-            className="h-9 w-full rounded-md border border-neutral-300 bg-white px-2 text-sm"
+            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
           >
             {(["MEETING", "SITE_VISIT", "REMINDER", "OTHER"] as const).map((v) => (
               <option key={v} value={v}>
@@ -67,7 +67,7 @@ export function EventForm({
             id="assigneeId"
             name="assigneeId"
             defaultValue={initial?.assigneeId ?? ""}
-            className="h-9 w-full rounded-md border border-neutral-300 bg-white px-2 text-sm"
+            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
           >
             <option value="">{t("form.none")}</option>
             {users.map((u) => (
@@ -118,7 +118,7 @@ export function EventForm({
             id="clientId"
             name="clientId"
             defaultValue={initial?.clientId ?? ""}
-            className="h-9 w-full rounded-md border border-neutral-300 bg-white px-2 text-sm"
+            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
           >
             <option value="">{t("form.none")}</option>
             {clients.map((c) => (
@@ -134,7 +134,7 @@ export function EventForm({
             id="jobId"
             name="jobId"
             defaultValue={initial?.jobId ?? ""}
-            className="h-9 w-full rounded-md border border-neutral-300 bg-white px-2 text-sm"
+            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
           >
             <option value="">{t("form.none")}</option>
             {jobs.map((j) => (
@@ -152,7 +152,7 @@ export function EventForm({
           id="notes"
           name="notes"
           defaultValue={initial?.notes ?? ""}
-          className="h-24 w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm"
+          className="h-24 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
         />
       </div>
 

@@ -22,7 +22,7 @@ export function ContactLogForm({ clientId, jobId }: { clientId: string; jobId?: 
     <form
       ref={ref}
       action={formAction}
-      className="space-y-3 rounded-md border border-neutral-200 bg-white p-4"
+      className="space-y-3 rounded-xl border border-border bg-card shadow-sm p-4"
     >
       <input type="hidden" name="clientId" value={clientId} />
       {jobId && <input type="hidden" name="jobId" value={jobId} />}
@@ -32,7 +32,7 @@ export function ContactLogForm({ clientId, jobId }: { clientId: string; jobId?: 
           <select
             id="type"
             name="type"
-            className="h-9 w-full rounded-md border border-neutral-300 bg-white px-2 text-sm"
+            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
             defaultValue="PHONE"
           >
             {(["PHONE", "EMAIL", "MEETING", "SITE_VISIT", "OTHER"] as const).map(
@@ -50,7 +50,7 @@ export function ContactLogForm({ clientId, jobId }: { clientId: string; jobId?: 
             id="notes"
             name="notes"
             required
-            className="h-20 w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm"
+            className="h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
           />
         </div>
       </div>

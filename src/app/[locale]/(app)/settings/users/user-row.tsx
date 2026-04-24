@@ -41,7 +41,7 @@ export function UserRow({ user, isSelf }: { user: User; isSelf: boolean }) {
           </span>
         )}
       </td>
-      <td className="px-4 py-2 text-neutral-600">
+      <td className="px-4 py-2 text-muted-foreground">
         {user.lastLoginAt
           ? user.lastLoginAt.toISOString().slice(0, 10)
           : t("fields.never")}
@@ -71,8 +71,8 @@ export function UserRow({ user, isSelf }: { user: User; isSelf: boolean }) {
         </div>
         {resetLink && (
           <div className="mt-2 text-xs">
-            <span className="text-neutral-500">{t("users.devInviteLink")}</span>
-            <code className="mt-1 block break-all rounded bg-neutral-100 px-2 py-1">
+            <span className="text-muted-foreground">{t("users.devInviteLink")}</span>
+            <code className="mt-1 block break-all rounded bg-secondary px-2 py-1">
               {resetLink}
             </code>
           </div>

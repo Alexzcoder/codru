@@ -40,7 +40,7 @@ export default async function EditQuotePage({
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-8">
-      <p className="text-xs text-neutral-500">{t("Quotes.title")}</p>
+      <p className="text-xs text-muted-foreground">{t("Quotes.title")}</p>
       <h1 className="text-2xl font-semibold tracking-tight">
         {doc.number ?? t("Quotes.draftBadge")}
       </h1>

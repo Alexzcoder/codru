@@ -43,7 +43,7 @@ export function DocumentTemplateForm({
             id="type"
             name="type"
             defaultValue={initial?.type ?? "QUOTE"}
-            className="h-9 w-full rounded-md border border-neutral-300 bg-white px-2 text-sm"
+            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
             required
           >
             <option value="QUOTE">Quote</option>
@@ -58,7 +58,7 @@ export function DocumentTemplateForm({
             id="companyProfileId"
             name="companyProfileId"
             defaultValue={initial?.companyProfileId ?? ""}
-            className="h-9 w-full rounded-md border border-neutral-300 bg-white px-2 text-sm"
+            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
           >
             <option value="">—</option>
             {companyProfiles.map((c) => (
@@ -81,7 +81,7 @@ export function DocumentTemplateForm({
         />
       </div>
 
-      <fieldset className="space-y-2 rounded-md border border-neutral-200 p-4">
+      <fieldset className="space-y-2 rounded-xl border border-border p-4">
         <legend className="px-1 text-sm font-medium">Visibility</legend>
         <Toggle name="showLogo" label="Show company logo" initial={initial?.showLogo ?? true} />
         <Toggle

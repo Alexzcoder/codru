@@ -27,21 +27,21 @@ export function WeekView({
   const hasAllDay = allDayByDay.some((arr) => arr.length > 0);
 
   return (
-    <div className="rounded-md border border-neutral-200 bg-white">
-      <div className="flex border-b border-neutral-200">
+    <div className="rounded-xl border border-border bg-card shadow-sm">
+      <div className="flex border-b border-border">
         <div className="w-14 shrink-0" />
         {days.map(({ date }, i) => {
           const isToday = sameDay(date, today);
           return (
             <div
               key={i}
-              className="flex-1 border-l border-neutral-200 px-2 py-2 text-center"
+              className="flex-1 border-l border-border px-2 py-2 text-center"
             >
-              <div className="text-xs uppercase tracking-wider text-neutral-500">
+              <div className="text-xs uppercase tracking-wider text-muted-foreground">
                 {weekdays[i]}
               </div>
               <div
-                className={`mt-0.5 text-sm font-medium ${isToday ? "inline-block rounded bg-neutral-900 px-1.5 py-0.5 text-white" : ""}`}
+                className={`mt-0.5 text-sm font-medium ${isToday ? "inline-block rounded bg-primary px-1.5 py-0.5 text-white" : ""}`}
               >
                 {date.getDate()}
               </div>
@@ -51,12 +51,12 @@ export function WeekView({
       </div>
 
       {hasAllDay && (
-        <div className="flex border-b border-neutral-200">
-          <div className="w-14 shrink-0 py-1 pl-2 text-[10px] uppercase text-neutral-500">
+        <div className="flex border-b border-border">
+          <div className="w-14 shrink-0 py-1 pl-2 text-[10px] uppercase text-muted-foreground">
             all day
           </div>
           {allDayByDay.map((arr, i) => (
-            <div key={i} className="flex-1 border-l border-neutral-200 p-1">
+            <div key={i} className="flex-1 border-l border-border p-1">
               <AllDayStrip items={arr} />
             </div>
           ))}

@@ -20,13 +20,13 @@ const JOB_BADGE: Record<string, string> = {
   SCHEDULED: "bg-amber-100 text-amber-800",
   IN_PROGRESS: "bg-blue-100 text-blue-800",
   COMPLETED: "bg-emerald-100 text-emerald-800",
-  CANCELLED: "bg-neutral-200 text-neutral-700",
+  CANCELLED: "bg-secondary text-secondary-foreground",
 };
 
 const CLIENT_BADGE: Record<string, string> = {
   POTENTIAL: "bg-amber-100 text-amber-800",
   ACTIVE: "bg-emerald-100 text-emerald-800",
-  PAST: "bg-neutral-200 text-neutral-700",
+  PAST: "bg-secondary text-secondary-foreground",
   FAILED: "bg-red-100 text-red-800",
 };
 

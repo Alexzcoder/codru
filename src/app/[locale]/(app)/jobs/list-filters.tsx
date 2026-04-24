@@ -58,7 +58,7 @@ export function JobListFilters({
           setState(next);
           apply(next);
         }}
-        className="h-9 rounded-md border border-neutral-300 bg-white px-2 text-sm"
+        className="h-9 rounded-md border border-input bg-background px-2 text-sm"
       >
         {STATUSES.map((s) => (
           <option key={s} value={s}>
@@ -73,7 +73,7 @@ export function JobListFilters({
           setState(next);
           apply(next);
         }}
-        className="h-9 rounded-md border border-neutral-300 bg-white px-2 text-sm max-w-48"
+        className="h-9 rounded-md border border-input bg-background px-2 text-sm max-w-48"
       >
         <option value="">{t("filters.client")}</option>
         {clients.map((c) => (
@@ -89,7 +89,7 @@ export function JobListFilters({
           setState(next);
           apply(next);
         }}
-        className="h-9 rounded-md border border-neutral-300 bg-white px-2 text-sm"
+        className="h-9 rounded-md border border-input bg-background px-2 text-sm"
       >
         <option value="">{t("filters.assignee")}</option>
         {users.map((u) => (
@@ -98,7 +98,7 @@ export function JobListFilters({
           </option>
         ))}
       </select>
-      <div className="flex items-center gap-1 text-xs text-neutral-600">
+      <div className="flex items-center gap-1 text-xs text-muted-foreground">
         {t("filters.from")}
         <Input
           type="date"

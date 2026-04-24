@@ -31,7 +31,7 @@ export default async function EditClientPage({
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-8">
-      <p className="text-xs text-neutral-500">{t("Clients.title")}</p>
+      <p className="text-xs text-muted-foreground">{t("Clients.title")}</p>
       <h1 className="text-2xl font-semibold tracking-tight">
         {clientDisplayName(client)}
       </h1>

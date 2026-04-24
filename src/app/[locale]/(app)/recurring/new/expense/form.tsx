@@ -43,7 +43,7 @@ export function ExpenseRuleForm({
             id="categoryId"
             name="categoryId"
             defaultValue={categories[0]?.id ?? ""}
-            className="h-9 w-full rounded-md border border-neutral-300 bg-white px-2 text-sm"
+            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
             required
           >
             {categories.map((c) => (
@@ -63,7 +63,7 @@ export function ExpenseRuleForm({
             id="paymentMethod"
             name="paymentMethod"
             defaultValue="BANK"
-            className="h-9 w-full rounded-md border border-neutral-300 bg-white px-2 text-sm"
+            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
           >
             <option value="BANK">{t("methods.BANK")}</option>
             <option value="CASH">{t("methods.CASH")}</option>
@@ -77,7 +77,7 @@ export function ExpenseRuleForm({
           id="description"
           name="description"
           required
-          className="h-20 w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm"
+          className="h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
         />
       </div>
 
@@ -119,7 +119,7 @@ export function ExpenseRuleForm({
             id="currency"
             name="currency"
             defaultValue="CZK"
-            className="h-9 w-full rounded-md border border-neutral-300 bg-white px-2 text-sm"
+            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
           >
             <option value="CZK">CZK</option>
             <option value="EUR">EUR</option>
@@ -132,7 +132,7 @@ export function ExpenseRuleForm({
             id="jobId"
             name="jobId"
             defaultValue=""
-            className="h-9 w-full rounded-md border border-neutral-300 bg-white px-2 text-sm"
+            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
           >
             <option value="">—</option>
             {jobs.map((j) => (
@@ -163,7 +163,7 @@ export function ExpenseRuleForm({
         <textarea
           id="notes"
           name="notes"
-          className="h-20 w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm"
+          className="h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
         />
       </div>
 

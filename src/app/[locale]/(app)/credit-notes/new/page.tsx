@@ -29,7 +29,7 @@ export default async function NewCreditNotePage({
         <h1 className="text-2xl font-semibold tracking-tight">
           {t("CreditNotes.new")}
         </h1>
-        <p className="mt-4 text-sm text-neutral-600">
+        <p className="mt-4 text-sm text-muted-foreground">
           A credit note is always issued from a sent invoice. Open a Final or
           Advance invoice and click <strong>{t("CreditNotes.new")}</strong>.
         </p>

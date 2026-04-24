@@ -33,7 +33,7 @@ export default async function ExpenseDetailPage({
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-8">
-      <p className="text-xs text-neutral-500">
+      <p className="text-xs text-muted-foreground">
         <Link href="/expenses" className="hover:underline">
           {t("Expenses.title")}
         </Link>
@@ -48,7 +48,7 @@ export default async function ExpenseDetailPage({
       </p>
       <div className="mt-1 flex items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold tracking-tight">{e.description}</h1>
-        <span className="rounded-full bg-neutral-100 px-3 py-1 text-sm font-medium tabular-nums">
+        <span className="rounded-full bg-secondary px-3 py-1 text-sm font-medium tabular-nums">
           {e.totalAmount.toString()} {e.currency}
         </span>
       </div>
@@ -94,7 +94,7 @@ export default async function ExpenseDetailPage({
 
       {e.receiptPath && (
         <div className="mt-6">
-          <p className="text-xs uppercase tracking-wider text-neutral-500">
+          <p className="text-xs uppercase tracking-wider text-muted-foreground">
             {t("Expenses.fields.receipt")}
           </p>
           {e.receiptPath.endsWith(".pdf") ? (
@@ -111,7 +111,7 @@ export default async function ExpenseDetailPage({
               <img
                 src={e.receiptPath}
                 alt="receipt"
-                className="mt-2 max-h-80 rounded-md border border-neutral-200"
+                className="mt-2 max-h-80 rounded-xl border border-border"
               />
             </a>
           )}
@@ -120,7 +120,7 @@ export default async function ExpenseDetailPage({
 
       {e.notes && (
         <div className="mt-6">
-          <p className="text-xs uppercase tracking-wider text-neutral-500">
+          <p className="text-xs uppercase tracking-wider text-muted-foreground">
             {t("Expenses.fields.notes")}
           </p>
           <p className="mt-1 whitespace-pre-wrap text-sm">{e.notes}</p>
@@ -133,7 +133,7 @@ export default async function ExpenseDetailPage({
 function Info({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <dt className="text-xs uppercase tracking-wider text-neutral-500">{label}</dt>
+      <dt className="text-xs uppercase tracking-wider text-muted-foreground">{label}</dt>
       <dd className="mt-0.5 font-medium">{children}</dd>
     </div>
   );

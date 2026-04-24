@@ -20,7 +20,7 @@ export function AttachmentUploader({ jobId }: { jobId: string }) {
     <form
       ref={ref}
       action={formAction}
-      className="flex flex-wrap items-end gap-3 rounded-md border border-neutral-200 bg-white p-3"
+      className="flex flex-wrap items-end gap-3 rounded-xl border border-border bg-card shadow-sm p-3"
     >
       <div className="flex-1 min-w-[200px]">
         <Input

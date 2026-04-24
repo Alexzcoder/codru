@@ -25,18 +25,18 @@ export default async function ItemTemplatesPage({
   return (
     <div>
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-medium">{t("ItemTemplates.title")}</h2>
+        <h2 className="text-lg font-semibold tracking-tight">{t("ItemTemplates.title")}</h2>
         <Link href="/settings/item-templates/new">
           <Button size="sm">{t("ItemTemplates.new")}</Button>
         </Link>
       </div>
 
       {templates.length === 0 ? (
-        <p className="mt-6 text-sm text-neutral-500">{t("ItemTemplates.empty")}</p>
+        <p className="mt-6 text-sm text-muted-foreground">{t("ItemTemplates.empty")}</p>
       ) : (
-        <div className="mt-6 overflow-hidden rounded-md border border-neutral-200 bg-white">
+        <div className="mt-6 overflow-hidden rounded-xl border border-border bg-card shadow-sm">
           <table className="w-full text-sm">
-            <thead className="bg-neutral-50 text-xs uppercase tracking-wider text-neutral-500">
+            <thead className="border-b border-border bg-secondary/40 text-xs uppercase tracking-wider text-muted-foreground">
               <tr>
                 <th className="px-4 py-2 text-left">{t("ItemTemplates.fields.name")}</th>
                 <th className="px-4 py-2 text-left">{t("ItemTemplates.fields.category")}</th>
@@ -46,9 +46,9 @@ export default async function ItemTemplatesPage({
                 <th className="px-4 py-2 text-left">{t("ItemTemplates.fields.defaultTaxMode")}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-neutral-200">
+            <tbody className="divide-y divide-border">
               {templates.map((tmpl) => (
-                <tr key={tmpl.id} className="hover:bg-neutral-50">
+                <tr key={tmpl.id} className="hover:bg-secondary/40">
                   <td className="px-4 py-2">
                     <Link
                       href={`/settings/item-templates/${tmpl.id}`}
@@ -57,17 +57,17 @@ export default async function ItemTemplatesPage({
                       {tmpl.name}
                     </Link>
                   </td>
-                  <td className="px-4 py-2 text-neutral-600">
+                  <td className="px-4 py-2 text-muted-foreground">
                     {tmpl.category?.name ?? "—"}
                   </td>
-                  <td className="px-4 py-2 text-neutral-600">{tmpl.unit.name}</td>
+                  <td className="px-4 py-2 text-muted-foreground">{tmpl.unit.name}</td>
                   <td className="px-4 py-2 text-right tabular-nums">
                     {tmpl.defaultUnitPrice.toString()}
                   </td>
-                  <td className="px-4 py-2 text-neutral-600">
+                  <td className="px-4 py-2 text-muted-foreground">
                     {tmpl.defaultTaxRate.label}
                   </td>
-                  <td className="px-4 py-2 text-neutral-600">
+                  <td className="px-4 py-2 text-muted-foreground">
                     {tmpl.defaultTaxMode === "NET"
                       ? t("ItemTemplates.fields.taxModeNet")
                       : t("ItemTemplates.fields.taxModeGross")}

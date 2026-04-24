@@ -22,18 +22,18 @@ export default async function CustomFieldsPage({
 
   return (
     <div>
-      <h2 className="text-lg font-medium">{t("Settings.navCustomFields")}</h2>
-      <p className="mt-1 text-sm text-neutral-500">
+      <h2 className="text-lg font-semibold tracking-tight">{t("Settings.navCustomFields")}</h2>
+      <p className="mt-1 text-sm text-muted-foreground">
         Extra fields that appear on every client profile.
       </p>
 
       {defs.length > 0 ? (
-        <ul className="mt-6 divide-y divide-neutral-200 rounded-md border border-neutral-200 bg-white">
+        <ul className="mt-6 divide-y divide-border rounded-xl border border-border bg-card shadow-sm">
           {defs.map((d) => (
             <li key={d.id} className="flex items-center justify-between px-4 py-2">
               <span>
                 {d.label}{" "}
-                <span className="text-xs text-neutral-500">({d.fieldType})</span>
+                <span className="text-xs text-muted-foreground">({d.fieldType})</span>
               </span>
               <form
                 action={async () => {
@@ -49,7 +49,7 @@ export default async function CustomFieldsPage({
           ))}
         </ul>
       ) : (
-        <p className="mt-4 text-sm text-neutral-500">No custom fields yet.</p>
+        <p className="mt-4 text-sm text-muted-foreground">No custom fields yet.</p>
       )}
 
       <div className="mt-6">
