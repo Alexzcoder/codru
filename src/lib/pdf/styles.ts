@@ -49,10 +49,13 @@ export function buildStyles(accent: string) {
       fontSize: 22,
       fontWeight: "bold",
       color: accent,
+      lineHeight: 1.15,
+      marginBottom: 4,
     },
     docNumber: {
       fontSize: 11,
       color: "#555",
+      marginTop: 2,
     },
 
     // Two-column parties block
