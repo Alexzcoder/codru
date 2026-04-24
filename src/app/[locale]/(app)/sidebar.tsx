@@ -86,8 +86,8 @@ export async function Sidebar({
         </div>
       </div>
 
-      {/* Nav */}
-      <nav className="flex-1 overflow-y-auto px-3 pb-6">
+      {/* Nav — scrollable via wheel, scrollbar itself hidden for a cleaner look */}
+      <nav className="flex-1 overflow-y-auto px-3 pb-6 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
         {sections.map((section, idx) => (
           <div key={idx} className="mb-5">
             {section.label && (

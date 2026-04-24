@@ -10,6 +10,20 @@ import { Bell, LogOut } from "lucide-react";
 
 const DEV_BYPASS = process.env.DEV_BYPASS === "true";
 
+// DEV_BYPASS user never changes during a dev session, so resolve once per
+// server instance and cache. Saves one DB round-trip per page load.
+let devOwnerCache: { id: string; email: string } | null = null;
+
+async function resolveDevOwner() {
+  if (devOwnerCache) return devOwnerCache;
+  const owner = await prisma.user.findFirst({
+    where: { role: "OWNER" },
+    select: { id: true, email: true },
+  });
+  if (owner) devOwnerCache = owner;
+  return owner;
+}
+
 export default async function AppLayout({
   children,
   params,
@@ -20,14 +34,10 @@ export default async function AppLayout({
   const { locale } = await params;
   setRequestLocale(locale);
 
-  // Resolve user identity first (cheap — 1 DB query at most).
   let email = "dev";
   let userId: string | null = null;
   if (DEV_BYPASS) {
-    const owner = await prisma.user.findFirst({
-      where: { role: "OWNER" },
-      select: { id: true, email: true },
-    });
+    const owner = await resolveDevOwner();
     email = owner?.email ?? "dev";
     userId = owner?.id ?? null;
   } else {
