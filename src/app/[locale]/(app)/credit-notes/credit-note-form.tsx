@@ -38,6 +38,7 @@ type Initial = {
   issueDate?: Date;
   taxPointDate?: Date | null;
   reverseCharge?: boolean;
+  title?: string | null;
   notesInternal?: string | null;
   notesToClient?: string | null;
   lines?: EditorLine[];
@@ -81,6 +82,20 @@ export function CreditNoteForm({
       )}
 
       <input type="hidden" name="originalDocumentId" value={original.id} />
+
+      <div className="space-y-2">
+        <Label htmlFor="title">Title (optional)</Label>
+        <Input
+          id="title"
+          name="title"
+          defaultValue={initial?.title ?? ""}
+          placeholder="e.g. Storno — chybný materiál"
+          maxLength={200}
+        />
+        <p className="text-xs text-muted-foreground">
+          Internal name for this credit note — not shown on the PDF.
+        </p>
+      </div>
 
       <div className="rounded-xl border border-border bg-secondary/40 px-4 py-3 text-sm">
         <p className="text-xs uppercase tracking-wider text-muted-foreground">

@@ -118,6 +118,11 @@ export default async function FinalInvoicesPage({
                           </span>
                         )}
                       </Link>
+                      {d.title && (
+                        <div className="text-xs font-normal text-muted-foreground line-clamp-1">
+                          {d.title}
+                        </div>
+                      )}
                     </td>
                     <td className="px-4 py-2 text-muted-foreground">{clientDisplayName(d.client)}</td>
                     <td className="px-4 py-2 text-muted-foreground">

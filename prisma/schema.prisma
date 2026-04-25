@@ -534,6 +534,9 @@ model Document {
   documentDiscountAmount  Decimal?  @db.Decimal(12, 2)
 
   // Notes
+  // Optional human-friendly label distinct from the legal `number`.
+  // E.g. "Kitchen remodel for Cejková", "Phase 1 - foundation".
+  title              String?
   notesInternal      String?
   notesToClient      String?
 

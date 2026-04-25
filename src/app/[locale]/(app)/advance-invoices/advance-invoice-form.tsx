@@ -43,6 +43,7 @@ type Initial = {
   advanceAmountMode?: "PERCENT" | "FIXED" | null;
   advanceAmountPercent?: string | null;
   advanceAmountFixed?: string | null;
+  title?: string | null;
   notesInternal?: string | null;
   notesToClient?: string | null;
   lines?: EditorLine[];
@@ -140,6 +141,20 @@ export function AdvanceInvoiceForm({
           {tQ("actions.editWarning")}
         </div>
       )}
+
+      <div className="space-y-2">
+        <Label htmlFor="title">Title (optional)</Label>
+        <Input
+          id="title"
+          name="title"
+          defaultValue={initial?.title ?? ""}
+          placeholder="e.g. Záloha — kuchyně Cejková"
+          maxLength={200}
+        />
+        <p className="text-xs text-muted-foreground">
+          Internal name for this advance — not shown on the PDF.
+        </p>
+      </div>
 
       <div className="grid gap-4 md:grid-cols-3">
         <div className="space-y-2">

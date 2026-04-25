@@ -62,6 +62,7 @@ export default async function EditAdvanceInvoicePage({
             advanceAmountMode: doc.advanceAmountMode,
             advanceAmountPercent: doc.advanceAmountPercent?.toString() ?? null,
             advanceAmountFixed: doc.advanceAmountFixed?.toString() ?? null,
+            title: doc.title,
             notesInternal: doc.notesInternal,
             notesToClient: doc.notesToClient,
             lines,

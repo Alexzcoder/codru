@@ -63,6 +63,7 @@ export default async function EditCreditNotePage({
             issueDate: doc.issueDate,
             taxPointDate: doc.taxPointDate,
             reverseCharge: doc.reverseCharge,
+            title: doc.title,
             notesInternal: doc.notesInternal,
             notesToClient: doc.notesToClient,
             lines,

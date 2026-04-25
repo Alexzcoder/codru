@@ -93,11 +93,17 @@ export default async function AdvanceInvoiceDetailPage({
         </p>
       )}
       <div className="mt-1 flex items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold tracking-tight">
-          {doc.number ?? (
-            <span className="italic text-muted-foreground">{t("Quotes.draftBadge")}</span>
+        <div className="min-w-0">
+          <h1 className="text-2xl font-semibold tracking-tight">
+            {doc.title ??
+              doc.number ?? (
+                <span className="italic text-muted-foreground">{t("Quotes.draftBadge")}</span>
+              )}
+          </h1>
+          {doc.title && doc.number && (
+            <p className="text-xs text-muted-foreground">{doc.number}</p>
           )}
-        </h1>
+        </div>
         <span className="rounded-full bg-secondary px-3 py-1 text-xs">
           {t(`AdvanceInvoices.status.${doc.status}`)}
         </span>

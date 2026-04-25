@@ -161,6 +161,11 @@ export default async function QuotesPage({
                           </span>
                         )}
                       </Link>
+                      {q.title && (
+                        <div className="text-xs font-normal text-muted-foreground line-clamp-1">
+                          {q.title}
+                        </div>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">
                       {clientDisplayName(q.client)}

@@ -97,6 +97,11 @@ export default async function CreditNotesPage({
                       <Link href={`/credit-notes/${d.id}`} className="hover:underline">
                         {d.number ?? <span className="italic text-muted-foreground">Draft</span>}
                       </Link>
+                      {d.title && (
+                        <div className="text-xs font-normal text-muted-foreground line-clamp-1">
+                          {d.title}
+                        </div>
+                      )}
                     </td>
                     <td className="px-4 py-2 text-muted-foreground">
                       {clientDisplayName(d.client)}

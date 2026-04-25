@@ -32,6 +32,7 @@ type Initial = {
   reverseCharge?: boolean;
   documentDiscountPercent?: string | null;
   documentDiscountAmount?: string | null;
+  title?: string | null;
   notesInternal?: string | null;
   notesToClient?: string | null;
   lines?: EditorLine[];
@@ -92,6 +93,21 @@ export function QuoteForm({
           {t("actions.editWarning")}
         </div>
       )}
+
+      <div className="space-y-2">
+        <Label htmlFor="title">Title (optional)</Label>
+        <Input
+          id="title"
+          name="title"
+          defaultValue={initial?.title ?? ""}
+          placeholder="e.g. Kitchen remodel for Cejková"
+          maxLength={200}
+        />
+        <p className="text-xs text-muted-foreground">
+          Internal name for this quote — not shown on the PDF. The legal
+          number stays separate.
+        </p>
+      </div>
 
       <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-2">

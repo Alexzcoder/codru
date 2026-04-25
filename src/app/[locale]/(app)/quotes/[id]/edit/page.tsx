@@ -59,6 +59,7 @@ export default async function EditQuotePage({
             reverseCharge: doc.reverseCharge,
             documentDiscountPercent: doc.documentDiscountPercent?.toString() ?? null,
             documentDiscountAmount: doc.documentDiscountAmount?.toString() ?? null,
+            title: doc.title,
             notesInternal: doc.notesInternal,
             notesToClient: doc.notesToClient,
             lines: editorLines,
