@@ -50,6 +50,7 @@ model User {
   expensesCreated    Expense[]            @relation("ExpenseCreator")
   recurrencesCreated RecurrenceRule[]     @relation("RecurrenceCreator")
   notifications      Notification[]
+  emailsSent         EmailLog[]           @relation("EmailLogSender")
 }
 
 model Invite {
@@ -101,6 +102,7 @@ model CompanyProfile {
 
   documentTemplates      DocumentTemplate[]
   documents              Document[]
+  emailIdentities        EmailIdentity[]
 }
 
 // User-configurable VAT rates. Pre-filled: 21, 12, 0. Used by line items starting M6.
@@ -584,6 +586,9 @@ model Document {
   recurrenceRuleId   String?
   recurrenceRule     RecurrenceRule? @relation("DocumentsFromRule", fields: [recurrenceRuleId], references: [id], onDelete: SetNull)
 
+  // Outbound emails sent for this document (M15+)
+  emailLogs          EmailLog[]
+
   @@unique([type, yearSeries, numberSeq])
   @@index([clientId])
   @@index([jobId])
@@ -857,6 +862,56 @@ model LoginAttempt {
   createdAt DateTime @default(now())
 
   @@index([ipHash, createdAt])
+}
+
+// Per-CompanyProfile sender identity (a verified from-address in Resend).
+// Domain verification still happens in Resend's dashboard for now; this just
+// records which from-addresses are available to send from in Codru.
+model EmailIdentity {
+  id               String          @id @default(cuid())
+  companyProfileId String
+  companyProfile   CompanyProfile  @relation(fields: [companyProfileId], references: [id], onDelete: Cascade)
+  fromAddress      String          // e.g. "info@sezonapece.cz"
+  displayName      String?         // e.g. "Sezona Péče"
+  isDefault        Boolean         @default(false)
+  archivedAt       DateTime?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  emails           EmailLog[]
+
+  @@index([companyProfileId, archivedAt])
+}
+
+// Every outbound client email. Powers the "Email history" list on document
+// detail pages and stores enough context for an audit trail.
+model EmailLog {
+  id              String         @id @default(cuid())
+  identityId      String?
+  identity        EmailIdentity? @relation(fields: [identityId], references: [id], onDelete: SetNull)
+  documentId      String?
+  document        Document?      @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  sentById        String
+  sentBy          User           @relation("EmailLogSender", fields: [sentById], references: [id], onDelete: Restrict)
+
+  toAddress       String
+  ccAddress       String?
+  fromAddress     String
+  fromDisplayName String?
+  subject         String
+  bodyText        String
+
+  language        String         @default("cs")
+  draftedByClaude Boolean        @default(false)
+
+  resendMessageId String?
+  status          String         @default("sent") // sent | bounced | failed | delivered | opened
+  errorMessage    String?
+
+  createdAt       DateTime       @default(now())
+
+  @@index([documentId, createdAt])
+  @@index([sentById, createdAt])
 }
 
 // Audit log for every Claude API call. Powers cost transparency and the

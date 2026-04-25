@@ -14,6 +14,8 @@ import {
 } from "../actions";
 import { loadCreditNotesForOriginal } from "@/lib/credit-notes-summary";
 import { BackLink } from "@/components/back-link";
+import { EmailComposerButton } from "@/components/email-composer";
+import { EmailHistory } from "@/components/email-history";
 
 export default async function AdvanceInvoiceDetailPage({
   params,
@@ -123,6 +125,7 @@ export default async function AdvanceInvoiceDetailPage({
             Download PDF ↓
           </Button>
         </a>
+        <EmailComposerButton documentId={id} />
         {isDraft && (
           <form action={sendBound}>
             <Button type="submit" size="sm">
@@ -261,6 +264,8 @@ export default async function AdvanceInvoiceDetailPage({
           </p>
         </div>
       )}
+
+      <EmailHistory documentId={id} />
     </div>
   );
 }

@@ -14,6 +14,8 @@ import {
   markQuoteSent,
 } from "../actions";
 import { BackLink } from "@/components/back-link";
+import { EmailComposerButton } from "@/components/email-composer";
+import { EmailHistory } from "@/components/email-history";
 
 export default async function QuoteDetailPage({
   params,
@@ -113,6 +115,7 @@ export default async function QuoteDetailPage({
             Download PDF ↓
           </Button>
         </a>
+        <EmailComposerButton documentId={id} />
         {isDraft && (
           <form action={sendBound}>
             <Button type="submit" size="sm">
@@ -245,6 +248,8 @@ export default async function QuoteDetailPage({
           </p>
         </div>
       )}
+
+      <EmailHistory documentId={id} />
     </div>
   );
 }
