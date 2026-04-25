@@ -6,7 +6,8 @@ import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/page-header";
 import { ClickableRow } from "@/components/clickable-row";
-import { Plus } from "lucide-react";
+import { SearchBar } from "@/components/search-bar";
+import { Plus, Download } from "lucide-react";
 
 const PAGE_SIZE = 50;
 
@@ -21,6 +22,7 @@ export default async function ExpensesPage({
     categoryId?: string;
     jobId?: string;
     page?: string;
+    q?: string;
   }>;
 }) {
   const { locale } = await params;
@@ -30,11 +32,18 @@ export default async function ExpensesPage({
   const t = await getTranslations();
   const sp = await searchParams;
 
+  const q = sp.q?.trim() ?? "";
   const where = {
     ...(sp.from && { date: { gte: new Date(sp.from) } }),
     ...(sp.to && { date: { lte: new Date(sp.to) } }),
     ...(sp.categoryId && { categoryId: sp.categoryId }),
     ...(sp.jobId && { jobId: sp.jobId }),
+    ...(q && {
+      OR: [
+        { description: { contains: q, mode: "insensitive" as const } },
+        { supplier: { contains: q, mode: "insensitive" as const } },
+      ],
+    }),
   };
   const page = Math.max(1, Number(sp.page) || 1);
 
@@ -67,11 +76,27 @@ export default async function ExpensesPage({
         title={t("Expenses.title")}
         description={`${total} ${total === 1 ? "expense" : "expenses"}`}
         actions={
-          <Link href="/expenses/new">
-            <Button size="sm" className="gap-1.5">
-              <Plus size={14} /> {t("Expenses.new")}
-            </Button>
-          </Link>
+          <>
+            <a
+              href={`/expenses/export.xlsx?${new URLSearchParams({
+                ...(q && { q }),
+                ...(sp.from && { from: sp.from }),
+                ...(sp.to && { to: sp.to }),
+                ...(sp.categoryId && { categoryId: sp.categoryId }),
+                ...(sp.jobId && { jobId: sp.jobId }),
+              }).toString()}`}
+              download
+            >
+              <Button variant="outline" size="sm" className="gap-1.5">
+                <Download size={14} /> Excel
+              </Button>
+            </a>
+            <Link href="/expenses/new">
+              <Button size="sm" className="gap-1.5">
+                <Plus size={14} /> {t("Expenses.new")}
+              </Button>
+            </Link>
+          </>
         }
       />
 
@@ -112,8 +137,17 @@ export default async function ExpensesPage({
         </div>
       </section>
 
+      <div className="mt-6">
+        <SearchBar
+          pathname="/expenses"
+          initialQ={q}
+          preserveParams={{ from: sp.from, to: sp.to, categoryId: sp.categoryId, jobId: sp.jobId }}
+          placeholder="Search by description or supplier…"
+        />
+      </div>
+
       {/* Filters */}
-      <form className="mt-6 flex flex-wrap items-end gap-3 rounded-xl border border-border bg-card shadow-sm p-3">
+      <form className="mt-3 flex flex-wrap items-end gap-3 rounded-xl border border-border bg-card shadow-sm p-3">
         <label className="flex flex-col text-xs text-muted-foreground">
           {t("Expenses.filters.from")}
           <input

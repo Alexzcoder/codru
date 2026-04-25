@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import type { CompanyProfileState } from "./actions";
+import { CountrySelect } from "@/components/country-select";
 
 export function CompanyProfileForm({
   initial,
@@ -36,14 +37,13 @@ export function CompanyProfileForm({
 
       <fieldset className="grid gap-3">
         <Field name="addressStreet" label={t("street")} defaultValue={initial?.addressStreet ?? ""} />
-        <div className="grid grid-cols-[1fr_140px_100px] gap-3">
+        <div className="grid grid-cols-[1fr_140px_180px] gap-3">
           <Field name="addressCity" label={t("city")} defaultValue={initial?.addressCity ?? ""} />
           <Field name="addressZip" label={t("zip")} defaultValue={initial?.addressZip ?? ""} />
-          <Field
-            name="addressCountry"
-            label={t("country")}
-            defaultValue={initial?.addressCountry ?? "CZ"}
-          />
+          <div className="space-y-2">
+            <Label htmlFor="addressCountry">{t("country")}</Label>
+            <CountrySelect name="addressCountry" defaultValue={initial?.addressCountry ?? "CZ"} />
+          </div>
         </div>
       </fieldset>
 

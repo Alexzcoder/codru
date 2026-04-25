@@ -7,7 +7,8 @@ import { clientDisplayName } from "@/lib/client-display";
 import { calculateDocument } from "@/lib/line-items";
 import { PageHeader } from "@/components/page-header";
 import { ClickableRow } from "@/components/clickable-row";
-import { Plus } from "lucide-react";
+import { SearchBar } from "@/components/search-bar";
+import { Plus, Download } from "lucide-react";
 import type { DocumentStatus } from "@prisma/client";
 
 const PAGE_SIZE = 50;
@@ -25,7 +26,7 @@ export default async function QuotesPage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ status?: string; page?: string }>;
+  searchParams: Promise<{ status?: string; page?: string; q?: string }>;
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
@@ -38,11 +39,19 @@ export default async function QuotesPage({
     ? (sp.status as DocumentStatus)
     : undefined;
   const page = Math.max(1, Number(sp.page) || 1);
+  const q = sp.q?.trim() ?? "";
 
   const where = {
     type: "QUOTE" as const,
     deletedAt: null,
     ...(statusFilter && { status: statusFilter }),
+    ...(q && {
+      OR: [
+        { number: { contains: q, mode: "insensitive" as const } },
+        { client: { companyName: { contains: q, mode: "insensitive" as const } } },
+        { client: { fullName: { contains: q, mode: "insensitive" as const } } },
+      ],
+    }),
   };
 
   const [quotes, total] = await Promise.all([
@@ -64,13 +73,29 @@ export default async function QuotesPage({
         title={t("Quotes.title")}
         description={`${total} ${total === 1 ? "quote" : "quotes"}`}
         actions={
-          <Link href="/quotes/new">
-            <Button size="sm" className="gap-1.5">
-              <Plus size={14} /> {t("Quotes.newQuote")}
-            </Button>
-          </Link>
+          <>
+            <a href={`/quotes/export.xlsx${q ? `?q=${encodeURIComponent(q)}` : ""}`} download>
+              <Button variant="outline" size="sm" className="gap-1.5">
+                <Download size={14} /> Excel
+              </Button>
+            </a>
+            <Link href="/quotes/new">
+              <Button size="sm" className="gap-1.5">
+                <Plus size={14} /> {t("Quotes.newQuote")}
+              </Button>
+            </Link>
+          </>
         }
       />
+
+      <div className="mb-4">
+        <SearchBar
+          pathname="/quotes"
+          initialQ={q}
+          preserveParams={{ status: statusFilter }}
+          placeholder="Search by number or client…"
+        />
+      </div>
 
       <div className="mb-6 flex flex-wrap gap-2 text-sm">
         {(["ALL", ...allowed] as const).map((s) => {

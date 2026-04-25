@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 import type { JobState } from "./actions";
+import { DateTimePicker } from "@/components/datetime-picker";
+import { CountrySelect } from "@/components/country-select";
 
 type Initial = Partial<Job> & { assigneeIds?: string[] };
 
@@ -90,22 +92,12 @@ export function JobForm({
 
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-2">
-          <Label htmlFor="scheduledStart">{t("form.start")}</Label>
-          <Input
-            id="scheduledStart"
-            name="scheduledStart"
-            type="datetime-local"
-            defaultValue={toInput(initial?.scheduledStart)}
-          />
+          <Label>{t("form.start")}</Label>
+          <DateTimePicker name="scheduledStart" defaultValue={initial?.scheduledStart} />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="scheduledEnd">{t("form.end")}</Label>
-          <Input
-            id="scheduledEnd"
-            name="scheduledEnd"
-            type="datetime-local"
-            defaultValue={toInput(initial?.scheduledEnd)}
-          />
+          <Label>{t("form.end")}</Label>
+          <DateTimePicker name="scheduledEnd" defaultValue={initial?.scheduledEnd} />
         </div>
       </div>
 
@@ -122,7 +114,7 @@ export function JobForm({
               defaultValue={initial?.siteStreet ?? ""}
             />
           </div>
-          <div className="grid grid-cols-[1fr_140px_100px] gap-3">
+          <div className="grid grid-cols-[1fr_140px_180px] gap-3">
             <div className="space-y-2">
               <Label htmlFor="siteCity">{t("form.city")}</Label>
               <Input id="siteCity" name="siteCity" defaultValue={initial?.siteCity ?? ""} />
@@ -133,7 +125,7 @@ export function JobForm({
             </div>
             <div className="space-y-2">
               <Label htmlFor="siteCountry">{t("form.country")}</Label>
-              <Input id="siteCountry" name="siteCountry" defaultValue={initial?.siteCountry ?? ""} />
+              <CountrySelect name="siteCountry" defaultValue={initial?.siteCountry ?? "CZ"} />
             </div>
           </div>
         </div>
@@ -195,9 +187,3 @@ export function JobForm({
   );
 }
 
-function toInput(d: Date | null | undefined): string {
-  if (!d) return "";
-  const dt = new Date(d);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}T${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
-}

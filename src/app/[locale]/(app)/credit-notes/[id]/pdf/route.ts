@@ -9,11 +9,13 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   await requireUser();
   const { id } = await params;
+  const url = new URL(req.url);
+  const disp = url.searchParams.get("download") === "1" ? "attachment" : "inline";
 
   const doc = await prisma.document.findUnique({
     where: { id },
@@ -29,7 +31,7 @@ export async function GET(
       return new Response(new Uint8Array(buffer), {
         headers: {
           "content-type": "application/pdf",
-          "content-disposition": `inline; filename="${doc.number ?? "credit-note"}.pdf"`,
+          "content-disposition": `${disp}; filename="${doc.number ?? "credit-note"}.pdf"`,
           "cache-control": "no-store",
         },
       });
@@ -40,7 +42,7 @@ export async function GET(
   return new Response(new Uint8Array(buffer), {
     headers: {
       "content-type": "application/pdf",
-      "content-disposition": `inline; filename="${doc.number ?? "credit-draft"}.pdf"`,
+      "content-disposition": `${disp}; filename="${doc.number ?? "credit-draft"}.pdf"`,
       "cache-control": "no-store",
     },
   });

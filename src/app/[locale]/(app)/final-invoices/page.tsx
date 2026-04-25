@@ -7,7 +7,8 @@ import { clientDisplayName } from "@/lib/client-display";
 import { calculateDocument } from "@/lib/line-items";
 import { PageHeader } from "@/components/page-header";
 import { ClickableRow } from "@/components/clickable-row";
-import { Plus } from "lucide-react";
+import { SearchBar } from "@/components/search-bar";
+import { Plus, Download } from "lucide-react";
 
 const PAGE_SIZE = 50;
 
@@ -21,16 +22,30 @@ const STATUS_STYLE: Record<string, string> = {
 
 export default async function FinalInvoicesPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ q?: string }>;
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
   await requireUser();
   const t = await getTranslations();
+  const sp = await searchParams;
+  const q = sp.q?.trim() ?? "";
 
   const docs = await prisma.document.findMany({
-    where: { type: "FINAL_INVOICE", deletedAt: null },
+    where: {
+      type: "FINAL_INVOICE",
+      deletedAt: null,
+      ...(q && {
+        OR: [
+          { number: { contains: q, mode: "insensitive" as const } },
+          { client: { companyName: { contains: q, mode: "insensitive" as const } } },
+          { client: { fullName: { contains: q, mode: "insensitive" as const } } },
+        ],
+      }),
+    },
     include: { client: true, lineItems: true },
     orderBy: { updatedAt: "desc" },
     take: PAGE_SIZE,
@@ -42,13 +57,24 @@ export default async function FinalInvoicesPage({
         title={t("FinalInvoices.title")}
         description={`${docs.length} ${docs.length === 1 ? "invoice" : "invoices"}`}
         actions={
-          <Link href="/final-invoices/new">
-            <Button size="sm" className="gap-1.5">
-              <Plus size={14} /> {t("FinalInvoices.new")}
-            </Button>
-          </Link>
+          <>
+            <a href={`/final-invoices/export.xlsx${q ? `?q=${encodeURIComponent(q)}` : ""}`} download>
+              <Button variant="outline" size="sm" className="gap-1.5">
+                <Download size={14} /> Excel
+              </Button>
+            </a>
+            <Link href="/final-invoices/new">
+              <Button size="sm" className="gap-1.5">
+                <Plus size={14} /> {t("FinalInvoices.new")}
+              </Button>
+            </Link>
+          </>
         }
       />
+
+      <div className="mb-4">
+        <SearchBar pathname="/final-invoices" initialQ={q} placeholder="Search by number or client…" />
+      </div>
 
       {docs.length === 0 ? (
         <div className="mt-12 rounded-xl border border-dashed border-border bg-card shadow-sm p-12 text-center">

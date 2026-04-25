@@ -114,6 +114,11 @@ export default async function FinalInvoiceDetailPage({
             {t("Quotes.actions.previewPdf")} ↗
           </Button>
         </a>
+        <a href={`/final-invoices/${id}/pdf?download=1`} download>
+          <Button variant="outline" size="sm">
+            Download PDF ↓
+          </Button>
+        </a>
         {isDraft && (
           <form action={sendBound}>
             <Button type="submit" size="sm">

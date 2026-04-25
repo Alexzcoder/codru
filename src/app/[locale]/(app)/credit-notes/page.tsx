@@ -6,6 +6,7 @@ import { clientDisplayName } from "@/lib/client-display";
 import { calculateDocument } from "@/lib/line-items";
 import { PageHeader } from "@/components/page-header";
 import { ClickableRow } from "@/components/clickable-row";
+import { SearchBar } from "@/components/search-bar";
 
 const PAGE_SIZE = 50;
 
@@ -17,16 +18,30 @@ const STATUS_STYLE: Record<string, string> = {
 
 export default async function CreditNotesPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ q?: string }>;
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
   await requireUser();
   const t = await getTranslations();
+  const sp = await searchParams;
+  const q = sp.q?.trim() ?? "";
 
   const docs = await prisma.document.findMany({
-    where: { type: "CREDIT_NOTE", deletedAt: null },
+    where: {
+      type: "CREDIT_NOTE",
+      deletedAt: null,
+      ...(q && {
+        OR: [
+          { number: { contains: q, mode: "insensitive" as const } },
+          { client: { companyName: { contains: q, mode: "insensitive" as const } } },
+          { client: { fullName: { contains: q, mode: "insensitive" as const } } },
+        ],
+      }),
+    },
     include: { client: true, originalDocument: true, lineItems: true },
     orderBy: { updatedAt: "desc" },
     take: PAGE_SIZE,
@@ -41,6 +56,10 @@ export default async function CreditNotesPage({
       <p className="hidden">
         Opravný daňový doklad — issued from an invoice's detail page.
       </p>
+
+      <div className="mb-4">
+        <SearchBar pathname="/credit-notes" initialQ={q} placeholder="Search by number or client…" />
+      </div>
 
       {docs.length === 0 ? (
         <div className="mt-12 rounded-xl border border-dashed border-border bg-card shadow-sm p-12 text-center">

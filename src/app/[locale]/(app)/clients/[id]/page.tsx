@@ -19,25 +19,69 @@ export default async function ClientDetailPage({
   await requireUser();
   const t = await getTranslations();
 
-  const [client, logs, customValues, customDefs, jobs] = await Promise.all([
-    prisma.client.findUnique({ where: { id } }),
-    prisma.contactLog.findMany({
-      where: { clientId: id },
-      orderBy: { date: "desc" },
-      include: { loggedBy: { select: { name: true } } },
-      take: 100,
-    }),
-    prisma.customFieldValue.findMany({
-      where: { clientId: id },
-      include: { fieldDef: true },
-    }),
-    prisma.customFieldDef.findMany({ where: { archivedAt: null } }),
-    prisma.job.findMany({
-      where: { clientId: id },
-      orderBy: { updatedAt: "desc" },
-      take: 50,
-    }),
-  ]);
+  const [client, logs, customValues, customDefs, jobs, jobAttachments, docSnapshots] =
+    await Promise.all([
+      prisma.client.findUnique({ where: { id } }),
+      prisma.contactLog.findMany({
+        where: { clientId: id },
+        orderBy: { date: "desc" },
+        include: { loggedBy: { select: { name: true } } },
+        take: 100,
+      }),
+      prisma.customFieldValue.findMany({
+        where: { clientId: id },
+        include: { fieldDef: true },
+      }),
+      prisma.customFieldDef.findMany({ where: { archivedAt: null } }),
+      prisma.job.findMany({
+        where: { clientId: id },
+        orderBy: { updatedAt: "desc" },
+        take: 50,
+      }),
+      prisma.attachment.findMany({
+        where: { job: { clientId: id } },
+        include: { job: { select: { id: true, title: true } } },
+        orderBy: { createdAt: "desc" },
+        take: 200,
+      }),
+      prisma.pdfSnapshot.findMany({
+        where: { document: { clientId: id } },
+        include: {
+          document: { select: { id: true, type: true, number: true, issueDate: true } },
+        },
+        orderBy: { createdAt: "desc" },
+        take: 200,
+      }),
+    ]);
+
+  const calendarEvents = await prisma.calendarEvent.findMany({
+    where: {
+      OR: [{ clientId: id }, { job: { clientId: id } }],
+    },
+    orderBy: { startsAt: "asc" },
+    take: 200,
+  });
+  const now = Date.now();
+  const scheduleItems = [
+    ...jobs
+      .filter((j) => j.scheduledStart)
+      .map((j) => ({
+        id: j.id,
+        kind: "job" as const,
+        title: j.title,
+        date: j.scheduledStart!,
+        href: `/jobs/${j.id}`,
+      })),
+    ...calendarEvents.map((e) => ({
+      id: e.id,
+      kind: "event" as const,
+      title: e.title,
+      date: e.startsAt,
+      href: `/calendar/${e.id}`,
+    })),
+  ].sort((a, b) => a.date.getTime() - b.date.getTime());
+  const upcoming = scheduleItems.filter((i) => i.date.getTime() >= now);
+  const past = scheduleItems.filter((i) => i.date.getTime() < now).reverse();
   if (!client || client.deletedAt) notFound();
 
   const deleteBound = async () => {
@@ -181,6 +225,116 @@ export default async function ClientDetailPage({
               </li>
             ))}
           </ul>
+        )}
+      </section>
+
+      <section className="mt-10">
+        <h2 className="text-lg font-medium">Schedule</h2>
+        {upcoming.length === 0 && past.length === 0 ? (
+          <p className="mt-3 text-sm text-muted-foreground">
+            Nothing scheduled. Add a job or calendar event for this client.
+          </p>
+        ) : (
+          <div className="mt-3 grid gap-4 md:grid-cols-2">
+            <div className="rounded-xl border border-border bg-card shadow-sm p-4">
+              <h3 className="text-xs uppercase tracking-wider text-muted-foreground">
+                Upcoming ({upcoming.length})
+              </h3>
+              {upcoming.length === 0 ? (
+                <p className="mt-2 text-sm text-muted-foreground">No upcoming items.</p>
+              ) : (
+                <ul className="mt-2 divide-y divide-border">
+                  {upcoming.slice(0, 12).map((i) => (
+                    <li key={`${i.kind}-${i.id}`} className="flex items-start justify-between gap-3 py-2 text-sm">
+                      <Link href={i.href} className="truncate hover:underline">
+                        {i.title}
+                      </Link>
+                      <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
+                        {i.date.toISOString().slice(0, 10)} · {i.date.toISOString().slice(11, 16)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <div className="rounded-xl border border-border bg-card shadow-sm p-4">
+              <h3 className="text-xs uppercase tracking-wider text-muted-foreground">
+                History ({past.length})
+              </h3>
+              {past.length === 0 ? (
+                <p className="mt-2 text-sm text-muted-foreground">No past items.</p>
+              ) : (
+                <ul className="mt-2 divide-y divide-border">
+                  {past.slice(0, 12).map((i) => (
+                    <li key={`${i.kind}-${i.id}`} className="flex items-start justify-between gap-3 py-2 text-sm">
+                      <Link href={i.href} className="truncate text-muted-foreground hover:underline">
+                        {i.title}
+                      </Link>
+                      <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
+                        {i.date.toISOString().slice(0, 10)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        )}
+      </section>
+
+      <section className="mt-10">
+        <h2 className="text-lg font-medium">Files</h2>
+        {jobAttachments.length === 0 && docSnapshots.length === 0 ? (
+          <p className="mt-3 text-sm text-muted-foreground">No files yet — attach photos or PDFs to a job.</p>
+        ) : (
+          <div className="mt-3 grid gap-4 md:grid-cols-2">
+            <div className="rounded-xl border border-border bg-card shadow-sm p-4">
+              <h3 className="text-xs uppercase tracking-wider text-muted-foreground">
+                Job attachments ({jobAttachments.length})
+              </h3>
+              {jobAttachments.length === 0 ? (
+                <p className="mt-2 text-sm text-muted-foreground">—</p>
+              ) : (
+                <ul className="mt-2 divide-y divide-border">
+                  {jobAttachments.map((a) => (
+                    <li key={a.id} className="flex items-center justify-between gap-3 py-2 text-sm">
+                      <a href={a.path} target="_blank" rel="noreferrer" className="truncate hover:underline">
+                        {a.filename}
+                      </a>
+                      <Link
+                        href={`/jobs/${a.job.id}`}
+                        className="shrink-0 text-xs text-muted-foreground hover:underline"
+                      >
+                        {a.job.title}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            <div className="rounded-xl border border-border bg-card shadow-sm p-4">
+              <h3 className="text-xs uppercase tracking-wider text-muted-foreground">
+                Document PDFs ({docSnapshots.length})
+              </h3>
+              {docSnapshots.length === 0 ? (
+                <p className="mt-2 text-sm text-muted-foreground">—</p>
+              ) : (
+                <ul className="mt-2 divide-y divide-border">
+                  {docSnapshots.map((s) => (
+                    <li key={s.id} className="flex items-center justify-between gap-3 py-2 text-sm">
+                      <a href={s.filePath} target="_blank" rel="noreferrer" className="truncate hover:underline">
+                        {s.document.number ?? s.document.type}
+                      </a>
+                      <span className="shrink-0 text-xs text-muted-foreground">
+                        {s.document.issueDate.toISOString().slice(0, 10)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
         )}
       </section>
 

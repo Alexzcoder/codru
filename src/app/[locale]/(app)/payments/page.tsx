@@ -6,21 +6,36 @@ import { Button } from "@/components/ui/button";
 import { clientDisplayName } from "@/lib/client-display";
 import { PageHeader } from "@/components/page-header";
 import { ClickableRow } from "@/components/clickable-row";
+import { SearchBar } from "@/components/search-bar";
 import { Plus } from "lucide-react";
 
 const PAGE_SIZE = 50;
 
 export default async function PaymentsPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ q?: string }>;
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
   await requireUser();
   const t = await getTranslations();
+  const sp = await searchParams;
+  const q = sp.q?.trim() ?? "";
 
   const payments = await prisma.payment.findMany({
+    where: q
+      ? {
+          OR: [
+            { client: { companyName: { contains: q, mode: "insensitive" as const } } },
+            { client: { fullName: { contains: q, mode: "insensitive" as const } } },
+            { notes: { contains: q, mode: "insensitive" as const } },
+            { reference: { contains: q, mode: "insensitive" as const } },
+          ],
+        }
+      : undefined,
     include: { client: true, allocations: true, loggedBy: { select: { name: true } } },
     orderBy: { date: "desc" },
     take: PAGE_SIZE,
@@ -39,6 +54,10 @@ export default async function PaymentsPage({
           </Link>
         }
       />
+
+      <div className="mb-4">
+        <SearchBar pathname="/payments" initialQ={q} placeholder="Search by client, reference, note…" />
+      </div>
 
       {payments.length === 0 ? (
         <div className="rounded-xl border border-dashed border-border bg-card p-12 text-center shadow-sm">
