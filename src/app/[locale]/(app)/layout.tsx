@@ -6,6 +6,7 @@ import { logout } from "./actions";
 import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/prisma";
 import { Sidebar } from "./sidebar";
+import { LocaleSwitcher } from "@/components/locale-switcher";
 import { Bell, LogOut } from "lucide-react";
 
 const DEV_BYPASS = process.env.DEV_BYPASS === "true";
@@ -62,6 +63,7 @@ export default async function AppLayout({
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-10 border-b border-border bg-background/90 backdrop-blur">
           <div className="flex items-center justify-end gap-3 px-6 py-3">
+            <LocaleSwitcher />
             <Link
               href="/notifications"
               className="relative inline-flex items-center gap-1 rounded-md p-2 text-sm text-muted-foreground hover:bg-accent hover:text-foreground"
