@@ -40,3 +40,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# pricing model: extracted past quotes (client data — don't commit)
+.pricing-data/
+
+# raw zips dropped in repo root
+*.zip

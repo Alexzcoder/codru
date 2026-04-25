@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { calculateDocument } from "@/lib/line-items";
+import { PriceSuggester } from "@/components/price-suggester";
 
 export type EditorLine = {
   name: string;
@@ -198,12 +199,23 @@ export function LineItemsEditor({
                   />
                 </td>
                 <td className="px-2 py-1">
-                  <Input
-                    value={l.unitPrice}
-                    onChange={(e) => update(i, { unitPrice: e.target.value })}
-                    className="h-8 text-right"
-                    inputMode="decimal"
-                  />
+                  <div className="flex items-center gap-1">
+                    <Input
+                      value={l.unitPrice}
+                      onChange={(e) => update(i, { unitPrice: e.target.value })}
+                      className="h-8 text-right"
+                      inputMode="decimal"
+                    />
+                    <PriceSuggester
+                      description={`${l.name} ${l.description}`.trim()}
+                      onApply={(unitPrice, unit) =>
+                        update(i, {
+                          unitPrice,
+                          ...(unit && !l.unit ? { unit } : {}),
+                        })
+                      }
+                    />
+                  </div>
                 </td>
                 <td className="px-2 py-1">
                   <select
