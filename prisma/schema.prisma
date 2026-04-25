@@ -858,3 +858,24 @@ model LoginAttempt {
 
   @@index([ipHash, createdAt])
 }
+
+// Audit log for every Claude API call. Powers cost transparency and the
+// per-user daily call cap.
+model AiCall {
+  id                 String   @id @default(cuid())
+  userId             String?
+  feature            String   // e.g., "price-suggest", "email-draft"
+  model              String
+  inputTokens        Int
+  outputTokens       Int
+  cacheReadTokens    Int      @default(0)
+  cacheWriteTokens   Int      @default(0)
+  estimatedCostUsd   Decimal  @db.Decimal(10, 6)
+  durationMs         Int
+  ok                 Boolean  @default(true)
+  errorMessage       String?
+  createdAt          DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([feature, createdAt])
+}

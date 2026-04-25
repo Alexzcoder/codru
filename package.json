@@ -11,6 +11,7 @@
     "db": "dotenv -e .env.local -- prisma"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.91.1",
     "@auth/prisma-adapter": "^2.11.2",
     "@base-ui/react": "^1.4.1",
     "@prisma/client": "^6.19.3",
