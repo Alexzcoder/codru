@@ -94,7 +94,7 @@ export function PriceSuggester({
               <button
                 type="button"
                 onClick={close}
-                className="text-muted-foreground hover:text-foreground"
+                className="cursor-pointer text-muted-foreground hover:text-foreground"
                 aria-label="Close"
               >
                 <X size={18} />
