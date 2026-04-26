@@ -3,6 +3,19 @@
     "title": "Codru",
     "tagline": "Clients, jobs, and documents in one place."
   },
+  "Common": {
+    "status": "Status",
+    "total": "Total",
+    "draft": "Draft",
+    "original": "Original",
+    "issueDate": "Issue date",
+    "searchByNumberOrClient": "Search by number or client…",
+    "all": "All",
+    "none": "—",
+    "edit": "Edit",
+    "save": "Save",
+    "cancel": "Cancel"
+  },
   "Auth": {
     "login": "Log in",
     "register": "Register owner",
@@ -266,7 +279,12 @@
     },
     "linesHint": "Lines pre-populated with the original at negative amounts. Edit to credit partially or remove lines you don't want to credit.",
     "effectiveBalance": "Effective balance after credit notes",
-    "linkedCreditNotes": "Linked credit notes"
+    "linkedCreditNotes": "Linked credit notes",
+    "titleField": {
+      "label": "Title (optional)",
+      "placeholder": "e.g. Credit note — returned tiles",
+      "hint": "Internal name for this credit note — not shown on the PDF."
+    }
   },
   "FinalInvoices": {
     "title": "Final invoices",
@@ -294,7 +312,12 @@
       "delete": "Delete draft"
     },
     "noAvailableAdvances": "No advances available for deduction on this job.",
-    "jobRequiredHint": "A final invoice must be linked to a Job."
+    "jobRequiredHint": "A final invoice must be linked to a Job.",
+    "titleField": {
+      "label": "Title (optional)",
+      "placeholder": "e.g. Invoice — Cejková kitchen",
+      "hint": "Internal name for this invoice — not shown on the PDF."
+    }
   },
   "AdvanceInvoices": {
     "title": "Advance invoices",
@@ -324,7 +347,12 @@
       "delete": "Delete draft"
     },
     "defaultLineName": "Advance payment",
-    "ppcHint": "This advance is paid, but the linked job isn't Completed yet. It will move to Paid automatically when the job is marked Completed."
+    "ppcHint": "This advance is paid, but the linked job isn't Completed yet. It will move to Paid automatically when the job is marked Completed.",
+    "titleField": {
+      "label": "Title (optional)",
+      "placeholder": "e.g. Advance — Cejková kitchen",
+      "hint": "Internal name for this advance — not shown on the PDF."
+    }
   },
   "Quotes": {
     "title": "Quotes",
@@ -386,7 +414,12 @@
       "tax": "VAT",
       "totalGross": "Total"
     },
-    "reverseChargeWarning": "Reverse charge requires a client with IČO (B2B)."
+    "reverseChargeWarning": "Reverse charge requires a client with IČO (B2B).",
+    "titleField": {
+      "label": "Title (optional)",
+      "placeholder": "e.g. Quote — Cejková kitchen",
+      "hint": "Internal name for this quote — not shown on the PDF. The legal document name remains \"Quote\"."
+    }
   },
   "Calendar": {
     "title": "Calendar",

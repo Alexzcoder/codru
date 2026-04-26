@@ -143,17 +143,15 @@ export function AdvanceInvoiceForm({
       )}
 
       <div className="space-y-2">
-        <Label htmlFor="title">Title (optional)</Label>
+        <Label htmlFor="title">{t("titleField.label")}</Label>
         <Input
           id="title"
           name="title"
           defaultValue={initial?.title ?? ""}
-          placeholder="e.g. Záloha — kuchyně Cejková"
+          placeholder={t("titleField.placeholder")}
           maxLength={200}
         />
-        <p className="text-xs text-muted-foreground">
-          Internal name for this advance — not shown on the PDF.
-        </p>
+        <p className="text-xs text-muted-foreground">{t("titleField.hint")}</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">

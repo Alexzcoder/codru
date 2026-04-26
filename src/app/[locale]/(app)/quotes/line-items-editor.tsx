@@ -5,11 +5,13 @@ import { useTranslations } from "next-intl";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Camera, X as XIcon } from "lucide-react";
 import { calculateDocument } from "@/lib/line-items";
 import {
   PriceSuggesterButton,
   PriceSuggesterModal,
   type SuggesterTarget,
+  type SitePhoto,
 } from "@/components/price-suggester";
 
 export type EditorLine = {
@@ -73,6 +75,8 @@ export function LineItemsEditor({
   );
   const [templateId, setTemplateId] = useState<string>("");
   const [suggesterTarget, setSuggesterTarget] = useState<SuggesterTarget | null>(null);
+  const [photos, setPhotos] = useState<SitePhoto[]>([]);
+  const [photoError, setPhotoError] = useState<string | null>(null);
 
   const totals = useMemo(
     () =>
@@ -117,10 +121,96 @@ export function LineItemsEditor({
   const remove = (i: number) =>
     setLines((ls) => ls.filter((_, idx) => idx !== i));
 
+  const onPhotoFiles = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    setPhotoError(null);
+    const accepted: SitePhoto[] = [];
+    for (const file of Array.from(files)) {
+      if (!/^image\/(jpeg|png|webp|gif)$/.test(file.type)) {
+        setPhotoError(`${file.name}: only JPEG/PNG/WebP/GIF`);
+        continue;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        setPhotoError(`${file.name}: max 5 MB`);
+        continue;
+      }
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => resolve(r.result as string);
+        r.onerror = () => reject(r.error);
+        r.readAsDataURL(file);
+      });
+      const m = dataUrl.match(/^data:(image\/[a-z]+);base64,(.+)$/);
+      if (!m) continue;
+      accepted.push({
+        name: file.name,
+        mediaType: m[1] as SitePhoto["mediaType"],
+        base64: m[2],
+        previewUrl: dataUrl,
+      });
+    }
+    setPhotos((prev) => [...prev, ...accepted].slice(0, 4));
+  };
+  const removePhoto = (idx: number) =>
+    setPhotos((prev) => prev.filter((_, i) => i !== idx));
+
   return (
     <div className="space-y-4">
       {/* Hidden input that submits the full line array to the server action */}
       <input type="hidden" name="linesJson" value={JSON.stringify(lines)} />
+
+      {/* Site photos — used by the AI price suggester. Not persisted with the
+          document; they live only in the browser session. */}
+      <div className="rounded-xl border border-dashed border-border bg-secondary/20 p-3">
+        <div className="flex items-center justify-between gap-2">
+          <div>
+            <p className="text-xs font-medium">Site photos for AI</p>
+            <p className="text-[11px] text-muted-foreground">
+              Up to 4 photos · used when you ask Claude for a price · not saved with the quote
+            </p>
+          </div>
+          <label className="cursor-pointer">
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              multiple
+              className="hidden"
+              onChange={(e) => onPhotoFiles(e.target.files)}
+            />
+            <span className="inline-flex h-8 items-center gap-1.5 rounded-md border border-input bg-background px-3 text-xs font-medium hover:bg-accent">
+              <Camera size={14} /> Add photos
+            </span>
+          </label>
+        </div>
+        {photoError && (
+          <p className="mt-2 text-xs text-red-600">{photoError}</p>
+        )}
+        {photos.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {photos.map((p, i) => (
+              <div
+                key={i}
+                className="group relative h-16 w-16 overflow-hidden rounded-md border border-border bg-background"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={p.previewUrl}
+                  alt={p.name}
+                  className="h-full w-full object-cover"
+                />
+                <button
+                  type="button"
+                  onClick={() => removePhoto(i)}
+                  className="absolute right-0.5 top-0.5 inline-flex h-4 w-4 cursor-pointer items-center justify-center rounded-full bg-black/60 text-white hover:bg-black"
+                  aria-label="Remove photo"
+                >
+                  <XIcon size={10} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       <div className="flex items-end gap-2">
         <div className="flex-1 max-w-xs">
@@ -221,6 +311,7 @@ export function LineItemsEditor({
                             .slice(0, i)
                             .filter((x) => x.name.trim().length > 0)
                             .map((x) => ({ name: x.name, description: x.description })),
+                          photos,
                         })
                       }
                     />

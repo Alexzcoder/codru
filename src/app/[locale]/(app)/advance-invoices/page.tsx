@@ -73,7 +73,7 @@ export default async function AdvanceInvoicesPage({
       />
 
       <div className="mb-4">
-        <SearchBar pathname="/advance-invoices" initialQ={q} placeholder="Search by number or client…" />
+        <SearchBar pathname="/advance-invoices" initialQ={q} placeholder={t("Common.searchByNumberOrClient")} />
       </div>
 
       {docs.length === 0 ? (
@@ -93,7 +93,7 @@ export default async function AdvanceInvoicesPage({
                 <th className="px-4 py-2 text-left">{t("Quotes.fields.issueDate")}</th>
                 <th className="px-4 py-2 text-left">{t("AdvanceInvoices.fields.dueDate")}</th>
                 <th className="px-4 py-2 text-right">{t("Quotes.totals.totalGross")}</th>
-                <th className="px-4 py-2 text-left">Status</th>
+                <th className="px-4 py-2 text-left">{t("Common.status")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">

@@ -58,7 +58,7 @@ export default async function CreditNotesPage({
       </p>
 
       <div className="mb-4">
-        <SearchBar pathname="/credit-notes" initialQ={q} placeholder="Search by number or client…" />
+        <SearchBar pathname="/credit-notes" initialQ={q} placeholder={t("Common.searchByNumberOrClient")} />
       </div>
 
       {docs.length === 0 ? (
@@ -70,12 +70,12 @@ export default async function CreditNotesPage({
           <table className="w-full text-sm">
             <thead className="border-b border-border bg-secondary/40 text-xs uppercase tracking-wider text-muted-foreground">
               <tr>
-                <th className="px-4 py-2 text-left">Number</th>
-                <th className="px-4 py-2 text-left">Client</th>
-                <th className="px-4 py-2 text-left">Original</th>
-                <th className="px-4 py-2 text-left">Issue date</th>
-                <th className="px-4 py-2 text-right">Total</th>
-                <th className="px-4 py-2 text-left">Status</th>
+                <th className="px-4 py-2 text-left">{t("Quotes.fields.number")}</th>
+                <th className="px-4 py-2 text-left">{t("Quotes.fields.client")}</th>
+                <th className="px-4 py-2 text-left">{t("Common.original")}</th>
+                <th className="px-4 py-2 text-left">{t("Common.issueDate")}</th>
+                <th className="px-4 py-2 text-right">{t("Common.total")}</th>
+                <th className="px-4 py-2 text-left">{t("Common.status")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -95,7 +95,9 @@ export default async function CreditNotesPage({
                   <ClickableRow key={d.id} href={`/credit-notes/${d.id}`}>
                     <td className="px-4 py-2 font-medium">
                       <Link href={`/credit-notes/${d.id}`} className="hover:underline">
-                        {d.number ?? <span className="italic text-muted-foreground">Draft</span>}
+                        {d.number ?? (
+                          <span className="italic text-muted-foreground">{t("Common.draft")}</span>
+                        )}
                       </Link>
                       {d.title && (
                         <div className="text-xs font-normal text-muted-foreground line-clamp-1">

@@ -34,6 +34,11 @@ export type QuoteChoice = {
   number: string | null;
   clientId: string;
   currency: string;
+  locale: "cs" | "en";
+  reverseCharge: boolean;
+  documentDiscountPercent: string | null;
+  documentDiscountAmount: string | null;
+  lines: EditorLine[];
 };
 
 type Initial = {
@@ -112,6 +117,7 @@ export function FinalInvoiceForm({
   const availableJobs = jobs.filter((j) => j.clientId === clientId);
   const availableQuotes = quotes.filter((q) => q.clientId === clientId);
   const advancesForJob = availableAdvances.filter((a) => a.jobId === jobId);
+  const selectedQuote = quotes.find((q) => q.id === sourceQuoteId) ?? null;
 
   // Build deduction lines from current selection.
   const deductionLines: EditorLine[] = useMemo(() => {
@@ -138,8 +144,9 @@ export function FinalInvoiceForm({
     return out;
   }, [selectedAdvances, availableAdvances, deductionLabelTemplate]);
 
-  const allLines: EditorLine[] =
-    workLines.length === 0
+  const baseLines: EditorLine[] = selectedQuote
+    ? selectedQuote.lines
+    : workLines.length === 0
       ? [
           {
             name: "",
@@ -152,9 +159,9 @@ export function FinalInvoiceForm({
             lineDiscountPercent: "",
             lineDiscountAmount: "",
           },
-          ...deductionLines,
         ]
-      : [...workLines, ...deductionLines];
+      : workLines;
+  const allLines: EditorLine[] = [...baseLines, ...deductionLines];
 
   const today = initial?.issueDate ?? new Date();
   const defaultDue =
@@ -187,17 +194,15 @@ export function FinalInvoiceForm({
       />
 
       <div className="space-y-2">
-        <Label htmlFor="title">Title (optional)</Label>
+        <Label htmlFor="title">{t("titleField.label")}</Label>
         <Input
           id="title"
           name="title"
           defaultValue={initial?.title ?? ""}
-          placeholder="e.g. Faktura — kuchyně Cejková"
+          placeholder={t("titleField.placeholder")}
           maxLength={200}
         />
-        <p className="text-xs text-muted-foreground">
-          Internal name for this invoice — not shown on the PDF.
-        </p>
+        <p className="text-xs text-muted-foreground">{t("titleField.hint")}</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
@@ -259,7 +264,18 @@ export function FinalInvoiceForm({
             id="sourceQuoteId"
             name="sourceQuoteId"
             value={sourceQuoteId}
-            onChange={(e) => setSourceQuoteId(e.target.value)}
+            onChange={(e) => {
+              const id = e.target.value;
+              setSourceQuoteId(id);
+              const q = quotes.find((x) => x.id === id);
+              if (q) {
+                setCurrency(q.currency);
+                setLocale(q.locale);
+                setReverseCharge(q.reverseCharge);
+                setDocDiscountPct(q.documentDiscountPercent ?? "");
+                setDocDiscountAmt(q.documentDiscountAmount ?? "");
+              }
+            }}
             className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
           >
             <option value="">—</option>
@@ -406,6 +422,7 @@ export function FinalInvoiceForm({
       <div>
         <h3 className="text-sm font-medium mb-2">{tQ("lineItems.title")}</h3>
         <LineItemsEditor
+          key={`${sourceQuoteId || "blank"}-${selectedAdvances.size}`}
           initialLines={allLines}
           templates={itemTemplates}
           taxRates={taxRates}

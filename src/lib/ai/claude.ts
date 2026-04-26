@@ -37,11 +37,17 @@ export type ClaudeJsonResult<T> = {
   durationMs: number;
 };
 
+export type ClaudeImage = {
+  mediaType: "image/jpeg" | "image/png" | "image/webp" | "image/gif";
+  base64: string;
+};
+
 // Use tool_use to coerce a strictly-shaped JSON output. Anthropic recommends
 // this over "please answer in JSON" prompts because the schema is enforced.
 export async function completeJson<T>(opts: {
   system: string;
   userPrompt: string;
+  images?: ClaudeImage[];
   toolName: string;
   toolDescription: string;
   schema: Record<string, unknown>;
@@ -70,7 +76,28 @@ export async function completeJson<T>(opts: {
       },
     ],
     tool_choice: { type: "tool", name: opts.toolName },
-    messages: [{ role: "user", content: opts.userPrompt }],
+    messages: [
+      {
+        role: "user",
+        content:
+          opts.images && opts.images.length > 0
+            ? [
+                ...opts.images.map(
+                  (img) =>
+                    ({
+                      type: "image" as const,
+                      source: {
+                        type: "base64" as const,
+                        media_type: img.mediaType,
+                        data: img.base64,
+                      },
+                    }) satisfies Anthropic.ImageBlockParam,
+                ),
+                { type: "text" as const, text: opts.userPrompt },
+              ]
+            : opts.userPrompt,
+      },
+    ],
   });
 
   // Find the tool_use block — there should be exactly one because we forced it.

@@ -45,7 +45,9 @@ export async function loadFinalInvoiceFormData(opts?: {
         deletedAt: null,
         status: { in: ["SENT", "ACCEPTED"] },
       },
-      select: { id: true, number: true, clientId: true, currency: true },
+      include: {
+        lineItems: { orderBy: { position: "asc" } },
+      },
       orderBy: { createdAt: "desc" },
       take: 500,
     }),
@@ -95,7 +97,27 @@ export async function loadFinalInvoiceFormData(opts?: {
     defaultLanguage: c.defaultLanguage,
   }));
 
-  const quoteChoices: QuoteChoice[] = quotes;
+  const quoteChoices: QuoteChoice[] = quotes.map((q) => ({
+    id: q.id,
+    number: q.number,
+    clientId: q.clientId,
+    currency: q.currency,
+    locale: q.locale,
+    reverseCharge: q.reverseCharge,
+    documentDiscountPercent: q.documentDiscountPercent?.toString() ?? null,
+    documentDiscountAmount: q.documentDiscountAmount?.toString() ?? null,
+    lines: q.lineItems.map((l) => ({
+      name: l.name,
+      description: l.description ?? "",
+      quantity: l.quantity.toString(),
+      unit: l.unit,
+      unitPrice: l.unitPrice.toString(),
+      taxRatePercent: l.taxRatePercent.toString(),
+      taxMode: l.taxMode,
+      lineDiscountPercent: l.lineDiscountPercent?.toString() ?? "",
+      lineDiscountAmount: l.lineDiscountAmount?.toString() ?? "",
+    })),
+  }));
 
   const companyOptions: CompanyOption[] = companyProfiles.map((c) => ({ id: c.id, name: c.name }));
   const templateChoices: TemplateChoice[] = templates.map((t) => ({ id: t.id, name: t.name }));

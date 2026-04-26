@@ -3,6 +3,19 @@
     "title": "Codru",
     "tagline": "Klienti, zakázky a doklady na jednom místě."
   },
+  "Common": {
+    "status": "Stav",
+    "total": "Celkem",
+    "draft": "Koncept",
+    "original": "Původní",
+    "issueDate": "Datum vystavení",
+    "searchByNumberOrClient": "Hledat podle čísla nebo klienta…",
+    "all": "Vše",
+    "none": "—",
+    "edit": "Upravit",
+    "save": "Uložit",
+    "cancel": "Zrušit"
+  },
   "Auth": {
     "login": "Přihlášení",
     "register": "Registrace vlastníka",
@@ -266,7 +279,12 @@
     },
     "linesHint": "Položky jsou předvyplněné podle původního dokladu v záporných hodnotách. Upravte podle potřeby (částečný odpočet, vymazání položek).",
     "effectiveBalance": "Zůstatek po opravných dokladech",
-    "linkedCreditNotes": "Propojené opravné doklady"
+    "linkedCreditNotes": "Propojené opravné doklady",
+    "titleField": {
+      "label": "Název (volitelné)",
+      "placeholder": "např. Opravný doklad — vrácená dlažba",
+      "hint": "Interní název tohoto opravného dokladu — neukazuje se na PDF."
+    }
   },
   "FinalInvoices": {
     "title": "Faktury",
@@ -294,7 +312,12 @@
       "delete": "Smazat koncept"
     },
     "noAvailableAdvances": "Pro tuto zakázku nejsou k dispozici žádné zálohy.",
-    "jobRequiredHint": "Faktura musí být propojena se zakázkou."
+    "jobRequiredHint": "Faktura musí být propojena se zakázkou.",
+    "titleField": {
+      "label": "Název (volitelné)",
+      "placeholder": "např. Faktura — kuchyně Cejková",
+      "hint": "Interní název této faktury — neukazuje se na PDF."
+    }
   },
   "AdvanceInvoices": {
     "title": "Zálohové faktury",
@@ -324,7 +347,12 @@
       "delete": "Smazat koncept"
     },
     "defaultLineName": "Záloha",
-    "ppcHint": "Záloha je zaplacena, ale propojená zakázka ještě není dokončena. Přejde na „Zaplaceno“ automaticky po dokončení zakázky."
+    "ppcHint": "Záloha je zaplacena, ale propojená zakázka ještě není dokončena. Přejde na „Zaplaceno“ automaticky po dokončení zakázky.",
+    "titleField": {
+      "label": "Název (volitelné)",
+      "placeholder": "např. Záloha — kuchyně Cejková",
+      "hint": "Interní název této zálohové faktury — neukazuje se na PDF."
+    }
   },
   "Quotes": {
     "title": "Nabídky",
@@ -386,7 +414,12 @@
       "tax": "DPH",
       "totalGross": "Celkem"
     },
-    "reverseChargeWarning": "Přenesená DPH je možná jen u klienta s IČO (B2B)."
+    "reverseChargeWarning": "Přenesená DPH je možná jen u klienta s IČO (B2B).",
+    "titleField": {
+      "label": "Název (volitelné)",
+      "placeholder": "např. Nabídka — kuchyně Cejková",
+      "hint": "Interní název této nabídky — neukazuje se na PDF. Právní název dokumentu zůstává Nabídka."
+    }
   },
   "Calendar": {
     "title": "Kalendář",

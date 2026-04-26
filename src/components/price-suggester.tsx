@@ -6,6 +6,7 @@ import { Sparkles, Bot, X } from "lucide-react";
 import {
   suggestPriceForDescription,
   askClaudeForPrice,
+  saveLineAsItemTemplate,
   type ContextLine,
 } from "@/lib/pricing-history/actions";
 import type { Suggestion } from "@/lib/pricing-history";
@@ -13,10 +14,18 @@ import type { AiEstimate } from "@/lib/pricing-history/ai-estimate";
 
 type Stat = "median" | "low" | "high";
 
+export type SitePhoto = {
+  name: string;
+  mediaType: "image/jpeg" | "image/png" | "image/webp" | "image/gif";
+  base64: string;
+  previewUrl: string;
+};
+
 export type SuggesterTarget = {
   rowIndex: number; // 1-based for display
   description: string;
   contextLines: ContextLine[];
+  photos?: SitePhoto[];
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -65,6 +74,8 @@ export function PriceSuggesterModal({
   const [aiError, setAiError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [aiPending, startAi] = useTransition();
+  const [savePending, startSave] = useTransition();
+  const [savedAs, setSavedAs] = useState<string | null>(null);
   const [selected, setSelected] = useState<Stat>("median");
 
   // (Re)fetch whenever the target changes.
@@ -78,6 +89,7 @@ export function PriceSuggesterModal({
     setData(null);
     setAi(null);
     setAiError(null);
+    setSavedAs(null);
     setSelected("median");
     const desc = target.description;
     const ctx = target.contextLines;
@@ -103,8 +115,12 @@ export function PriceSuggesterModal({
     setAiError(null);
     const desc = target.description;
     const ctx = target.contextLines;
+    const imgs = (target.photos ?? []).map((p) => ({
+      mediaType: p.mediaType,
+      base64: p.base64,
+    }));
     startAi(async () => {
-      const r = await askClaudeForPrice(desc, ctx);
+      const r = await askClaudeForPrice(desc, ctx, imgs);
       if (r.ok) setAi(r.estimate);
       else setAiError(r.message);
     });
@@ -262,7 +278,11 @@ export function PriceSuggesterModal({
               <div className="mt-2 rounded-md border border-dashed border-emerald-200 bg-emerald-50/40 p-3">
                 <p className="text-xs text-emerald-900/80">
                   Best for new line types or as a sanity-check. Anchors on
-                  your past prices and the other lines on this quote.
+                  your past prices, the other lines on this quote
+                  {(target.photos?.length ?? 0) > 0
+                    ? `, and ${target.photos!.length} attached photo${target.photos!.length === 1 ? "" : "s"}`
+                    : ""}
+                  .
                 </p>
                 <Button
                   type="button"
@@ -270,7 +290,7 @@ export function PriceSuggesterModal({
                   className="mt-2 h-7 bg-emerald-600 text-xs text-white hover:bg-emerald-700"
                   onClick={askAi}
                 >
-                  Ask Claude (≈ $0.005)
+                  Ask Claude (≈ ${(target.photos?.length ?? 0) > 0 ? "0.02" : "0.005"})
                 </Button>
               </div>
             )}
@@ -303,19 +323,43 @@ export function PriceSuggesterModal({
                 <p className="mt-2 text-xs italic leading-relaxed text-emerald-900/80">
                   &ldquo;{ai.reasoning}&rdquo;
                 </p>
-                <div className="mt-3 flex items-center justify-between">
+                <div className="mt-3 flex items-center justify-between gap-2">
                   <span className="text-[10px] text-emerald-900/60 tabular-nums">
                     ${ai.estimatedCostUsd.toFixed(4)} ·{" "}
                     {ai.inputTokens}+{ai.outputTokens} tokens
                   </span>
-                  <Button
-                    type="button"
-                    size="sm"
-                    className="h-7 bg-emerald-600 text-xs text-white hover:bg-emerald-700"
-                    onClick={() => apply(ai.unitPrice, ai.unit || null)}
-                  >
-                    Apply estimate
-                  </Button>
+                  <div className="flex gap-1.5">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      className="h-7 border-emerald-300 text-xs text-emerald-800 hover:bg-emerald-100"
+                      disabled={savePending || savedAs !== null}
+                      onClick={() => {
+                        const name = target.description.split(/\s+/).slice(0, 6).join(" ");
+                        startSave(async () => {
+                          const r = await saveLineAsItemTemplate({
+                            name,
+                            description: target.description,
+                            unit: ai.unit,
+                            unitPrice: ai.unitPrice,
+                          });
+                          if (r.ok) setSavedAs(name);
+                          else setAiError(r.message);
+                        });
+                      }}
+                    >
+                      {savedAs ? `Memorised as “${savedAs}”` : savePending ? "Saving…" : "Memorise"}
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      className="h-7 bg-emerald-600 text-xs text-white hover:bg-emerald-700"
+                      onClick={() => apply(ai.unitPrice, ai.unit || null)}
+                    >
+                      Apply estimate
+                    </Button>
+                  </div>
                 </div>
               </div>
             )}

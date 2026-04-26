@@ -93,7 +93,7 @@ export default async function QuotesPage({
           pathname="/quotes"
           initialQ={q}
           preserveParams={{ status: statusFilter }}
-          placeholder="Search by number or client…"
+          placeholder={t("Common.searchByNumberOrClient")}
         />
       </div>
 
@@ -110,7 +110,7 @@ export default async function QuotesPage({
                   : "rounded-full bg-secondary px-3 py-1 text-foreground hover:bg-neutral-200"
               }
             >
-              {s === "ALL" ? "All" : t(`Quotes.status.${s}`)}
+              {s === "ALL" ? t("Common.all") : t(`Quotes.status.${s}`)}
             </Link>
           );
         })}
@@ -133,7 +133,7 @@ export default async function QuotesPage({
                 <th className="px-4 py-3 text-left">{t("Quotes.fields.issueDate")}</th>
                 <th className="px-4 py-3 text-left">{t("Quotes.fields.validUntil")}</th>
                 <th className="px-4 py-3 text-right">{t("Quotes.totals.totalGross")}</th>
-                <th className="px-4 py-3 text-left">Status</th>
+                <th className="px-4 py-3 text-left">{t("Common.status")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">

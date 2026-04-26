@@ -3,10 +3,10 @@
 // description plus the top retrieved historical lines so it can reason on
 // known anchor prices, not from scratch.
 
-import { completeJson } from "@/lib/ai/claude";
+import { completeJson, type ClaudeImage } from "@/lib/ai/claude";
 import { suggestPrice, type HistoricalLine } from "./index";
 
-const SYSTEM_PROMPT = `You are pricing a line item for a Czech construction / handyman quote (VENIREX s.r.o., based in Prague). Use the user's own past prices (provided in the prompt) as anchors. Prices are in Kč (CZK), excluding VAT, per unit (per piece by default; or per m², bm, etc. when stated). Round to clean amounts (50/100). If the new line is clearly comparable to one or two past lines, anchor close to those. If the line appears alongside other lines in the same quote (provided as "Quote context"), assume those describe the same job — e.g. a "Cleanup" line on a mowing quote is cleanup-after-mowing, not generic cleanup. If the new line is composite (multiple sub-tasks), price proportionally. Always give a confidence level: "high" if you have ≥3 close matches, "medium" if 1-2 weak matches, "low" if you are extrapolating. Reasoning should be 1-2 short sentences in English, citing which historical lines you anchored on.`;
+const SYSTEM_PROMPT = `You are pricing a line item for a Czech construction / handyman quote (VENIREX s.r.o., based in Prague). Use the user's own past prices (provided in the prompt) as anchors. Prices are in Kč (CZK), excluding VAT, per unit (per piece by default; or per m², bm, etc. when stated). Round to clean amounts (50/100). If the new line is clearly comparable to one or two past lines, anchor close to those. If the line appears alongside other lines in the same quote (provided as "Quote context"), assume those describe the same job — e.g. a "Cleanup" line on a mowing quote is cleanup-after-mowing, not generic cleanup. If site photos are attached, USE THEM: estimate area / scope / condition from what is visible (e.g. tall grass, large lawn, debris, damaged surface) and adjust the price accordingly — note in the reasoning what you saw. If the new line is composite (multiple sub-tasks), price proportionally. Always give a confidence level: "high" if you have ≥3 close matches OR clear photos to anchor on, "medium" if 1-2 weak matches, "low" if you are extrapolating. Reasoning should be 1-2 short sentences in English, citing which historical lines or visible photo features you anchored on.`;
 
 export type AiEstimate = {
   unitPrice: number;
@@ -45,6 +45,7 @@ const SCHEMA = {
 export type EstimateOpts = {
   contextLines?: Array<{ name: string; description?: string | null }>;
   extraLines?: HistoricalLine[];
+  images?: ClaudeImage[];
 };
 
 export async function estimateWithClaude(
@@ -75,9 +76,14 @@ export async function estimateWithClaude(
           .join("\n")
       : null;
 
+  const photoNote =
+    opts.images && opts.images.length > 0
+      ? `\nThe ${opts.images.length} site photo(s) attached above show the actual job. Inspect them for scale (lawn area, room size), condition (overgrown, damaged), and materials.\n`
+      : "";
+
   const userPrompt = `New line item to price:
 "${description}"
-${quoteContext ? `\nQuote context (other lines already on the same quote, in order):\n${quoteContext}\n` : ""}
+${quoteContext ? `\nQuote context (other lines already on the same quote, in order):\n${quoteContext}\n` : ""}${photoNote}
 Past lines from this same business that may be relevant:
 ${context || "(no close matches found)"}
 
@@ -91,6 +97,7 @@ Suggest a unit price.`;
   }>({
     system: SYSTEM_PROMPT,
     userPrompt,
+    images: opts.images,
     toolName: "suggest_price",
     toolDescription: "Return a structured price suggestion for the new line item.",
     schema: SCHEMA,
