@@ -31,7 +31,7 @@ export function AttachmentUploader({ jobId }: { jobId: string }) {
         />
       </div>
       <div className="flex-1 min-w-[200px]">
-        <Input name="caption" placeholder="Caption (optional)" />
+        <Input name="caption" placeholder="Caption" />
       </div>
       <Button type="submit" disabled={pending} size="sm">
         Upload

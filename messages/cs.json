@@ -103,7 +103,7 @@
       "frequency": "Frekvence",
       "customDays": "Vlastní interval (dny)",
       "startDate": "Datum začátku",
-      "endDate": "Datum konce (volitelné)",
+      "endDate": "Datum konce",
       "daysInAdvance": "Generovat x dní dopředu",
       "autoGenerate": "Automaticky generovat (vypnuto = jen připomínka)",
       "nextRunAt": "Příští spuštění",
@@ -240,7 +240,6 @@
       "category": "Kategorie",
       "unit": "Jednotka",
       "defaultQuantity": "Výchozí množství",
-      "defaultCost": "Výchozí náklad",
       "defaultMarkupPercent": "Výchozí marže %",
       "defaultUnitPrice": "Výchozí jednotková cena",
       "defaultTaxRate": "Výchozí sazba DPH",
@@ -281,7 +280,7 @@
     "effectiveBalance": "Zůstatek po opravných dokladech",
     "linkedCreditNotes": "Propojené opravné doklady",
     "titleField": {
-      "label": "Název (volitelné)",
+      "label": "Název",
       "placeholder": "např. Opravný doklad — vrácená dlažba",
       "hint": "Interní název tohoto opravného dokladu — neukazuje se na PDF."
     }
@@ -292,7 +291,7 @@
     "empty": "Zatím žádné faktury.",
     "fields": {
       "number": "Číslo",
-      "jobRequired": "Zakázka (povinné)",
+      "jobRequired": "Zakázka *",
       "sourceQuote": "Výchozí nabídka",
       "availableAdvances": "Dostupné zálohy pro tuto zakázku",
       "deductionLine": "Záloha {number} — odpočet ({rate}%)",
@@ -314,7 +313,7 @@
     "noAvailableAdvances": "Pro tuto zakázku nejsou k dispozici žádné zálohy.",
     "jobRequiredHint": "Faktura musí být propojena se zakázkou.",
     "titleField": {
-      "label": "Název (volitelné)",
+      "label": "Název",
       "placeholder": "např. Faktura — kuchyně Cejková",
       "hint": "Interní název této faktury — neukazuje se na PDF."
     }
@@ -349,7 +348,7 @@
     "defaultLineName": "Záloha",
     "ppcHint": "Záloha je zaplacena, ale propojená zakázka ještě není dokončena. Přejde na „Zaplaceno“ automaticky po dokončení zakázky.",
     "titleField": {
-      "label": "Název (volitelné)",
+      "label": "Název",
       "placeholder": "např. Záloha — kuchyně Cejková",
       "hint": "Interní název této zálohové faktury — neukazuje se na PDF."
     }
@@ -406,7 +405,9 @@
       "lineDiscount": "Sleva",
       "lineTotal": "Celkem",
       "emptyRow": "Zatím žádné položky.",
-      "remove": "Odebrat"
+      "remove": "Odebrat",
+      "taxModeNet": "bez DPH",
+      "taxModeGross": "s DPH"
     },
     "totals": {
       "subtotal": "Mezisoučet",
@@ -416,7 +417,7 @@
     },
     "reverseChargeWarning": "Přenesená DPH je možná jen u klienta s IČO (B2B).",
     "titleField": {
-      "label": "Název (volitelné)",
+      "label": "Název",
       "placeholder": "např. Nabídka — kuchyně Cejková",
       "hint": "Interní název této nabídky — neukazuje se na PDF. Právní název dokumentu zůstává Nabídka."
     }
@@ -444,7 +445,7 @@
       "startsAt": "Začátek",
       "endsAt": "Konec",
       "allDay": "Celý den",
-      "assignee": "Přiřazeno",
+      "assignee": "Přiřazený tým",
       "client": "Klient",
       "job": "Zakázka",
       "notes": "Poznámky",
@@ -452,7 +453,7 @@
     },
     "markComplete": "Označit jako hotové",
     "markUncomplete": "Označit jako probíhající",
-    "filter": "Přiřazeno",
+    "filter": "Přiřazený tým",
     "weekdays": ["Po", "Út", "St", "Čt", "Pá", "So", "Ne"]
   },
   "Jobs": {
@@ -498,7 +499,7 @@
     "filters": {
       "status": "Stav",
       "client": "Klient",
-      "assignee": "Přiřazeno",
+      "assignee": "Přiřazený tým",
       "from": "Od",
       "to": "Do",
       "all": "Vše"

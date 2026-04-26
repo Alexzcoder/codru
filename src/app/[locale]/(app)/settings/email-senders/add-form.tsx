@@ -27,7 +27,7 @@ export function AddIdentityForm({ companyProfileId }: { companyProfileId: string
         />
       </div>
       <div className="space-y-1">
-        <Label htmlFor={`name-${companyProfileId}`} className="text-xs">Display name (optional)</Label>
+        <Label htmlFor={`name-${companyProfileId}`} className="text-xs">Display name</Label>
         <Input
           id={`name-${companyProfileId}`}
           name="displayName"

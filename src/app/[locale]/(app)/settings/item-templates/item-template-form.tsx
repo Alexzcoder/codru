@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
-import { calculateLine, unitPriceFromCostAndMarkup } from "@/lib/line-items";
+import { calculateLine } from "@/lib/line-items";
 import type { ItemTemplateState } from "./actions";
 
 type Option = { id: string; name: string };
@@ -19,7 +19,6 @@ type Initial = {
   categoryId?: string | null;
   unitId?: string;
   defaultQuantity?: string;
-  defaultCost?: string | null;
   defaultMarkupPercent?: string | null;
   defaultUnitPrice?: string;
   defaultTaxRateId?: string;
@@ -47,7 +46,6 @@ export function ItemTemplateForm({
   );
 
   // Controlled inputs for live preview.
-  const [cost, setCost] = useState(initial?.defaultCost ?? "");
   const [markup, setMarkup] = useState(initial?.defaultMarkupPercent ?? "");
   const [unitPrice, setUnitPrice] = useState(initial?.defaultUnitPrice ?? "0.00");
   const [quantity, setQuantity] = useState(initial?.defaultQuantity ?? "1");
@@ -61,8 +59,6 @@ export function ItemTemplateForm({
   const selectedRate = taxRates.find((r) => r.id === taxRateId);
   const ratePercent = selectedRate?.percent ?? "0";
 
-  const autoPrice =
-    cost && markup ? unitPriceFromCostAndMarkup(cost, markup) : null;
 
   const preview = useMemo(() => {
     try {
@@ -136,7 +132,7 @@ export function ItemTemplateForm({
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 gap-3">
           <div className="space-y-2">
             <Label htmlFor="defaultQuantity">{t("fields.defaultQuantity")}</Label>
             <Input
@@ -146,17 +142,6 @@ export function ItemTemplateForm({
               onChange={(e) => setQuantity(e.target.value)}
               inputMode="decimal"
               required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="defaultCost">{t("fields.defaultCost")}</Label>
-            <Input
-              id="defaultCost"
-              name="defaultCost"
-              value={cost}
-              onChange={(e) => setCost(e.target.value)}
-              inputMode="decimal"
-              placeholder="0.00"
             />
           </div>
           <div className="space-y-2">
@@ -176,32 +161,14 @@ export function ItemTemplateForm({
 
         <div className="space-y-2">
           <Label htmlFor="defaultUnitPrice">{t("fields.defaultUnitPrice")}</Label>
-          <div className="flex items-center gap-2">
-            <Input
-              id="defaultUnitPrice"
-              name="defaultUnitPrice"
-              value={unitPrice}
-              onChange={(e) => setUnitPrice(e.target.value)}
-              inputMode="decimal"
-              required
-            />
-            {autoPrice && autoPrice !== unitPrice && (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setUnitPrice(autoPrice)}
-                title={t("preview.fromMarkup")}
-              >
-                Apply {autoPrice}
-              </Button>
-            )}
-          </div>
-          {autoPrice && (
-            <p className="text-xs text-muted-foreground">
-              {t("preview.fromMarkup")} = {autoPrice}
-            </p>
-          )}
+          <Input
+            id="defaultUnitPrice"
+            name="defaultUnitPrice"
+            value={unitPrice}
+            onChange={(e) => setUnitPrice(e.target.value)}
+            inputMode="decimal"
+            required
+          />
         </div>
 
         <div className="grid grid-cols-2 gap-3">

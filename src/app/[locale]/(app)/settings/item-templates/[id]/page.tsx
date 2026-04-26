@@ -45,7 +45,6 @@ export default async function EditItemTemplatePage({
             categoryId: tmpl.categoryId,
             unitId: tmpl.unitId,
             defaultQuantity: tmpl.defaultQuantity.toString(),
-            defaultCost: tmpl.defaultCost?.toString() ?? null,
             defaultMarkupPercent: tmpl.defaultMarkupPercent?.toString() ?? null,
             defaultUnitPrice: tmpl.defaultUnitPrice.toString(),
             defaultTaxRateId: tmpl.defaultTaxRateId,

@@ -64,6 +64,10 @@ export function QuoteForm({
   const [state, formAction, pending] = useActionState<QuoteState, FormData>(action, {});
 
   const [clientId, setClientId] = useState(initial?.clientId ?? clients[0]?.id ?? "");
+  const [jobId, setJobId] = useState(initial?.jobId ?? "");
+  const [title, setTitle] = useState(
+    initial?.title ?? jobs.find((j) => j.id === initial?.jobId)?.title ?? "",
+  );
   const [currency, setCurrency] = useState(initial?.currency ?? "CZK");
   const [locale, setLocale] = useState<"cs" | "en">(initial?.locale ?? "cs");
   const [reverseCharge, setReverseCharge] = useState(initial?.reverseCharge ?? false);
@@ -99,7 +103,8 @@ export function QuoteForm({
         <Input
           id="title"
           name="title"
-          defaultValue={initial?.title ?? ""}
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
           placeholder={t("titleField.placeholder")}
           maxLength={200}
         />
@@ -115,6 +120,7 @@ export function QuoteForm({
             value={clientId}
             onChange={(e) => {
               setClientId(e.target.value);
+              setJobId("");
               const c = clients.find((x) => x.id === e.target.value);
               if (c) {
                 setCurrency(c.preferredCurrency);
@@ -140,7 +146,14 @@ export function QuoteForm({
           <select
             id="jobId"
             name="jobId"
-            defaultValue={initial?.jobId ?? ""}
+            value={jobId}
+            onChange={(e) => {
+              const id = e.target.value;
+              setJobId(id);
+              const j = jobs.find((x) => x.id === id);
+              // Only autofill the title if it's empty (don't clobber user edits).
+              if (j && title.trim().length === 0) setTitle(j.title);
+            }}
             className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
           >
             <option value="">—</option>

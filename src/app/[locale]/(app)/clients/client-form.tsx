@@ -26,7 +26,7 @@ export function ClientForm({
   const t = useTranslations("Clients");
   const tSet = useTranslations("Settings");
   const [type, setType] = useState<"INDIVIDUAL" | "COMPANY">(
-    (initial?.type as "INDIVIDUAL" | "COMPANY") ?? "COMPANY",
+    (initial?.type as "INDIVIDUAL" | "COMPANY") ?? "INDIVIDUAL",
   );
   const [customFields, setCustomFields] = useState<Record<string, string>>(
     customFieldValues,
@@ -48,7 +48,7 @@ export function ClientForm({
       )}
 
       <fieldset className="flex gap-2 text-sm">
-        {(["COMPANY", "INDIVIDUAL"] as const).map((v) => (
+        {(["INDIVIDUAL", "COMPANY"] as const).map((v) => (
           <label
             key={v}
             className={`cursor-pointer rounded-md border px-3 py-1.5 ${type === v ? "border-primary bg-primary text-primary-foreground" : "border-input"}`}

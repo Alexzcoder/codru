@@ -103,7 +103,7 @@
       "frequency": "Frequency",
       "customDays": "Custom days",
       "startDate": "Start date",
-      "endDate": "End date (optional)",
+      "endDate": "End date",
       "daysInAdvance": "Generate days in advance",
       "autoGenerate": "Auto-generate (off = reminder only)",
       "nextRunAt": "Next run",
@@ -240,7 +240,6 @@
       "category": "Category",
       "unit": "Unit",
       "defaultQuantity": "Default quantity",
-      "defaultCost": "Default cost",
       "defaultMarkupPercent": "Default markup %",
       "defaultUnitPrice": "Default unit price",
       "defaultTaxRate": "Default VAT rate",
@@ -281,7 +280,7 @@
     "effectiveBalance": "Effective balance after credit notes",
     "linkedCreditNotes": "Linked credit notes",
     "titleField": {
-      "label": "Title (optional)",
+      "label": "Title",
       "placeholder": "e.g. Credit note — returned tiles",
       "hint": "Internal name for this credit note — not shown on the PDF."
     }
@@ -292,7 +291,7 @@
     "empty": "No final invoices yet.",
     "fields": {
       "number": "Number",
-      "jobRequired": "Job (required)",
+      "jobRequired": "Job *",
       "sourceQuote": "Source quote",
       "availableAdvances": "Available advances for this job",
       "deductionLine": "Advance {number} — deduction ({rate}%)",
@@ -314,7 +313,7 @@
     "noAvailableAdvances": "No advances available for deduction on this job.",
     "jobRequiredHint": "A final invoice must be linked to a Job.",
     "titleField": {
-      "label": "Title (optional)",
+      "label": "Title",
       "placeholder": "e.g. Invoice — Cejková kitchen",
       "hint": "Internal name for this invoice — not shown on the PDF."
     }
@@ -349,7 +348,7 @@
     "defaultLineName": "Advance payment",
     "ppcHint": "This advance is paid, but the linked job isn't Completed yet. It will move to Paid automatically when the job is marked Completed.",
     "titleField": {
-      "label": "Title (optional)",
+      "label": "Title",
       "placeholder": "e.g. Advance — Cejková kitchen",
       "hint": "Internal name for this advance — not shown on the PDF."
     }
@@ -406,7 +405,9 @@
       "lineDiscount": "Line discount",
       "lineTotal": "Line total",
       "emptyRow": "No line items yet.",
-      "remove": "Remove"
+      "remove": "Remove",
+      "taxModeNet": "net",
+      "taxModeGross": "gross"
     },
     "totals": {
       "subtotal": "Subtotal",
@@ -416,7 +417,7 @@
     },
     "reverseChargeWarning": "Reverse charge requires a client with IČO (B2B).",
     "titleField": {
-      "label": "Title (optional)",
+      "label": "Title",
       "placeholder": "e.g. Quote — Cejková kitchen",
       "hint": "Internal name for this quote — not shown on the PDF. The legal document name remains \"Quote\"."
     }
@@ -444,7 +445,7 @@
       "startsAt": "Starts",
       "endsAt": "Ends",
       "allDay": "All day",
-      "assignee": "Assigned to",
+      "assignee": "Assigned team",
       "client": "Related client",
       "job": "Related job",
       "notes": "Notes",
@@ -452,7 +453,7 @@
     },
     "markComplete": "Mark complete",
     "markUncomplete": "Mark pending",
-    "filter": "Assignee",
+    "filter": "Assigned team",
     "weekdays": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
   },
   "Jobs": {
@@ -498,7 +499,7 @@
     "filters": {
       "status": "Status",
       "client": "Client",
-      "assignee": "Assignee",
+      "assignee": "Assigned team",
       "from": "From",
       "to": "To",
       "all": "All"

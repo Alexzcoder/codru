@@ -9,19 +9,26 @@ import { redirect } from "next/navigation";
 
 export default async function NewQuotePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ fromJob?: string }>;
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
   await requireUser();
   await seedDefaults();
   const t = await getTranslations();
+  const { fromJob } = await searchParams;
 
   const data = await loadQuoteFormData();
 
   // Need at least one client and one company profile to create a quote.
   if (data.clientOptions.length === 0) redirect("/clients/new");
+
+  const seededJob = fromJob
+    ? data.jobOptions.find((j) => j.id === fromJob)
+    : undefined;
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-8">
@@ -29,6 +36,15 @@ export default async function NewQuotePage({
       <h1 className="text-2xl font-semibold tracking-tight">{t("Quotes.newQuote")}</h1>
       <div className="mt-8">
         <QuoteForm
+          initial={
+            seededJob
+              ? {
+                  clientId: seededJob.clientId,
+                  jobId: seededJob.id,
+                  title: seededJob.title,
+                }
+              : undefined
+          }
           clients={data.clientOptions}
           jobs={data.jobOptions}
           companyProfiles={data.companyOptions}

@@ -413,7 +413,6 @@ model ItemTemplate {
 
   // PRD §22.6: money 2dp, quantity 3dp, percent 2dp
   defaultQuantity      Decimal       @db.Decimal(12, 3) @default(1)
-  defaultCost          Decimal?      @db.Decimal(12, 2)
   defaultMarkupPercent Decimal?      @db.Decimal(5, 2)
   defaultUnitPrice     Decimal       @db.Decimal(12, 2)
 

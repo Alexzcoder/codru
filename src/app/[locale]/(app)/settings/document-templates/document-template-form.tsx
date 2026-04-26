@@ -102,7 +102,7 @@ export function DocumentTemplateForm({
       </fieldset>
 
       <div className="space-y-2">
-        <Label htmlFor="letterhead">Letterhead image (optional)</Label>
+        <Label htmlFor="letterhead">Letterhead image</Label>
         <p className="text-xs text-muted-foreground">
           PNG or JPG, shown as a full-width banner at the top of the PDF. Use this
           for a pre-printed header with your brand mark, address, or registration
@@ -126,7 +126,7 @@ export function DocumentTemplateForm({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="customHeaderText">Custom header text (optional)</Label>
+        <Label htmlFor="customHeaderText">Custom header text</Label>
         <Input
           id="customHeaderText"
           name="customHeaderText"
@@ -134,7 +134,7 @@ export function DocumentTemplateForm({
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="customFooterText">Custom footer text (optional)</Label>
+        <Label htmlFor="customFooterText">Custom footer text</Label>
         <Input
           id="customFooterText"
           name="customFooterText"

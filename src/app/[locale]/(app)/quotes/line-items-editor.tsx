@@ -338,8 +338,8 @@ export function LineItemsEditor({
                     }
                     className="h-8 w-full rounded-md border border-input bg-background px-1 text-sm"
                   >
-                    <option value="NET">net</option>
-                    <option value="GROSS">gross</option>
+                    <option value="NET">{t("taxModeNet")}</option>
+                    <option value="GROSS">{t("taxModeGross")}</option>
                   </select>
                 </td>
                 <td className="px-2 py-1">

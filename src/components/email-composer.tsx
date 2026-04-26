@@ -211,7 +211,7 @@ function Composer({
                 />
               </div>
               <div>
-                <Label htmlFor="cc-addr" className="text-xs">Cc (optional)</Label>
+                <Label htmlFor="cc-addr" className="text-xs">Cc</Label>
                 <Input
                   id="cc-addr"
                   type="email"
