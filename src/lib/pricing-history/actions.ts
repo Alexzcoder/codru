@@ -1,25 +1,77 @@
 "use server";
 
 import { requireUser } from "@/lib/session";
-import { suggestPrice as suggest, type Suggestion } from "./index";
+import { prisma } from "@/lib/prisma";
+import { suggestPrice as suggest, type Suggestion, type HistoricalLine } from "./index";
 import { estimateWithClaude, type AiEstimate } from "./ai-estimate";
 import { checkDailyCap, logAiCall } from "@/lib/ai/audit";
 
+export type ContextLine = { name: string; description?: string | null };
+
+// Pull line items from the user's own documents so anything they billed since
+// onboarding feeds back into the retrieval corpus. Cheap-ish: typical user
+// has <2k lines, query is one indexed scan.
+async function loadDbLines(): Promise<HistoricalLine[]> {
+  const rows = await prisma.documentLineItem.findMany({
+    where: { document: { deletedAt: null } },
+    select: {
+      name: true,
+      description: true,
+      quantity: true,
+      unit: true,
+      unitPrice: true,
+      taxRatePercent: true,
+      document: { select: { number: true, issueDate: true } },
+    },
+    orderBy: { createdAt: "desc" },
+    take: 2000,
+  });
+  return rows.map((r) => {
+    const qty = Number(r.quantity);
+    const unitPrice = Number(r.unitPrice);
+    const vatPct = Number(r.taxRatePercent);
+    const desc = [r.name, r.description].filter(Boolean).join(" — ");
+    return {
+      description: desc,
+      quantity: qty,
+      unit: r.unit ?? "",
+      unit_price: unitPrice,
+      vat_percent: vatPct,
+      net: unitPrice * qty,
+      vat: unitPrice * qty * (vatPct / 100),
+      gross: unitPrice * qty * (1 + vatPct / 100),
+      source: r.document?.number ?? "this workspace",
+      doc_number: r.document?.number ?? "",
+      issue_date: r.document?.issueDate?.toISOString().slice(0, 10) ?? null,
+    };
+  });
+}
+
 export async function suggestPriceForDescription(
   description: string,
+  contextLines: ContextLine[] = [],
 ): Promise<Suggestion> {
   await requireUser();
   if (!description || description.trim().length < 3) {
     return { matches: [], stats: null };
   }
-  return suggest(description, { topK: 8, minScore: 0.5 });
+  const extraLines = await loadDbLines();
+  return suggest(description, {
+    topK: 8,
+    minScore: 0.5,
+    extraLines,
+    contextLines,
+  });
 }
 
 export type AskAiResult =
   | { ok: true; estimate: AiEstimate }
   | { ok: false; reason: "rate-limit" | "no-key" | "error"; message: string };
 
-export async function askClaudeForPrice(description: string): Promise<AskAiResult> {
+export async function askClaudeForPrice(
+  description: string,
+  contextLines: ContextLine[] = [],
+): Promise<AskAiResult> {
   const user = await requireUser();
   if (!description || description.trim().length < 3) {
     return { ok: false, reason: "error", message: "Description too short" };
@@ -41,7 +93,8 @@ export async function askClaudeForPrice(description: string): Promise<AskAiResul
   }
   const t0 = Date.now();
   try {
-    const est = await estimateWithClaude(description);
+    const extraLines = await loadDbLines();
+    const est = await estimateWithClaude(description, { contextLines, extraLines });
     await logAiCall({
       userId: user.id,
       feature: "price-suggest",

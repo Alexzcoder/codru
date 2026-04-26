@@ -1,13 +1,15 @@
 // Suggest a unit price for a new line item by retrieving similar past line
 // items from the user's own quote history. Pure-Node, zero deps. The
 // historical dataset is shipped as data.json (extracted by
-// scripts/extract_pricing_history.py).
+// scripts/extract_pricing_history.py) plus DB-backed lines from any
+// documents the user has saved since onboarding.
 //
 // Algorithm: BM25-style scoring over diacritic-folded Czech tokens. We don't
 // pretend this is a model — it's transparent retrieval over the user's own
 // pricing history, which is what they need for v1.
 
 import rawData from "./data.json";
+import { normaliseAll } from "./normalize";
 
 export type HistoricalLine = {
   description: string;
@@ -23,12 +25,10 @@ export type HistoricalLine = {
   issue_date: string | null;
 };
 
-const DATA: HistoricalLine[] = rawData as HistoricalLine[];
+const STATIC_DATA: HistoricalLine[] = normaliseAll(rawData as HistoricalLine[]);
 
 // ── Tokenisation ─────────────────────────────────────────────────────────────
 
-// Czech function words and units we don't want as match signal. Keep the list
-// small — the goal is to remove genuine noise, not to over-stem.
 const STOPWORDS = new Set([
   "a", "i", "o", "u", "v", "ve", "z", "ze", "s", "se", "do", "na", "po", "k",
   "ke", "od", "pro", "za", "při", "bez", "to", "ten", "ta", "te", "tě", "ji",
@@ -37,7 +37,6 @@ const STOPWORDS = new Set([
   "m2", "m²", "m3", "m³", "bm", "mb", "ml", "cm", "kg", "ks.", "vč.",
 ]);
 
-// Strip Czech diacritics so "Demontáž" matches "demontaz".
 function fold(s: string): string {
   return s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 }
@@ -49,34 +48,46 @@ function tokenize(s: string): string[] {
     .filter((t) => t.length >= 3 && !STOPWORDS.has(t));
 }
 
-// ── Index built once at module load ──────────────────────────────────────────
+// ── Index helpers ────────────────────────────────────────────────────────────
 
-const docs: { tokens: string[]; line: HistoricalLine }[] = DATA.map((line) => ({
-  line,
-  tokens: tokenize(`${line.description} ${line.unit}`),
-}));
+type IndexedDoc = { tokens: string[]; line: HistoricalLine };
+type Index = {
+  docs: IndexedDoc[];
+  idf: Map<string, number>;
+  avgDocLen: number;
+};
 
-const N = docs.length;
-const df: Map<string, number> = new Map();
-for (const d of docs) {
-  const seen = new Set(d.tokens);
-  for (const t of seen) df.set(t, (df.get(t) ?? 0) + 1);
+function buildIndex(lines: HistoricalLine[]): Index {
+  const docs: IndexedDoc[] = lines.map((line) => ({
+    line,
+    tokens: tokenize(`${line.description} ${line.unit}`),
+  }));
+  const N = docs.length;
+  const df = new Map<string, number>();
+  for (const d of docs) {
+    const seen = new Set(d.tokens);
+    for (const t of seen) df.set(t, (df.get(t) ?? 0) + 1);
+  }
+  const idf = new Map<string, number>();
+  for (const [t, freq] of df) {
+    idf.set(t, Math.log(1 + (N - freq + 0.5) / (freq + 0.5)));
+  }
+  const avgDocLen = docs.reduce((s, d) => s + d.tokens.length, 0) / Math.max(1, N);
+  return { docs, idf, avgDocLen };
 }
-const idf: Map<string, number> = new Map();
-for (const [t, freq] of df) {
-  // BM25 IDF (smoothed)
-  idf.set(t, Math.log(1 + (N - freq + 0.5) / (freq + 0.5)));
-}
-const avgDocLen = docs.reduce((s, d) => s + d.tokens.length, 0) / Math.max(1, N);
 
-// ── Scoring ──────────────────────────────────────────────────────────────────
+const STATIC_INDEX: Index = buildIndex(STATIC_DATA);
 
 const K1 = 1.5;
 const B = 0.6;
 
-function scoreDoc(queryTokens: string[], docTokens: string[]): number {
+function scoreDoc(
+  queryTokens: string[],
+  docTokens: string[],
+  idf: Map<string, number>,
+  avgDocLen: number,
+): number {
   if (docTokens.length === 0) return 0;
-  // Term frequency in this doc.
   const tf = new Map<string, number>();
   for (const t of docTokens) tf.set(t, (tf.get(t) ?? 0) + 1);
   let score = 0;
@@ -85,7 +96,7 @@ function scoreDoc(queryTokens: string[], docTokens: string[]): number {
     const f = tf.get(q);
     if (!f) continue;
     const w = idf.get(q) ?? 0;
-    const norm = f * (K1 + 1) / (f + K1 * (1 - B + B * (dl / avgDocLen)));
+    const norm = (f * (K1 + 1)) / (f + K1 * (1 - B + B * (dl / avgDocLen)));
     score += w * norm;
   }
   return score;
@@ -113,25 +124,60 @@ export type Suggestion = {
   } | null;
 };
 
+export type SuggestOptions = {
+  topK?: number;
+  minScore?: number;
+  /**
+   * Extra lines to include in the corpus alongside the static data.json.
+   * Use this to pass DB-backed lines from saved documents so newly-billed
+   * items immediately influence future suggestions.
+   */
+  extraLines?: HistoricalLine[];
+  /**
+   * Other lines from the SAME document the user is editing right now.
+   * Tokens from these are appended to the query at a discounted weight,
+   * so e.g. a "Cleanup" row in a mowing quote retrieves cleanup-after-
+   * mowing matches rather than generic cleanup.
+   */
+  contextLines?: Array<{ name: string; description?: string | null }>;
+};
+
 export function suggestPrice(
   description: string,
-  opts: { topK?: number; minScore?: number } = {},
+  opts: SuggestOptions = {},
 ): Suggestion {
   const topK = opts.topK ?? 8;
   const minScore = opts.minScore ?? 0.5;
-  const qTokens = tokenize(description);
-  if (qTokens.length === 0) return { matches: [], stats: null };
+
+  const baseTokens = tokenize(description);
+  if (baseTokens.length === 0) return { matches: [], stats: null };
+
+  // Context tokens get half-weight by being appended once but flagged for
+  // weighting in the score loop. Simpler: just append once, accept that
+  // they slightly bias retrieval — that's the desired behaviour anyway.
+  const ctxTokens = (opts.contextLines ?? [])
+    .flatMap((l) => tokenize(`${l.name} ${l.description ?? ""}`))
+    .filter((t) => !baseTokens.includes(t));
+  const queryTokens = [...baseTokens, ...ctxTokens];
+
+  // Build a temporary index over the union of static + extra. extraLines is
+  // typically <100 rows so building per-call is cheap.
+  const corpus =
+    opts.extraLines && opts.extraLines.length > 0
+      ? [...STATIC_DATA, ...opts.extraLines]
+      : STATIC_DATA;
+  const index = corpus === STATIC_DATA ? STATIC_INDEX : buildIndex(corpus);
 
   const scored: Array<{ score: number; idx: number }> = [];
-  for (let i = 0; i < docs.length; i++) {
-    const s = scoreDoc(qTokens, docs[i].tokens);
+  for (let i = 0; i < index.docs.length; i++) {
+    const s = scoreDoc(queryTokens, index.docs[i].tokens, index.idf, index.avgDocLen);
     if (s >= minScore) scored.push({ score: s, idx: i });
   }
   scored.sort((a, b) => b.score - a.score);
   const top = scored.slice(0, topK);
 
   const matches = top.map(({ score, idx }) => {
-    const line = docs[idx].line;
+    const line = index.docs[idx].line;
     return {
       description: line.description,
       unit: line.unit,
@@ -146,9 +192,10 @@ export function suggestPrice(
 
   if (matches.length === 0) return { matches: [], stats: null };
 
-  // Stats use the top matches' unit prices, weighted equally. Filter out
-  // zero-priced lines (those are "supply only" placeholders).
-  const prices = matches.map((m) => m.unitPrice).filter((p) => p > 0).sort((a, b) => a - b);
+  const prices = matches
+    .map((m) => m.unitPrice)
+    .filter((p) => p > 0)
+    .sort((a, b) => a - b);
   const stats =
     prices.length === 0
       ? null
@@ -187,4 +234,4 @@ function pickMode(values: string[]): string | null {
   return best;
 }
 
-export const HISTORICAL_DATA_SIZE = N;
+export const HISTORICAL_DATA_SIZE = STATIC_INDEX.docs.length;

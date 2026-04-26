@@ -6,7 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { calculateDocument } from "@/lib/line-items";
-import { PriceSuggester } from "@/components/price-suggester";
+import {
+  PriceSuggesterButton,
+  PriceSuggesterModal,
+  type SuggesterTarget,
+} from "@/components/price-suggester";
 
 export type EditorLine = {
   name: string;
@@ -68,6 +72,7 @@ export function LineItemsEditor({
     initialLines.length > 0 ? initialLines : [EMPTY_LINE],
   );
   const [templateId, setTemplateId] = useState<string>("");
+  const [suggesterTarget, setSuggesterTarget] = useState<SuggesterTarget | null>(null);
 
   const totals = useMemo(
     () =>
@@ -206,12 +211,16 @@ export function LineItemsEditor({
                       className="h-8 text-right"
                       inputMode="decimal"
                     />
-                    <PriceSuggester
+                    <PriceSuggesterButton
                       description={`${l.name} ${l.description}`.trim()}
-                      onApply={(unitPrice, unit) =>
-                        update(i, {
-                          unitPrice,
-                          ...(unit && !l.unit ? { unit } : {}),
+                      onOpen={() =>
+                        setSuggesterTarget({
+                          rowIndex: i + 1,
+                          description: `${l.name} ${l.description}`.trim(),
+                          contextLines: lines
+                            .slice(0, i)
+                            .filter((x) => x.name.trim().length > 0)
+                            .map((x) => ({ name: x.name, description: x.description })),
                         })
                       }
                     />
@@ -297,6 +306,24 @@ export function LineItemsEditor({
           </div>
         </dl>
       </aside>
+
+      <PriceSuggesterModal
+        target={suggesterTarget}
+        onClose={() => setSuggesterTarget(null)}
+        onApply={(rowIndex, unitPrice, unit) =>
+          setLines((ls) =>
+            ls.map((l, idx) =>
+              idx === rowIndex - 1
+                ? {
+                    ...l,
+                    unitPrice,
+                    ...(unit && !l.unit ? { unit } : {}),
+                  }
+                : l,
+            ),
+          )
+        }
+      />
     </div>
   );
 }
