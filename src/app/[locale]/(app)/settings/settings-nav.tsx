@@ -13,7 +13,10 @@ export function SettingsNav({ isOwner }: { isOwner: boolean }) {
   const groups: Group[] = [
     {
       label: t("groupGeneral"),
-      items: [{ href: "/settings/profile", label: t("navProfile") }],
+      items: [
+        { href: "/settings/profile", label: t("navProfile") },
+        { href: "/settings/workspaces", label: "Workspaces" },
+      ],
     },
     {
       label: t("groupWorkspace"),
