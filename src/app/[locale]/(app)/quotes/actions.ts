@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import { writeAudit } from "@/lib/audit";
 import { transitionToSent } from "@/lib/documents";
+import { sanitizeUnitName } from "@/lib/sanitize";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -15,7 +16,7 @@ const lineSchema = z.object({
   name: z.string().trim().min(1).max(300),
   description: z.string().optional().or(z.literal("")),
   quantity: decimal(12, 3),
-  unit: z.string().trim().min(1).max(50),
+  unit: z.string().trim().min(1).max(50).transform((s) => sanitizeUnitName(s)),
   unitPrice: decimal(12, 2),
   taxRatePercent: decimal(5, 2),
   taxMode: z.enum(["NET", "GROSS"]),

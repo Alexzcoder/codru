@@ -4,9 +4,10 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireOwner } from "@/lib/session";
 import { writeAudit } from "@/lib/audit";
+import { sanitizeUnitName } from "@/lib/sanitize";
 import { revalidatePath } from "next/cache";
 
-const schema = z.object({ name: z.string().trim().min(1).max(50) });
+const schema = z.object({ name: z.string().min(1).max(50) });
 
 export type UnitState = { error?: string };
 
@@ -17,8 +18,13 @@ export async function createUnit(
   const user = await requireOwner();
   const parsed = schema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: "invalidInput" };
+  // Strip control chars / angle brackets / non-printable. Crashes downstream
+  // (PDF, Excel, translation lookups) almost always trace back to one of
+  // these slipping through.
+  const name = sanitizeUnitName(parsed.data.name);
+  if (name.length === 0) return { error: "invalidInput" };
   try {
-    const u = await prisma.unit.create({ data: { name: parsed.data.name } });
+    const u = await prisma.unit.create({ data: { name } });
     await writeAudit({
       actorId: user.id,
       entity: "Unit",

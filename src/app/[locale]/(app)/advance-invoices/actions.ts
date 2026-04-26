@@ -6,6 +6,7 @@ import { requireUser } from "@/lib/session";
 import { writeAudit } from "@/lib/audit";
 import { transitionToSent } from "@/lib/documents";
 import { calculateDocument } from "@/lib/line-items";
+import { sanitizeUnitName } from "@/lib/sanitize";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -13,7 +14,7 @@ const lineSchema = z.object({
   name: z.string().trim().min(1).max(300),
   description: z.string().optional().or(z.literal("")),
   quantity: z.string(),
-  unit: z.string().trim().min(1).max(50),
+  unit: z.string().trim().min(1).max(50).transform((s) => sanitizeUnitName(s)),
   unitPrice: z.string(),
   taxRatePercent: z.string(),
   taxMode: z.enum(["NET", "GROSS"]),

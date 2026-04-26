@@ -36,7 +36,8 @@ export async function saveLineAsItemTemplate(input: {
 
   // Resolve unit by name (case-insensitive). If the AI returned an unknown
   // unit, fall back to the workspace's first unit so we never block save.
-  const unitName = (input.unit || "").trim() || "ks";
+  const { sanitizeUnitName } = await import("@/lib/sanitize");
+  const unitName = sanitizeUnitName(input.unit || "") || "ks";
   const unit =
     (await prisma.unit.findFirst({
       where: { name: { equals: unitName, mode: "insensitive" }, archivedAt: null },
