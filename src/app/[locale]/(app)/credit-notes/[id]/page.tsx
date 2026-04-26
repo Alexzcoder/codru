@@ -13,6 +13,8 @@ import {
 import { BackLink } from "@/components/back-link";
 import { EmailComposerButton } from "@/components/email-composer";
 import { EmailHistory } from "@/components/email-history";
+import { ConfirmButton } from "@/components/confirm-button";
+import { documentStatusClass } from "@/lib/status-style";
 
 export default async function CreditNoteDetailPage({
   params,
@@ -82,19 +84,21 @@ export default async function CreditNoteDetailPage({
           )}
         </p>
       )}
-      <div className="mt-1 flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <h1 className="text-2xl font-semibold tracking-tight">
-            {doc.title ??
-              doc.number ?? (
-                <span className="italic text-muted-foreground">{t("Quotes.draftBadge")}</span>
-              )}
-          </h1>
-          {doc.title && doc.number && (
-            <p className="text-xs text-muted-foreground">{doc.number}</p>
-          )}
-        </div>
-        <span className="rounded-full bg-secondary px-3 py-1 text-xs">
+      <div className="mt-1">
+        <h1 className="text-2xl font-semibold tracking-tight">
+          {doc.title ??
+            doc.number ?? (
+              <span className="italic text-muted-foreground">{t("Quotes.draftBadge")}</span>
+            )}
+        </h1>
+        {doc.title && doc.number && (
+          <p className="text-xs text-muted-foreground">{doc.number}</p>
+        )}
+      </div>
+      <div className="mt-2">
+        <span
+          className={`rounded-full px-3 py-1 text-xs font-medium ${documentStatusClass(doc.status === "PAID" ? "APPLIED" : doc.status)}`}
+        >
           {t(`CreditNotes.status.${doc.status === "PAID" ? "APPLIED" : doc.status}`)}
         </span>
       </div>
@@ -127,9 +131,10 @@ export default async function CreditNoteDetailPage({
         )}
         {isDraft && (
           <form action={deleteBound}>
-            <Button type="submit" variant="outline" size="sm">
-              {t("CreditNotes.actions.delete")}
-            </Button>
+            <ConfirmButton
+              label={t("CreditNotes.actions.delete")}
+              message="The draft will be permanently removed."
+            />
           </form>
         )}
       </div>

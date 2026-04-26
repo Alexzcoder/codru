@@ -6,6 +6,7 @@ import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { deleteExpense } from "../actions";
 import { BackLink } from "@/components/back-link";
+import { ConfirmButton } from "@/components/confirm-button";
 
 export default async function ExpenseDetailPage({
   params,
@@ -56,9 +57,10 @@ export default async function ExpenseDetailPage({
           </Button>
         </Link>
         <form action={deleteBound}>
-          <Button type="submit" variant="outline" size="sm">
-            {t("Expenses.actions.delete")}
-          </Button>
+          <ConfirmButton
+            label={t("Expenses.actions.delete")}
+            message="The expense will be removed permanently."
+          />
         </form>
       </div>
 

@@ -9,6 +9,7 @@ import { calculateDocument } from "@/lib/line-items";
 import { ContactLogForm } from "./contact-log-form";
 import { deleteClient, anonymizeClient } from "../actions";
 import { BackLink } from "@/components/back-link";
+import { ConfirmButton } from "@/components/confirm-button";
 
 export default async function ClientDetailPage({
   params,
@@ -476,14 +477,16 @@ export default async function ClientDetailPage({
           </p>
           <div className="mt-3 flex gap-2">
             <form action={deleteBound}>
-              <Button type="submit" variant="outline" size="sm">
-                {t("Clients.delete")}
-              </Button>
+              <ConfirmButton
+                label={t("Clients.delete")}
+                message="The client and all their data will be soft-deleted."
+              />
             </form>
             <form action={anonymizeBound}>
-              <Button type="submit" variant="outline" size="sm">
-                {t("Clients.anonymize")}
-              </Button>
+              <ConfirmButton
+                label={t("Clients.anonymize")}
+                message="Personal data will be redacted. Documents remain for legal retention."
+              />
             </form>
           </div>
         </div>

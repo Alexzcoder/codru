@@ -8,6 +8,7 @@ import { clientDisplayName } from "@/lib/client-display";
 import { calculateDocument } from "@/lib/line-items";
 import {
   autoOverdueFinal,
+  cancelFinal,
   deleteFinalDraft,
   markFinalPaid,
   markFinalSent,
@@ -16,6 +17,8 @@ import { loadCreditNotesForOriginal } from "@/lib/credit-notes-summary";
 import { BackLink } from "@/components/back-link";
 import { EmailComposerButton } from "@/components/email-composer";
 import { EmailHistory } from "@/components/email-history";
+import { ConfirmButton } from "@/components/confirm-button";
+import { documentStatusClass } from "@/lib/status-style";
 
 export default async function FinalInvoiceDetailPage({
   params,
@@ -37,6 +40,10 @@ export default async function FinalInvoiceDetailPage({
       sourceQuote: true,
       lineItems: { orderBy: { position: "asc" } },
       advanceDeductions: { include: { advance: true } },
+      paymentAllocations: {
+        include: { payment: { select: { id: true, date: true, method: true, reference: true } } },
+        orderBy: { id: "asc" },
+      },
       pdfSnapshots: { orderBy: { createdAt: "desc" }, take: 1 },
     },
   });
@@ -69,6 +76,10 @@ export default async function FinalInvoiceDetailPage({
     "use server";
     await deleteFinalDraft(id);
   };
+  const cancelBound = async () => {
+    "use server";
+    await cancelFinal(id);
+  };
 
   const snapshot = doc.pdfSnapshots[0];
   const creditNotes = await loadCreditNotesForOriginal(id);
@@ -94,19 +105,21 @@ export default async function FinalInvoiceDetailPage({
           )}
         </p>
       )}
-      <div className="mt-1 flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <h1 className="text-2xl font-semibold tracking-tight">
-            {doc.title ??
-              doc.number ?? (
-                <span className="italic text-muted-foreground">{t("Quotes.draftBadge")}</span>
-              )}
-          </h1>
-          {doc.title && doc.number && (
-            <p className="text-xs text-muted-foreground">{doc.number}</p>
-          )}
-        </div>
-        <span className="rounded-full bg-secondary px-3 py-1 text-xs">
+      <div className="mt-1">
+        <h1 className="text-2xl font-semibold tracking-tight">
+          {doc.title ??
+            doc.number ?? (
+              <span className="italic text-muted-foreground">{t("Quotes.draftBadge")}</span>
+            )}
+        </h1>
+        {doc.title && doc.number && (
+          <p className="text-xs text-muted-foreground">{doc.number}</p>
+        )}
+      </div>
+      <div className="mt-2">
+        <span
+          className={`rounded-full px-3 py-1 text-xs font-medium ${documentStatusClass(doc.status)}`}
+        >
           {t(`FinalInvoices.status.${doc.status}`)}
         </span>
       </div>
@@ -144,12 +157,21 @@ export default async function FinalInvoiceDetailPage({
         )}
         {isDraft && (
           <form action={deleteBound}>
-            <Button type="submit" variant="outline" size="sm">
-              {t("FinalInvoices.actions.delete")}
-            </Button>
+            <ConfirmButton
+              label={t("FinalInvoices.actions.delete")}
+              message="The draft will be permanently removed."
+            />
           </form>
         )}
-        {!isDraft && (
+        {(doc.status === "SENT" || doc.status === "OVERDUE" || doc.status === "PARTIALLY_PAID") && (
+          <form action={cancelBound}>
+            <ConfirmButton
+              label={t("FinalInvoices.actions.cancel")}
+              message="The invoice will be marked Cancelled. If a payment was already received, issue a credit note instead."
+            />
+          </form>
+        )}
+        {!isDraft && doc.status !== "CANCELLED" && (
           <Link href={`/credit-notes/new?fromInvoice=${id}`}>
             <Button variant="outline" size="sm">
               → {t("CreditNotes.new")}
@@ -185,6 +207,31 @@ export default async function FinalInvoiceDetailPage({
                 >
                   {d.advance.number ?? "(draft)"}
                 </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {doc.paymentAllocations.length > 0 && (
+        <div className="mt-6 rounded-xl border border-border bg-card shadow-sm p-4 text-sm">
+          <p className="text-xs uppercase tracking-wider text-muted-foreground">
+            Payments received
+          </p>
+          <ul className="mt-2 space-y-1">
+            {doc.paymentAllocations.map((a) => (
+              <li key={a.id} className="flex items-center justify-between gap-3">
+                <Link
+                  href={`/payments/${a.payment.id}`}
+                  className="text-muted-foreground hover:underline"
+                >
+                  {a.payment.date.toISOString().slice(0, 10)} ·{" "}
+                  {t(`Payments.methods.${a.payment.method}`)}
+                  {a.payment.reference ? ` · ${a.payment.reference}` : ""}
+                </Link>
+                <span className="tabular-nums font-medium">
+                  {Number(a.amount).toFixed(2)} {doc.currency}
+                </span>
               </li>
             ))}
           </ul>

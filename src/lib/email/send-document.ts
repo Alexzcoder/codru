@@ -1,6 +1,6 @@
 import { Resend } from "resend";
 import { prisma } from "@/lib/prisma";
-import { renderDocumentPdf, latestSnapshotPath } from "@/lib/documents";
+import { renderDocumentPdf, latestSnapshotPath, transitionToSent } from "@/lib/documents";
 import fs from "node:fs/promises";
 import path from "node:path";
 
@@ -116,5 +116,24 @@ export async function sendDocumentEmail(
   if (status === "failed") {
     return { ok: false, error: errorMessage ?? "Send failed." };
   }
+
+  // Auto-mark Sent on first successful send. transitionToSent allocates a
+  // gapless number, snapshots the PDF, and writes the audit log. Idempotent —
+  // it bails if the doc is already past UNSENT, so resending a Sent invoice
+  // doesn't produce a second number or snapshot.
+  if (doc.status === "UNSENT") {
+    try {
+      await transitionToSent(input.sentById, doc.id);
+    } catch (e) {
+      // Don't fail the send if status flip hits a snag — the email already
+      // left. Log it on the email row so we can debug later.
+      const msg = e instanceof Error ? e.message : "auto-mark failed";
+      await prisma.emailLog.update({
+        where: { id: log.id },
+        data: { errorMessage: `${log.errorMessage ?? ""}\n[auto-mark] ${msg}`.trim() },
+      });
+    }
+  }
+
   return { ok: true, emailLogId: log.id };
 }

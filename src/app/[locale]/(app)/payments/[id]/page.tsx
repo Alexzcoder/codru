@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { clientDisplayName } from "@/lib/client-display";
 import { deletePayment } from "../actions";
 import { BackLink } from "@/components/back-link";
+import { ConfirmButton } from "@/components/confirm-button";
 
 export default async function PaymentDetailPage({
   params,
@@ -68,14 +69,18 @@ export default async function PaymentDetailPage({
           </Button>
         </a>
         <form action={deleteBound}>
-          <Button type="submit" variant="outline" size="sm">
-            {t("Payments.actions.delete")}
-          </Button>
+          <ConfirmButton
+            label={t("Payments.actions.delete")}
+            message="The payment will be removed and the affected invoices will revert to unpaid."
+          />
         </form>
       </div>
 
       <div className="mt-6 grid gap-4 md:grid-cols-4">
         <Info label={t("Payments.fields.date")}>{payment.date.toISOString().slice(0, 10)}</Info>
+        <Info label="Logged at">
+          {payment.createdAt.toISOString().slice(0, 16).replace("T", " ")}
+        </Info>
         <Info label={t("Payments.fields.currency")}>{payment.currency}</Info>
         <Info label={t("Payments.fields.reference")}>{payment.reference ?? "—"}</Info>
         <Info label="Logged by">{payment.loggedBy.name}</Info>

@@ -303,12 +303,14 @@
       "SENT": "Nezaplaceno",
       "PARTIALLY_PAID": "Částečně zaplaceno",
       "PAID": "Zaplaceno",
-      "OVERDUE": "Po splatnosti"
+      "OVERDUE": "Po splatnosti",
+      "CANCELLED": "Zrušeno"
     },
     "actions": {
       "markSent": "Označit jako odeslané",
       "markPaid": "Označit jako zaplacené",
-      "delete": "Smazat koncept"
+      "delete": "Smazat koncept",
+      "cancel": "Zrušit"
     },
     "noAvailableAdvances": "Pro tuto zakázku nejsou k dispozici žádné zálohy.",
     "jobRequiredHint": "Faktura musí být propojena se zakázkou.",
@@ -338,12 +340,14 @@
       "SENT": "Nezaplaceno",
       "PAID": "Zaplaceno",
       "OVERDUE": "Po splatnosti",
-      "PAID_PENDING_COMPLETION": "Zaplaceno — čeká na dokončení zakázky"
+      "PAID_PENDING_COMPLETION": "Zaplaceno — čeká na dokončení zakázky",
+      "CANCELLED": "Zrušeno"
     },
     "actions": {
       "markSent": "Označit jako odeslané",
       "markPaid": "Označit jako zaplacené",
-      "delete": "Smazat koncept"
+      "delete": "Smazat koncept",
+      "cancel": "Zrušit"
     },
     "defaultLineName": "Záloha",
     "ppcHint": "Záloha je zaplacena, ale propojená zakázka ještě není dokončena. Přejde na „Zaplaceno“ automaticky po dokončení zakázky.",
@@ -379,12 +383,14 @@
       "SENT": "Odesláno",
       "ACCEPTED": "Schváleno",
       "REJECTED": "Zamítnuto",
-      "EXPIRED": "Propadlo"
+      "EXPIRED": "Propadlo",
+      "CANCELLED": "Zrušeno"
     },
     "actions": {
       "markSent": "Označit jako odeslané",
       "markAccepted": "Označit jako schválené",
       "markRejected": "Označit jako zamítnuté",
+      "cancel": "Zrušit",
       "delete": "Smazat koncept",
       "downloadPdf": "Stáhnout PDF",
       "previewPdf": "Náhled PDF",
@@ -581,6 +587,10 @@
     "navDocumentTemplates": "Šablony dokladů",
     "navCustomFields": "Vlastní pole klientů",
     "navUsers": "Uživatelé",
+    "navEmailSenders": "Odesílatelé e-mailů",
+    "groupGeneral": "Obecné",
+    "groupWorkspace": "Pracovní prostor",
+    "groupPeople": "Lidé",
     "saved": "Uloženo.",
     "save": "Uložit",
     "cancel": "Zrušit",

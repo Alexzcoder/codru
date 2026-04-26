@@ -303,12 +303,14 @@
       "SENT": "Unpaid",
       "PARTIALLY_PAID": "Partially paid",
       "PAID": "Paid",
-      "OVERDUE": "Overdue"
+      "OVERDUE": "Overdue",
+      "CANCELLED": "Cancelled"
     },
     "actions": {
       "markSent": "Mark as sent",
       "markPaid": "Mark paid",
-      "delete": "Delete draft"
+      "delete": "Delete draft",
+      "cancel": "Cancel"
     },
     "noAvailableAdvances": "No advances available for deduction on this job.",
     "jobRequiredHint": "A final invoice must be linked to a Job.",
@@ -338,12 +340,14 @@
       "SENT": "Unpaid",
       "PAID": "Paid",
       "OVERDUE": "Overdue",
-      "PAID_PENDING_COMPLETION": "Paid — awaiting job completion"
+      "PAID_PENDING_COMPLETION": "Paid — awaiting job completion",
+      "CANCELLED": "Cancelled"
     },
     "actions": {
       "markSent": "Mark as sent",
       "markPaid": "Mark paid",
-      "delete": "Delete draft"
+      "delete": "Delete draft",
+      "cancel": "Cancel"
     },
     "defaultLineName": "Advance payment",
     "ppcHint": "This advance is paid, but the linked job isn't Completed yet. It will move to Paid automatically when the job is marked Completed.",
@@ -379,12 +383,14 @@
       "SENT": "Sent",
       "ACCEPTED": "Accepted",
       "REJECTED": "Rejected",
-      "EXPIRED": "Expired"
+      "EXPIRED": "Expired",
+      "CANCELLED": "Cancelled"
     },
     "actions": {
       "markSent": "Mark as Sent",
       "markAccepted": "Mark Accepted",
       "markRejected": "Mark Rejected",
+      "cancel": "Cancel",
       "delete": "Delete draft",
       "downloadPdf": "Download PDF",
       "previewPdf": "Preview PDF",
@@ -581,6 +587,10 @@
     "navDocumentTemplates": "Document templates",
     "navCustomFields": "Client custom fields",
     "navUsers": "Users",
+    "navEmailSenders": "Email senders",
+    "groupGeneral": "General",
+    "groupWorkspace": "Workspace",
+    "groupPeople": "People",
     "saved": "Saved.",
     "save": "Save",
     "cancel": "Cancel",

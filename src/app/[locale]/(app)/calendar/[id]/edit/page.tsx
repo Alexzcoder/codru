@@ -7,6 +7,7 @@ import { EventForm } from "../../event-form";
 import { updateCalendarEvent, toggleComplete, deleteCalendarEvent } from "../../actions";
 import { Button } from "@/components/ui/button";
 import { BackLink } from "@/components/back-link";
+import { ConfirmButton } from "@/components/confirm-button";
 
 export default async function EditEventPage({
   params,
@@ -62,9 +63,10 @@ export default async function EditEventPage({
             </Button>
           </form>
           <form action={deleteBound}>
-            <Button type="submit" variant="outline" size="sm">
-              {t("Settings.delete")}
-            </Button>
+            <ConfirmButton
+              label={t("Settings.delete")}
+              message="This event will be removed permanently."
+            />
           </form>
         </div>
       </div>

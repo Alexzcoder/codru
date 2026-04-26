@@ -8,6 +8,7 @@ import { clientDisplayName } from "@/lib/client-display";
 import { calculateDocument } from "@/lib/line-items";
 import {
   autoExpireQuote,
+  cancelQuote,
   deleteQuoteDraft,
   markQuoteAccepted,
   markQuoteRejected,
@@ -16,6 +17,8 @@ import {
 import { BackLink } from "@/components/back-link";
 import { EmailComposerButton } from "@/components/email-composer";
 import { EmailHistory } from "@/components/email-history";
+import { ConfirmButton } from "@/components/confirm-button";
+import { documentStatusClass } from "@/lib/status-style";
 
 export default async function QuoteDetailPage({
   params,
@@ -74,6 +77,10 @@ export default async function QuoteDetailPage({
     "use server";
     await deleteQuoteDraft(id);
   };
+  const cancelBound = async () => {
+    "use server";
+    await cancelQuote(id);
+  };
 
   const snapshot = doc.pdfSnapshots[0];
 
@@ -87,21 +94,23 @@ export default async function QuoteDetailPage({
           </Link>
         </p>
       )}
-      <div className="mt-1 flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <h1 className="text-2xl font-semibold tracking-tight">
-            {doc.title ??
-              doc.number ?? (
-                <span className="italic text-muted-foreground">
-                  {t("Quotes.draftBadge")}
-                </span>
-              )}
-          </h1>
-          {doc.title && doc.number && (
-            <p className="text-xs text-muted-foreground">{doc.number}</p>
-          )}
-        </div>
-        <span className="rounded-full bg-secondary px-3 py-1 text-xs">
+      <div className="mt-1">
+        <h1 className="text-2xl font-semibold tracking-tight">
+          {doc.title ??
+            doc.number ?? (
+              <span className="italic text-muted-foreground">
+                {t("Quotes.draftBadge")}
+              </span>
+            )}
+        </h1>
+        {doc.title && doc.number && (
+          <p className="text-xs text-muted-foreground">{doc.number}</p>
+        )}
+      </div>
+      <div className="mt-2">
+        <span
+          className={`rounded-full px-3 py-1 text-xs font-medium ${documentStatusClass(doc.status)}`}
+        >
           {t(`Quotes.status.${doc.status}`)}
         </span>
       </div>
@@ -147,9 +156,18 @@ export default async function QuoteDetailPage({
         )}
         {isDraft && (
           <form action={deleteBound}>
-            <Button type="submit" variant="outline" size="sm">
-              {t("Quotes.actions.delete")}
-            </Button>
+            <ConfirmButton
+              label={t("Quotes.actions.delete")}
+              message="The draft will be permanently removed."
+            />
+          </form>
+        )}
+        {(doc.status === "SENT" || doc.status === "ACCEPTED" || doc.status === "EXPIRED" || doc.status === "REJECTED") && (
+          <form action={cancelBound}>
+            <ConfirmButton
+              label={t("Quotes.actions.cancel")}
+              message="The quote will be marked Cancelled. The PDF and number stay in the archive."
+            />
           </form>
         )}
         {(doc.status === "SENT" || doc.status === "ACCEPTED") && (

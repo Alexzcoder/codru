@@ -483,6 +483,7 @@ enum DocumentStatus {
   OVERDUE                 // Invoice (derived from dueDate)
   PAID_PENDING_COMPLETION // Advance invoice paid but linked job not COMPLETED
   APPLIED                 // Credit note applied to original
+  CANCELLED               // Voided after issue (sent → no longer valid). Quote/advance/final.
 }
 
 enum AdvanceAmountMode {

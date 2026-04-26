@@ -267,6 +267,32 @@ export async function markFinalPaid(id: string) {
   revalidatePath("/advance-invoices");
 }
 
+export async function cancelFinal(id: string) {
+  const user = await requireUser();
+  const doc = await prisma.document.findUnique({
+    where: { id },
+    include: { paymentAllocations: true },
+  });
+  if (!doc || doc.type !== "FINAL_INVOICE") return;
+  if (doc.status === "UNSENT" || doc.status === "CANCELLED") return;
+  if (doc.paymentAllocations.length > 0) {
+    throw new Error("Cannot cancel a paid invoice — issue a credit note instead.");
+  }
+  await prisma.document.update({
+    where: { id },
+    data: { status: "CANCELLED" },
+  });
+  await writeAudit({
+    actorId: user.id,
+    entity: "Document",
+    entityId: id,
+    action: "update",
+    after: { status: "CANCELLED" } as unknown as Record<string, unknown>,
+  });
+  revalidatePath("/final-invoices");
+  revalidatePath(`/final-invoices/${id}`);
+}
+
 export async function deleteFinalDraft(id: string) {
   const user = await requireUser();
   const doc = await prisma.document.findUnique({ where: { id } });

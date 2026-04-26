@@ -8,6 +8,7 @@ import { clientDisplayName } from "@/lib/client-display";
 import { calculateDocument } from "@/lib/line-items";
 import {
   autoOverdue,
+  cancelAdvance,
   deleteAdvanceDraft,
   markAdvancePaid,
   markAdvanceSent,
@@ -16,6 +17,8 @@ import { loadCreditNotesForOriginal } from "@/lib/credit-notes-summary";
 import { BackLink } from "@/components/back-link";
 import { EmailComposerButton } from "@/components/email-composer";
 import { EmailHistory } from "@/components/email-history";
+import { ConfirmButton } from "@/components/confirm-button";
+import { documentStatusClass } from "@/lib/status-style";
 
 export default async function AdvanceInvoiceDetailPage({
   params,
@@ -36,6 +39,10 @@ export default async function AdvanceInvoiceDetailPage({
       job: true,
       sourceQuote: true,
       lineItems: { orderBy: { position: "asc" } },
+      paymentAllocations: {
+        include: { payment: { select: { id: true, date: true, method: true, reference: true } } },
+        orderBy: { id: "asc" },
+      },
       pdfSnapshots: { orderBy: { createdAt: "desc" }, take: 1 },
     },
   });
@@ -66,6 +73,10 @@ export default async function AdvanceInvoiceDetailPage({
     "use server";
     await deleteAdvanceDraft(id);
   };
+  const cancelBound = async () => {
+    "use server";
+    await cancelAdvance(id);
+  };
 
   const snapshot = doc.pdfSnapshots[0];
   const ppc = doc.status === "PAID_PENDING_COMPLETION";
@@ -92,19 +103,21 @@ export default async function AdvanceInvoiceDetailPage({
           )}
         </p>
       )}
-      <div className="mt-1 flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <h1 className="text-2xl font-semibold tracking-tight">
-            {doc.title ??
-              doc.number ?? (
-                <span className="italic text-muted-foreground">{t("Quotes.draftBadge")}</span>
-              )}
-          </h1>
-          {doc.title && doc.number && (
-            <p className="text-xs text-muted-foreground">{doc.number}</p>
-          )}
-        </div>
-        <span className="rounded-full bg-secondary px-3 py-1 text-xs">
+      <div className="mt-1">
+        <h1 className="text-2xl font-semibold tracking-tight">
+          {doc.title ??
+            doc.number ?? (
+              <span className="italic text-muted-foreground">{t("Quotes.draftBadge")}</span>
+            )}
+        </h1>
+        {doc.title && doc.number && (
+          <p className="text-xs text-muted-foreground">{doc.number}</p>
+        )}
+      </div>
+      <div className="mt-2">
+        <span
+          className={`rounded-full px-3 py-1 text-xs font-medium ${documentStatusClass(doc.status)}`}
+        >
           {t(`AdvanceInvoices.status.${doc.status}`)}
         </span>
       </div>
@@ -148,12 +161,21 @@ export default async function AdvanceInvoiceDetailPage({
         )}
         {isDraft && (
           <form action={deleteBound}>
-            <Button type="submit" variant="outline" size="sm">
-              {t("AdvanceInvoices.actions.delete")}
-            </Button>
+            <ConfirmButton
+              label={t("AdvanceInvoices.actions.delete")}
+              message="The draft will be permanently removed."
+            />
           </form>
         )}
-        {!isDraft && (
+        {(doc.status === "SENT" || doc.status === "OVERDUE") && (
+          <form action={cancelBound}>
+            <ConfirmButton
+              label={t("AdvanceInvoices.actions.cancel")}
+              message="The advance invoice will be marked Cancelled. If it was already paid, issue a credit note instead."
+            />
+          </form>
+        )}
+        {!isDraft && doc.status !== "CANCELLED" && (
           <Link href={`/credit-notes/new?fromInvoice=${id}`}>
             <Button variant="outline" size="sm">
               → {t("CreditNotes.new")}
@@ -174,6 +196,31 @@ export default async function AdvanceInvoiceDetailPage({
         </Info>
         <Info label={t("Quotes.fields.currency")}>{doc.currency}</Info>
       </div>
+
+      {doc.paymentAllocations.length > 0 && (
+        <div className="mt-6 rounded-xl border border-border bg-card shadow-sm p-4 text-sm">
+          <p className="text-xs uppercase tracking-wider text-muted-foreground">
+            Payments received
+          </p>
+          <ul className="mt-2 space-y-1">
+            {doc.paymentAllocations.map((a) => (
+              <li key={a.id} className="flex items-center justify-between gap-3">
+                <Link
+                  href={`/payments/${a.payment.id}`}
+                  className="text-muted-foreground hover:underline"
+                >
+                  {a.payment.date.toISOString().slice(0, 10)} ·{" "}
+                  {t(`Payments.methods.${a.payment.method}`)}
+                  {a.payment.reference ? ` · ${a.payment.reference}` : ""}
+                </Link>
+                <span className="tabular-nums font-medium">
+                  {Number(a.amount).toFixed(2)} {doc.currency}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="mt-8 overflow-hidden rounded-xl border border-border bg-card shadow-sm">
         <table className="w-full text-sm">

@@ -10,6 +10,7 @@ import { AttachmentUploader } from "./attachment-uploader";
 import { ContactLogForm } from "../../clients/[id]/contact-log-form";
 import { computeJobProfitability } from "@/lib/job-profitability";
 import { BackLink } from "@/components/back-link";
+import { ConfirmButton } from "@/components/confirm-button";
 
 export default async function JobDetailPage({
   params,
@@ -314,12 +315,12 @@ export default async function JobDetailPage({
                       <p className="mt-1 text-muted-foreground">{a.caption}</p>
                     )}
                     <form action={delBound} className="mt-2">
-                      <button
-                        type="submit"
-                        className="text-xs text-red-600 hover:underline"
-                      >
-                        {t("Jobs.detail.deleteAttachment")}
-                      </button>
+                      <ConfirmButton
+                        label={t("Jobs.detail.deleteAttachment")}
+                        variant="ghost"
+                        size="sm"
+                        className="h-auto px-0 py-0 text-xs text-red-600 hover:bg-transparent hover:underline"
+                      />
                     </form>
                   </div>
                 </li>
@@ -356,9 +357,10 @@ export default async function JobDetailPage({
       <div className="mt-12 rounded-md border border-red-200 bg-red-50 p-5">
         <h3 className="text-sm font-medium text-red-900">Danger zone</h3>
         <form action={deleteBound} className="mt-3">
-          <Button type="submit" variant="outline" size="sm">
-            Delete job
-          </Button>
+          <ConfirmButton
+            label="Delete job"
+            message="The job will be soft-deleted. Linked documents stay; expenses keep referencing the (now deleted) job."
+          />
         </form>
       </div>
     </div>

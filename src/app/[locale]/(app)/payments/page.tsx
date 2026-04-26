@@ -36,7 +36,11 @@ export default async function PaymentsPage({
           ],
         }
       : undefined,
-    include: { client: true, allocations: true, loggedBy: { select: { name: true } } },
+    include: {
+      client: true,
+      allocations: { include: { document: { select: { id: true, type: true, number: true } } } },
+      loggedBy: { select: { name: true } },
+    },
     orderBy: { date: "desc" },
     take: PAGE_SIZE,
   });
@@ -90,8 +94,12 @@ export default async function PaymentsPage({
                   <td className="px-4 py-3 text-right tabular-nums font-medium">
                     {p.amount.toString()} {p.currency}
                   </td>
-                  <td className="px-4 py-3 text-center text-xs text-muted-foreground">
-                    {p.allocations.length}
+                  <td className="px-4 py-3 text-xs text-muted-foreground">
+                    {p.allocations.length === 0
+                      ? "—"
+                      : p.allocations
+                          .map((a) => a.document.number ?? "draft")
+                          .join(", ")}
                   </td>
                 </ClickableRow>
               ))}

@@ -229,6 +229,26 @@ export async function markQuoteRejected(id: string) {
   revalidatePath(`/quotes/${id}`);
 }
 
+export async function cancelQuote(id: string) {
+  const user = await requireUser();
+  const doc = await prisma.document.findUnique({ where: { id } });
+  if (!doc || doc.type !== "QUOTE") return;
+  if (doc.status === "UNSENT" || doc.status === "CANCELLED") return;
+  await prisma.document.update({
+    where: { id },
+    data: { status: "CANCELLED" },
+  });
+  await writeAudit({
+    actorId: user.id,
+    entity: "Document",
+    entityId: id,
+    action: "update",
+    after: { status: "CANCELLED" } as unknown as Record<string, unknown>,
+  });
+  revalidatePath("/quotes");
+  revalidatePath(`/quotes/${id}`);
+}
+
 export async function deleteQuoteDraft(id: string) {
   const user = await requireUser();
   const doc = await prisma.document.findUnique({ where: { id } });
