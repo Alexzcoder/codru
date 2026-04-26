@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/session";
+import { requireWorkspace } from "@/lib/session";
 import { seedDefaults } from "@/lib/seed-defaults";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ExpenseForm } from "../expense-form";
@@ -15,17 +15,18 @@ export default async function NewExpensePage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  await requireUser();
-  await seedDefaults();
+  const { workspace } = await requireWorkspace();
+  await seedDefaults(workspace.id);
   const t = await getTranslations();
   const { jobId } = await searchParams;
 
   const [categories, jobs] = await Promise.all([
     prisma.expenseCategory.findMany({
-      where: { archivedAt: null },
+      where: { workspaceId: workspace.id, archivedAt: null },
       orderBy: { name: "asc" },
     }),
     prisma.job.findMany({
+      where: { workspaceId: workspace.id },
       select: { id: true, title: true },
       orderBy: { updatedAt: "desc" },
       take: 500,

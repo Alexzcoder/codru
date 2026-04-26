@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/session";
+import { requireWorkspace } from "@/lib/session";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { Link } from "@/i18n/navigation";
@@ -27,13 +27,13 @@ export default async function AdvanceInvoiceDetailPage({
 }) {
   const { locale, id } = await params;
   setRequestLocale(locale);
-  await requireUser();
+  const { workspace } = await requireWorkspace();
   const t = await getTranslations();
 
   await autoOverdue(id);
 
-  const doc = await prisma.document.findUnique({
-    where: { id },
+  const doc = await prisma.document.findFirst({
+    where: { id, workspaceId: workspace.id },
     include: {
       client: true,
       job: true,

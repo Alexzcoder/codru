@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/prisma";
 import { Sidebar } from "./sidebar";
 import { LocaleSwitcher } from "@/components/locale-switcher";
+import { WorkspaceSwitcher } from "@/components/workspace-switcher";
 import { Bell, LogOut } from "lucide-react";
 
 const DEV_BYPASS = process.env.DEV_BYPASS === "true";
@@ -48,13 +49,31 @@ export default async function AppLayout({
     userId = session.user.id ?? null;
   }
 
-  // Fetch unread count + translations in parallel.
-  const [unreadCount, t] = await Promise.all([
+  // Fetch unread count + memberships + translations in parallel.
+  const [unreadCount, memberships, t] = await Promise.all([
     userId
       ? prisma.notification.count({ where: { userId, readAt: null } })
       : Promise.resolve(0),
+    userId
+      ? prisma.membership.findMany({
+          where: { userId, workspace: { deletedAt: null } },
+          include: { workspace: true },
+          orderBy: { workspace: { name: "asc" } },
+        })
+      : Promise.resolve([]),
     getTranslations(),
   ]);
+
+  // Resolve the active workspace from cookie + memberships. The header switcher
+  // reflects this; if the user has no memberships, we don't render the
+  // switcher at all (they'll be redirected to /onboarding/workspace by
+  // requireWorkspace() on the next data-fetching page).
+  const activeWorkspaceId = (await import("next/headers"))
+    .cookies()
+    .then((c) => c.get("cw_active_workspace")?.value);
+  const cwId = await activeWorkspaceId;
+  const activeMembership =
+    memberships.find((m) => m.workspaceId === cwId) ?? memberships[0] ?? null;
 
   return (
     <div className="flex flex-1">
@@ -63,6 +82,20 @@ export default async function AppLayout({
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-10 border-b border-border bg-background/90 backdrop-blur">
           <div className="flex items-center justify-end gap-3 px-6 py-3">
+            {activeMembership && (
+              <WorkspaceSwitcher
+                active={{
+                  id: activeMembership.workspace.id,
+                  name: activeMembership.workspace.name,
+                  role: activeMembership.role,
+                }}
+                options={memberships.map((m) => ({
+                  id: m.workspace.id,
+                  name: m.workspace.name,
+                  role: m.role,
+                }))}
+              />
+            )}
             <LocaleSwitcher />
             <Link
               href="/notifications"

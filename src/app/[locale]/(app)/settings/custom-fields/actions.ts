@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { requireOwner } from "@/lib/session";
+import { requireWorkspaceOwner } from "@/lib/session";
 import { writeAudit } from "@/lib/audit";
 import { revalidatePath } from "next/cache";
 
@@ -17,12 +17,15 @@ export async function createCustomField(
   _prev: CustomFieldState,
   formData: FormData,
 ): Promise<CustomFieldState> {
-  const user = await requireOwner();
+  const { user, workspace } = await requireWorkspaceOwner();
   const parsed = schema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: "invalidInput" };
   try {
-    const def = await prisma.customFieldDef.create({ data: parsed.data });
+    const def = await prisma.customFieldDef.create({
+      data: { ...parsed.data, workspaceId: workspace.id },
+    });
     await writeAudit({
+      workspaceId: workspace.id,
       actorId: user.id,
       entity: "CustomFieldDef",
       entityId: def.id,
@@ -37,12 +40,15 @@ export async function createCustomField(
 }
 
 export async function archiveCustomField(id: string) {
-  const user = await requireOwner();
+  const { user, workspace } = await requireWorkspaceOwner();
+  const existing = await prisma.customFieldDef.findFirst({ where: { id, workspaceId: workspace.id } });
+  if (!existing) return;
   await prisma.customFieldDef.update({
     where: { id },
     data: { archivedAt: new Date() },
   });
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: user.id,
     entity: "CustomFieldDef",
     entityId: id,

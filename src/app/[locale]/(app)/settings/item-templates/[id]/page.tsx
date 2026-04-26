@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { requireOwner } from "@/lib/session";
+import { requireWorkspaceOwner } from "@/lib/session";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { ItemTemplateForm } from "../item-template-form";
@@ -14,13 +14,13 @@ export default async function EditItemTemplatePage({
 }) {
   const { locale, id } = await params;
   setRequestLocale(locale);
-  await requireOwner();
+  const { workspace } = await requireWorkspaceOwner();
   const t = await getTranslations();
 
   const [tmpl, units, categories, taxRates] = await Promise.all([
     prisma.itemTemplate.findUnique({ where: { id } }),
     prisma.unit.findMany({ where: { archivedAt: null }, orderBy: { name: "asc" } }),
-    prisma.itemCategory.findMany({ where: { archivedAt: null }, orderBy: { name: "asc" } }),
+    prisma.itemCategory.findMany({ where: { workspaceId: workspace.id, archivedAt: null }, orderBy: { name: "asc" } }),
     prisma.taxRate.findMany({
       where: { archivedAt: null },
       orderBy: [{ isDefault: "desc" }, { percent: "desc" }],

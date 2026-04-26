@@ -2,7 +2,7 @@
 
 import ExcelJS from "exceljs";
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/session";
+import { requireWorkspace } from "@/lib/session";
 import { writeAudit } from "@/lib/audit";
 import { revalidatePath } from "next/cache";
 
@@ -109,7 +109,7 @@ export async function importClients(
   _prev: ImportClientsState,
   formData: FormData,
 ): Promise<ImportClientsState> {
-  const user = await requireUser();
+  const { user, workspace } = await requireWorkspace();
   const file = formData.get("file");
   if (!(file instanceof File) || file.size === 0) {
     return { ok: false, errors: ["Pick a .csv or .xlsx file."] };
@@ -155,13 +155,13 @@ export async function importClients(
     // Dedup by IČO (companies) or email (individuals). Skip silently — caller
     // can re-export to verify.
     if (ico) {
-      const dup = await prisma.client.findFirst({ where: { ico, deletedAt: null } });
+      const dup = await prisma.client.findFirst({ where: { workspaceId: workspace.id, ico, deletedAt: null } });
       if (dup) {
         skipped++;
         continue;
       }
     } else if (email) {
-      const dup = await prisma.client.findFirst({ where: { email, deletedAt: null } });
+      const dup = await prisma.client.findFirst({ where: { workspaceId: workspace.id, email, deletedAt: null } });
       if (dup) {
         skipped++;
         continue;
@@ -171,6 +171,7 @@ export async function importClients(
     try {
       const created = await prisma.client.create({
         data: {
+          workspaceId: workspace.id,
           type,
           status: "POTENTIAL",
           companyName: type === "COMPANY" ? companyName : null,
@@ -192,6 +193,7 @@ export async function importClients(
       });
       inserted++;
       await writeAudit({
+        workspaceId: workspace.id,
         actorId: user.id,
         entity: "Client",
         entityId: created.id,

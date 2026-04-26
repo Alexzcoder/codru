@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/session";
+import { requireWorkspace } from "@/lib/session";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { FinalInvoiceForm } from "../../final-invoice-form";
@@ -15,11 +15,11 @@ export default async function EditFinalInvoicePage({
 }) {
   const { locale, id } = await params;
   setRequestLocale(locale);
-  await requireUser();
+  const { workspace } = await requireWorkspace();
   const t = await getTranslations();
 
-  const doc = await prisma.document.findUnique({
-    where: { id },
+  const doc = await prisma.document.findFirst({
+    where: { id, workspaceId: workspace.id },
     include: {
       lineItems: { orderBy: { position: "asc" } },
       advanceDeductions: true,
@@ -27,7 +27,7 @@ export default async function EditFinalInvoicePage({
   });
   if (!doc || doc.type !== "FINAL_INVOICE" || doc.deletedAt) notFound();
 
-  const data = await loadFinalInvoiceFormData({ excludeAdvanceIdsUsedOn: id });
+  const data = await loadFinalInvoiceFormData(workspace.id, { excludeAdvanceIdsUsedOn: id });
   const bound = updateFinalInvoice.bind(null, id);
 
   // Strip stored deduction lines so the form rebuilds them from the checkbox selection.

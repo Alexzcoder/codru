@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/session";
+import { requireWorkspace } from "@/lib/session";
 import { seedDefaults } from "@/lib/seed-defaults";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
@@ -27,13 +27,14 @@ export default async function ExpensesPage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  await requireUser();
-  await seedDefaults();
+  const { workspace } = await requireWorkspace();
+  await seedDefaults(workspace.id);
   const t = await getTranslations();
   const sp = await searchParams;
 
   const q = sp.q?.trim() ?? "";
   const where = {
+    workspaceId: workspace.id,
     ...(sp.from && { date: { gte: new Date(sp.from) } }),
     ...(sp.to && { date: { lte: new Date(sp.to) } }),
     ...(sp.categoryId && { categoryId: sp.categoryId }),
@@ -57,15 +58,16 @@ export default async function ExpensesPage({
     }),
     prisma.expense.count({ where }),
     prisma.expenseCategory.findMany({
-      where: { archivedAt: null },
+      where: { workspaceId: workspace.id, archivedAt: null },
       orderBy: { name: "asc" },
     }),
     prisma.job.findMany({
+      where: { workspaceId: workspace.id },
       select: { id: true, title: true },
       orderBy: { updatedAt: "desc" },
       take: 500,
     }),
-    summaryForCurrentMonth(),
+    summaryForCurrentMonth(workspace.id),
   ]);
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -275,12 +277,12 @@ export default async function ExpensesPage({
   );
 }
 
-async function summaryForCurrentMonth() {
+async function summaryForCurrentMonth(workspaceId: string) {
   const now = new Date();
   const start = new Date(now.getFullYear(), now.getMonth(), 1);
   const end = new Date(now.getFullYear(), now.getMonth() + 1, 1);
   const expenses = await prisma.expense.findMany({
-    where: { date: { gte: start, lt: end }, currency: "CZK" },
+    where: { workspaceId, date: { gte: start, lt: end }, currency: "CZK" },
     include: { category: true },
   });
   const total = expenses.reduce(

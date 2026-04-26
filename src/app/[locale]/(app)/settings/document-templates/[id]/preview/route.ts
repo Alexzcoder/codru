@@ -1,6 +1,6 @@
 import path from "node:path";
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/session";
+import { requireWorkspace } from "@/lib/session";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { DocumentPdf } from "@/lib/pdf/document-pdf";
 import { buildSampleData } from "@/lib/pdf/sample-data";
@@ -15,14 +15,14 @@ export async function GET(
   req: Request,
   { params }: { params: Promise<{ id: string; locale: string }> },
 ) {
-  const user = await requireUser();
+  const { user, workspace } = await requireWorkspace();
   const { id } = await params;
   const url = new URL(req.url);
   const pdfLocale: PdfLocale =
     url.searchParams.get("lang") === "en" ? "en" : "cs";
 
-  const template = await prisma.documentTemplate.findUnique({
-    where: { id },
+  const template = await prisma.documentTemplate.findFirst({
+    where: { id, companyProfile: { workspaceId: workspace.id } },
     include: { companyProfile: true },
   });
   if (!template || template.archivedAt) notFound();

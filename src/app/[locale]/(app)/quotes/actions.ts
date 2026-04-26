@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/session";
+import { requireWorkspace } from "@/lib/session";
 import { writeAudit } from "@/lib/audit";
 import { transitionToSent } from "@/lib/documents";
 import { sanitizeUnitName } from "@/lib/sanitize";
@@ -70,7 +70,7 @@ export async function createQuote(
   _prev: QuoteState,
   formData: FormData,
 ): Promise<QuoteState> {
-  const user = await requireUser();
+  const { user, workspace } = await requireWorkspace();
   const parsed = quoteSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: "invalidInput" };
   const d = parsed.data;
@@ -84,12 +84,13 @@ export async function createQuote(
 
   // Only allow reverse charge for B2B clients (have IČO).
   if (d.reverseCharge) {
-    const client = await prisma.client.findUnique({ where: { id: d.clientId } });
+    const client = await prisma.client.findFirst({ where: { id: d.clientId, workspaceId: workspace.id } });
     if (!client || !client.ico) return { error: "reverseChargeRequiresIco" };
   }
 
   const created = await prisma.document.create({
     data: {
+      workspaceId: workspace.id,
       type: "QUOTE",
       status: "UNSENT",
       clientId: d.clientId,
@@ -112,6 +113,7 @@ export async function createQuote(
   });
 
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: user.id,
     entity: "Document",
     entityId: created.id,
@@ -128,7 +130,7 @@ export async function updateQuote(
   _prev: QuoteState,
   formData: FormData,
 ): Promise<QuoteState> {
-  const user = await requireUser();
+  const { user, workspace } = await requireWorkspace();
   const parsed = quoteSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: "invalidInput" };
   const d = parsed.data;
@@ -140,10 +142,10 @@ export async function updateQuote(
     return { error: "invalidLines" };
   }
 
-  const before = await prisma.document.findUnique({ where: { id } });
+  const before = await prisma.document.findFirst({ where: { id, workspaceId: workspace.id } });
   if (!before) return { error: "notFound" };
   if (d.reverseCharge) {
-    const client = await prisma.client.findUnique({ where: { id: d.clientId } });
+    const client = await prisma.client.findFirst({ where: { id: d.clientId, workspaceId: workspace.id } });
     if (!client || !client.ico) return { error: "reverseChargeRequiresIco" };
   }
 
@@ -172,6 +174,7 @@ export async function updateQuote(
   });
 
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: user.id,
     entity: "Document",
     entityId: id,
@@ -185,15 +188,18 @@ export async function updateQuote(
 }
 
 export async function markQuoteSent(id: string) {
-  const user = await requireUser();
+  const { user, workspace } = await requireWorkspace();
+  // Verify ownership before transitioning.
+  const doc = await prisma.document.findFirst({ where: { id, workspaceId: workspace.id }, select: { id: true } });
+  if (!doc) return;
   await transitionToSent(user.id, id);
   revalidatePath("/quotes");
   revalidatePath(`/quotes/${id}`);
 }
 
 export async function markQuoteAccepted(id: string) {
-  const user = await requireUser();
-  const doc = await prisma.document.findUnique({ where: { id } });
+  const { user, workspace } = await requireWorkspace();
+  const doc = await prisma.document.findFirst({ where: { id, workspaceId: workspace.id } });
   if (!doc || doc.type !== "QUOTE") return;
   if (doc.status !== "SENT" && doc.status !== "EXPIRED") return;
   await prisma.document.update({
@@ -201,6 +207,7 @@ export async function markQuoteAccepted(id: string) {
     data: { status: "ACCEPTED", acceptedAt: new Date() },
   });
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: user.id,
     entity: "Document",
     entityId: id,
@@ -212,14 +219,15 @@ export async function markQuoteAccepted(id: string) {
 }
 
 export async function markQuoteRejected(id: string) {
-  const user = await requireUser();
-  const doc = await prisma.document.findUnique({ where: { id } });
+  const { user, workspace } = await requireWorkspace();
+  const doc = await prisma.document.findFirst({ where: { id, workspaceId: workspace.id } });
   if (!doc || doc.type !== "QUOTE") return;
   await prisma.document.update({
     where: { id },
     data: { status: "REJECTED", rejectedAt: new Date() },
   });
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: user.id,
     entity: "Document",
     entityId: id,
@@ -231,8 +239,8 @@ export async function markQuoteRejected(id: string) {
 }
 
 export async function cancelQuote(id: string) {
-  const user = await requireUser();
-  const doc = await prisma.document.findUnique({ where: { id } });
+  const { user, workspace } = await requireWorkspace();
+  const doc = await prisma.document.findFirst({ where: { id, workspaceId: workspace.id } });
   if (!doc || doc.type !== "QUOTE") return;
   if (doc.status === "UNSENT" || doc.status === "CANCELLED") return;
   await prisma.document.update({
@@ -240,6 +248,7 @@ export async function cancelQuote(id: string) {
     data: { status: "CANCELLED" },
   });
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: user.id,
     entity: "Document",
     entityId: id,
@@ -251,8 +260,8 @@ export async function cancelQuote(id: string) {
 }
 
 export async function deleteQuoteDraft(id: string) {
-  const user = await requireUser();
-  const doc = await prisma.document.findUnique({ where: { id } });
+  const { user, workspace } = await requireWorkspace();
+  const doc = await prisma.document.findFirst({ where: { id, workspaceId: workspace.id } });
   if (!doc) return;
   if (doc.status !== "UNSENT") return; // PRD §21.3 — once Sent, cannot be deleted
   await prisma.document.update({
@@ -260,6 +269,7 @@ export async function deleteQuoteDraft(id: string) {
     data: { deletedAt: new Date() },
   });
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: user.id,
     entity: "Document",
     entityId: id,

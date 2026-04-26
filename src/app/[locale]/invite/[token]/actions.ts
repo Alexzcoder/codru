@@ -48,6 +48,13 @@ export async function acceptInvite(
         role: "USER",
       },
     });
+    await tx.membership.create({
+      data: {
+        workspaceId: invite.workspaceId,
+        userId: u.id,
+        role: invite.role,
+      },
+    });
     await tx.invite.update({
       where: { id: invite.id },
       data: { acceptedAt: new Date() },
@@ -56,6 +63,7 @@ export async function acceptInvite(
   });
 
   await writeAudit({
+    workspaceId: invite.workspaceId,
     actorId: user.id,
     entity: "User",
     entityId: user.id,

@@ -55,6 +55,7 @@ async function generateJobInstance(rule: RecurrenceRule, payload: JobPayload): P
 
   const job = await prisma.job.create({
     data: {
+      workspaceId: rule.workspaceId,
       title: payload.title,
       clientId: payload.clientId,
       status: "SCHEDULED",
@@ -78,6 +79,7 @@ async function generateJobInstance(rule: RecurrenceRule, payload: JobPayload): P
     const due = addDays(issue, payload.invoiceDueInDays ?? 14);
     await prisma.document.create({
       data: {
+        workspaceId: rule.workspaceId,
         type: "FINAL_INVOICE",
         status: "UNSENT",
         clientId: payload.clientId,
@@ -118,6 +120,7 @@ async function generateExpenseInstance(rule: RecurrenceRule, payload: ExpensePay
 
   await prisma.expense.create({
     data: {
+      workspaceId: rule.workspaceId,
       date: new Date(rule.nextRunAt),
       categoryId: payload.categoryId,
       supplier: payload.supplier,
@@ -145,6 +148,7 @@ async function generateInvoiceInstance(rule: RecurrenceRule, payload: InvoicePay
 
   await prisma.document.create({
     data: {
+      workspaceId: rule.workspaceId,
       type: "FINAL_INVOICE",
       status: "UNSENT",
       clientId: payload.clientId,

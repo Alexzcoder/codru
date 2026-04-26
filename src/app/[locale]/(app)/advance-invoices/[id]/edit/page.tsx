@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/session";
+import { requireWorkspace } from "@/lib/session";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { AdvanceInvoiceForm } from "../../advance-invoice-form";
@@ -15,16 +15,16 @@ export default async function EditAdvanceInvoicePage({
 }) {
   const { locale, id } = await params;
   setRequestLocale(locale);
-  await requireUser();
+  const { workspace } = await requireWorkspace();
   const t = await getTranslations();
 
-  const doc = await prisma.document.findUnique({
-    where: { id },
+  const doc = await prisma.document.findFirst({
+    where: { id, workspaceId: workspace.id },
     include: { lineItems: { orderBy: { position: "asc" } } },
   });
   if (!doc || doc.type !== "ADVANCE_INVOICE" || doc.deletedAt) notFound();
 
-  const data = await loadAdvanceFormData();
+  const data = await loadAdvanceFormData(workspace.id);
   const bound = updateAdvanceInvoice.bind(null, id);
 
   const lines: EditorLine[] = doc.lineItems.map((l) => ({

@@ -1,4 +1,4 @@
-import { requireOwner } from "@/lib/session";
+import { requireWorkspaceOwner } from "@/lib/session";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { CompanyProfileForm } from "../company-profile-form";
 import { createCompanyProfile } from "../actions";
@@ -11,7 +11,7 @@ export default async function NewCompanyProfilePage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  await requireOwner();
+  await requireWorkspaceOwner();
   const t = await getTranslations();
 
   return (

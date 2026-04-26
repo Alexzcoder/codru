@@ -7,6 +7,7 @@ type Diffable = Record<string, unknown> | null | undefined;
 // Expense, RecurrenceRule records user + timestamp + change.
 // We apply the same pattern to User / CompanyProfile / TaxRate / ItemCategory as well.
 export async function writeAudit({
+  workspaceId,
   actorId,
   entity,
   entityId,
@@ -14,6 +15,7 @@ export async function writeAudit({
   before,
   after,
 }: {
+  workspaceId: string;
   actorId: string | null;
   entity: string;
   entityId: string;
@@ -23,6 +25,7 @@ export async function writeAudit({
 }) {
   await prisma.auditLog.create({
     data: {
+      workspaceId,
       actorId,
       entity,
       entityId,

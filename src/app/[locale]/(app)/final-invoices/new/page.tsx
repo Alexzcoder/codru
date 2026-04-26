@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/session";
+import { requireWorkspace } from "@/lib/session";
 import { seedDefaults } from "@/lib/seed-defaults";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { FinalInvoiceForm } from "../final-invoice-form";
@@ -18,18 +18,18 @@ export default async function NewFinalInvoicePage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  await requireUser();
-  await seedDefaults();
+  const { workspace } = await requireWorkspace();
+  await seedDefaults(workspace.id);
   const t = await getTranslations();
   const { fromQuote, fromJob } = await searchParams;
 
-  const data = await loadFinalInvoiceFormData();
+  const data = await loadFinalInvoiceFormData(workspace.id);
   if (data.clientOptions.length === 0) redirect("/clients/new");
 
   let initial: Parameters<typeof FinalInvoiceForm>[0]["initial"] | undefined;
   let seededJobId: string | null = null;
   if (fromQuote) {
-    const quote = await prisma.document.findUnique({ where: { id: fromQuote } });
+    const quote = await prisma.document.findFirst({ where: { id: fromQuote, workspaceId: workspace.id } });
     if (quote) {
       initial = {
         clientId: quote.clientId,
@@ -41,7 +41,7 @@ export default async function NewFinalInvoicePage({
       seededJobId = quote.jobId;
     }
   } else if (fromJob) {
-    const job = await prisma.job.findUnique({ where: { id: fromJob } });
+    const job = await prisma.job.findFirst({ where: { id: fromJob, workspaceId: workspace.id } });
     if (job) {
       initial = {
         clientId: job.clientId,

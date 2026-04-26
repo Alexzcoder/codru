@@ -185,7 +185,7 @@ export async function transitionToSent(
   documentId: string,
 ): Promise<void> {
   const year = new Date().getFullYear();
-  const { number, seq } = await prisma.$transaction(async (tx) => {
+  const { number, seq, workspaceId } = await prisma.$transaction(async (tx) => {
     const doc = await tx.document.findUnique({
       where: { id: documentId },
       include: { lineItems: true },
@@ -196,9 +196,10 @@ export async function transitionToSent(
       return {
         number: doc.number ?? "",
         seq: doc.numberSeq ?? 0,
+        workspaceId: doc.workspaceId,
       };
     }
-    const allocated = await allocateNumber(tx, doc.type, year);
+    const allocated = await allocateNumber(tx, doc.workspaceId, doc.type, year);
     await tx.document.update({
       where: { id: documentId },
       data: {
@@ -209,7 +210,7 @@ export async function transitionToSent(
         sentAt: new Date(),
       },
     });
-    return { number: allocated.number, seq: allocated.seq };
+    return { number: allocated.number, seq: allocated.seq, workspaceId: doc.workspaceId };
   });
 
   // Snapshot is rendered OUTSIDE the DB transaction (PDF renders are slow).
@@ -228,6 +229,7 @@ export async function transitionToSent(
   }
 
   await writeAudit({
+    workspaceId,
     actorId,
     entity: "Document",
     entityId: documentId,

@@ -96,6 +96,7 @@ export async function sendDocumentEmail(
 
   const log = await prisma.emailLog.create({
     data: {
+      workspaceId: doc.workspaceId,
       identityId: identity.id,
       documentId: doc.id,
       sentById: input.sentById,

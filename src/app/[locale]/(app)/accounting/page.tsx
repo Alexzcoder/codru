@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/session";
+import { requireWorkspace } from "@/lib/session";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { calculateDocument } from "@/lib/line-items";
@@ -19,9 +19,10 @@ function yearStart(d: Date): Date {
   return new Date(d.getFullYear(), 0, 1);
 }
 
-async function sumInvoiceGrossInRange(start: Date, end: Date): Promise<number> {
+async function sumInvoiceGrossInRange(workspaceId: string, start: Date, end: Date): Promise<number> {
   const invoices = await prisma.document.findMany({
     where: {
+      workspaceId,
       type: { in: ["FINAL_INVOICE"] },
       status: { not: "UNSENT" },
       deletedAt: null,
@@ -49,9 +50,9 @@ async function sumInvoiceGrossInRange(start: Date, end: Date): Promise<number> {
   return total;
 }
 
-async function sumExpenseGrossInRange(start: Date, end: Date): Promise<number> {
+async function sumExpenseGrossInRange(workspaceId: string, start: Date, end: Date): Promise<number> {
   const agg = await prisma.expense.aggregate({
-    where: { date: { gte: start, lt: end } },
+    where: { workspaceId, date: { gte: start, lt: end } },
     _sum: { totalAmount: true },
   });
   return Number(agg._sum.totalAmount ?? 0);
@@ -64,7 +65,7 @@ export default async function AccountingDashboardPage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  await requireUser();
+  const { workspace } = await requireWorkspace();
   const t = await getTranslations();
 
   const now = new Date();
@@ -96,20 +97,21 @@ export default async function AccountingDashboardPage({
     jobsForProfit,
     creditNotesCount,
   ] = await Promise.all([
-    sumInvoiceGrossInRange(ms, now),
-    sumInvoiceGrossInRange(msPrev, ms),
-    sumInvoiceGrossInRange(qs, now),
-    sumInvoiceGrossInRange(qsPrev, qs),
-    sumInvoiceGrossInRange(ys, now),
-    sumInvoiceGrossInRange(ysPrev, ys),
-    sumExpenseGrossInRange(ms, now),
-    sumExpenseGrossInRange(msPrev, ms),
-    sumExpenseGrossInRange(qs, now),
-    sumExpenseGrossInRange(qsPrev, qs),
-    sumExpenseGrossInRange(ys, now),
-    sumExpenseGrossInRange(ysPrev, ys),
+    sumInvoiceGrossInRange(workspace.id, ms, now),
+    sumInvoiceGrossInRange(workspace.id, msPrev, ms),
+    sumInvoiceGrossInRange(workspace.id, qs, now),
+    sumInvoiceGrossInRange(workspace.id, qsPrev, qs),
+    sumInvoiceGrossInRange(workspace.id, ys, now),
+    sumInvoiceGrossInRange(workspace.id, ysPrev, ys),
+    sumExpenseGrossInRange(workspace.id, ms, now),
+    sumExpenseGrossInRange(workspace.id, msPrev, ms),
+    sumExpenseGrossInRange(workspace.id, qs, now),
+    sumExpenseGrossInRange(workspace.id, qsPrev, qs),
+    sumExpenseGrossInRange(workspace.id, ys, now),
+    sumExpenseGrossInRange(workspace.id, ysPrev, ys),
     prisma.document.findMany({
       where: {
+        workspaceId: workspace.id,
         type: { in: ["ADVANCE_INVOICE", "FINAL_INVOICE"] },
         status: { in: ["SENT", "OVERDUE", "PARTIALLY_PAID"] },
         deletedAt: null,
@@ -120,6 +122,7 @@ export default async function AccountingDashboardPage({
     }),
     prisma.document.findMany({
       where: {
+        workspaceId: workspace.id,
         type: "QUOTE",
         deletedAt: null,
         OR: [
@@ -139,6 +142,7 @@ export default async function AccountingDashboardPage({
     }),
     prisma.document.findMany({
       where: {
+        workspaceId: workspace.id,
         type: "ADVANCE_INVOICE",
         status: "PAID_PENDING_COMPLETION",
         deletedAt: null,
@@ -148,6 +152,7 @@ export default async function AccountingDashboardPage({
     }),
     prisma.document.findMany({
       where: {
+        workspaceId: workspace.id,
         type: { in: ["ADVANCE_INVOICE", "FINAL_INVOICE"] },
         status: { in: ["SENT", "PARTIALLY_PAID"] },
         dueDate: { gte: now, lt: in7d },
@@ -158,12 +163,13 @@ export default async function AccountingDashboardPage({
       take: 10,
     }),
     prisma.job.findMany({
-      where: { status: { in: ["COMPLETED", "IN_PROGRESS"] } },
+      where: { workspaceId: workspace.id, status: { in: ["COMPLETED", "IN_PROGRESS"] } },
       orderBy: { updatedAt: "desc" },
       take: 80, // cap for dashboard perf
     }),
     prisma.document.count({
       where: {
+        workspaceId: workspace.id,
         type: "CREDIT_NOTE",
         status: { not: "UNSENT" },
         issueDate: { gte: ms, lt: now },

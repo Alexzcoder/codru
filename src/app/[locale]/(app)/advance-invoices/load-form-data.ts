@@ -13,20 +13,22 @@ import type {
 } from "../quotes/line-items-editor";
 import type { QuoteSummary } from "./advance-invoice-form";
 
-export async function loadAdvanceFormData() {
+export async function loadAdvanceFormData(workspaceId: string) {
   const [clients, jobs, quotes, companyProfiles, templates, itemTemplates, taxRates] =
     await Promise.all([
       prisma.client.findMany({
-        where: { deletedAt: null, anonymizedAt: null },
+        where: { workspaceId, deletedAt: null, anonymizedAt: null },
         orderBy: { updatedAt: "desc" },
       }),
       prisma.job.findMany({
+        where: { workspaceId },
         select: { id: true, title: true, clientId: true },
         orderBy: { updatedAt: "desc" },
         take: 500,
       }),
       prisma.document.findMany({
         where: {
+          workspaceId,
           type: "QUOTE",
           deletedAt: null,
           status: { in: ["SENT", "ACCEPTED"] },
@@ -36,11 +38,15 @@ export async function loadAdvanceFormData() {
         take: 500,
       }),
       prisma.companyProfile.findMany({
-        where: { archivedAt: null },
+        where: { workspaceId, archivedAt: null },
         orderBy: [{ isDefault: "desc" }, { createdAt: "asc" }],
       }),
       prisma.documentTemplate.findMany({
-        where: { archivedAt: null, type: "ADVANCE_INVOICE" },
+        where: {
+          archivedAt: null,
+          type: "ADVANCE_INVOICE",
+          companyProfile: { workspaceId },
+        },
         orderBy: [{ isDefault: "desc" }, { createdAt: "asc" }],
       }),
       prisma.itemTemplate.findMany({

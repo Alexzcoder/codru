@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/session";
+import { requireWorkspace } from "@/lib/session";
 import { writeAudit } from "@/lib/audit";
 import { transitionToSent } from "@/lib/documents";
 import { sanitizeUnitName } from "@/lib/sanitize";
@@ -107,7 +107,7 @@ export async function createFinalInvoice(
   _prev: FinalInvoiceState,
   formData: FormData,
 ): Promise<FinalInvoiceState> {
-  const user = await requireUser();
+  const { user, workspace } = await requireWorkspace();
   const parsed = finalSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: "invalidInput" };
   const d = parsed.data;
@@ -121,12 +121,13 @@ export async function createFinalInvoice(
   const advanceIds = parseAdvanceIds(d.deductedAdvanceIds);
 
   if (d.reverseCharge) {
-    const client = await prisma.client.findUnique({ where: { id: d.clientId } });
+    const client = await prisma.client.findFirst({ where: { id: d.clientId, workspaceId: workspace.id } });
     if (!client?.ico) return { error: "reverseChargeRequiresIco" };
   }
 
   const created = await prisma.document.create({
     data: {
+      workspaceId: workspace.id,
       type: "FINAL_INVOICE",
       status: "UNSENT",
       clientId: d.clientId,
@@ -154,6 +155,7 @@ export async function createFinalInvoice(
   });
 
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: user.id,
     entity: "Document",
     entityId: created.id,
@@ -170,7 +172,7 @@ export async function updateFinalInvoice(
   _prev: FinalInvoiceState,
   formData: FormData,
 ): Promise<FinalInvoiceState> {
-  const user = await requireUser();
+  const { user, workspace } = await requireWorkspace();
   const parsed = finalSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: "invalidInput" };
   const d = parsed.data;
@@ -183,10 +185,10 @@ export async function updateFinalInvoice(
   }
   const advanceIds = parseAdvanceIds(d.deductedAdvanceIds);
 
-  const before = await prisma.document.findUnique({ where: { id } });
+  const before = await prisma.document.findFirst({ where: { id, workspaceId: workspace.id } });
   if (!before) return { error: "notFound" };
   if (d.reverseCharge) {
-    const client = await prisma.client.findUnique({ where: { id: d.clientId } });
+    const client = await prisma.client.findFirst({ where: { id: d.clientId, workspaceId: workspace.id } });
     if (!client?.ico) return { error: "reverseChargeRequiresIco" };
   }
 
@@ -220,6 +222,7 @@ export async function updateFinalInvoice(
   });
 
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: user.id,
     entity: "Document",
     entityId: id,
@@ -233,7 +236,9 @@ export async function updateFinalInvoice(
 }
 
 export async function markFinalSent(id: string) {
-  const user = await requireUser();
+  const { user, workspace } = await requireWorkspace();
+  const doc = await prisma.document.findFirst({ where: { id, workspaceId: workspace.id }, select: { id: true } });
+  if (!doc) return;
   await transitionToSent(user.id, id);
   revalidatePath("/final-invoices");
   revalidatePath(`/final-invoices/${id}`);
@@ -243,7 +248,9 @@ export async function markFinalSent(id: string) {
 // allocates to this invoice, then flips deducted advances to PAID as well.
 // Full "Log payment" flow with split allocation lives at /payments/new.
 export async function markFinalPaid(id: string) {
-  const user = await requireUser();
+  const { user, workspace } = await requireWorkspace();
+  const target = await prisma.document.findFirst({ where: { id, workspaceId: workspace.id }, select: { id: true } });
+  if (!target) return;
   const { quickMarkInvoicePaid } = await import("@/lib/quick-pay");
   await quickMarkInvoicePaid(user.id, id);
 
@@ -257,6 +264,7 @@ export async function markFinalPaid(id: string) {
     await prisma.document.updateMany({
       where: {
         id: { in: advanceIds },
+        workspaceId: workspace.id,
         status: { in: ["SENT", "PAID_PENDING_COMPLETION", "OVERDUE", "PARTIALLY_PAID"] },
       },
       data: { status: "PAID", paidAt: new Date() },
@@ -269,9 +277,9 @@ export async function markFinalPaid(id: string) {
 }
 
 export async function cancelFinal(id: string) {
-  const user = await requireUser();
-  const doc = await prisma.document.findUnique({
-    where: { id },
+  const { user, workspace } = await requireWorkspace();
+  const doc = await prisma.document.findFirst({
+    where: { id, workspaceId: workspace.id },
     include: { paymentAllocations: true },
   });
   if (!doc || doc.type !== "FINAL_INVOICE") return;
@@ -284,6 +292,7 @@ export async function cancelFinal(id: string) {
     data: { status: "CANCELLED" },
   });
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: user.id,
     entity: "Document",
     entityId: id,
@@ -295,12 +304,13 @@ export async function cancelFinal(id: string) {
 }
 
 export async function deleteFinalDraft(id: string) {
-  const user = await requireUser();
-  const doc = await prisma.document.findUnique({ where: { id } });
+  const { user, workspace } = await requireWorkspace();
+  const doc = await prisma.document.findFirst({ where: { id, workspaceId: workspace.id } });
   if (!doc) return;
   if (doc.status !== "UNSENT") return;
   await prisma.document.update({ where: { id }, data: { deletedAt: new Date() } });
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: user.id,
     entity: "Document",
     entityId: id,

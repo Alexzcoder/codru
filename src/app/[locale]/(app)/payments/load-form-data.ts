@@ -3,14 +3,15 @@ import { clientDisplayName } from "@/lib/client-display";
 import { computeOutstanding } from "@/lib/payment-status";
 import type { ClientChoice, OpenInvoice } from "./payment-form";
 
-export async function loadPaymentFormData(opts?: { includePaymentId?: string }) {
+export async function loadPaymentFormData(workspaceId: string, opts?: { includePaymentId?: string }) {
   const [clients, openDocs] = await Promise.all([
     prisma.client.findMany({
-      where: { deletedAt: null, anonymizedAt: null },
+      where: { workspaceId, deletedAt: null, anonymizedAt: null },
       orderBy: { updatedAt: "desc" },
     }),
     prisma.document.findMany({
       where: {
+        workspaceId,
         type: { in: ["ADVANCE_INVOICE", "FINAL_INVOICE"] },
         deletedAt: null,
         status: {

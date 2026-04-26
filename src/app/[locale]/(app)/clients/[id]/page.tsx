@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/session";
+import { requireWorkspace } from "@/lib/session";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { Link } from "@/i18n/navigation";
@@ -18,14 +18,14 @@ export default async function ClientDetailPage({
 }) {
   const { locale, id } = await params;
   setRequestLocale(locale);
-  await requireUser();
+  const { workspace } = await requireWorkspace();
   const t = await getTranslations();
 
   const [client, logs, customValues, customDefs, jobs, jobAttachments, docSnapshots, clientDocs] =
     await Promise.all([
-      prisma.client.findUnique({ where: { id } }),
+      prisma.client.findFirst({ where: { id, workspaceId: workspace.id } }),
       prisma.contactLog.findMany({
-        where: { clientId: id },
+        where: { workspaceId: workspace.id, clientId: id },
         orderBy: { date: "desc" },
         include: { loggedBy: { select: { name: true } } },
         take: 100,
@@ -34,20 +34,20 @@ export default async function ClientDetailPage({
         where: { clientId: id },
         include: { fieldDef: true },
       }),
-      prisma.customFieldDef.findMany({ where: { archivedAt: null } }),
+      prisma.customFieldDef.findMany({ where: { workspaceId: workspace.id, archivedAt: null } }),
       prisma.job.findMany({
-        where: { clientId: id },
+        where: { workspaceId: workspace.id, clientId: id },
         orderBy: { updatedAt: "desc" },
         take: 50,
       }),
       prisma.attachment.findMany({
-        where: { job: { clientId: id } },
+        where: { workspaceId: workspace.id, job: { clientId: id } },
         include: { job: { select: { id: true, title: true } } },
         orderBy: { createdAt: "desc" },
         take: 200,
       }),
       prisma.pdfSnapshot.findMany({
-        where: { document: { clientId: id } },
+        where: { document: { workspaceId: workspace.id, clientId: id } },
         include: {
           document: { select: { id: true, type: true, number: true, issueDate: true } },
         },
@@ -55,7 +55,7 @@ export default async function ClientDetailPage({
         take: 200,
       }),
       prisma.document.findMany({
-        where: { clientId: id, deletedAt: null },
+        where: { workspaceId: workspace.id, clientId: id, deletedAt: null },
         include: {
           lineItems: true,
           paymentAllocations: true,
@@ -67,6 +67,7 @@ export default async function ClientDetailPage({
 
   const calendarEvents = await prisma.calendarEvent.findMany({
     where: {
+      workspaceId: workspace.id,
       OR: [{ clientId: id }, { job: { clientId: id } }],
     },
     orderBy: { startsAt: "asc" },

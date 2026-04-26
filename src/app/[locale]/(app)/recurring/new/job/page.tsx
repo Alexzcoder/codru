@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/session";
+import { requireWorkspace } from "@/lib/session";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { clientDisplayName } from "@/lib/client-display";
 import { JobRuleForm } from "./form";
@@ -13,26 +13,30 @@ export default async function NewJobRulePage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  await requireUser();
+  const { workspace } = await requireWorkspace();
   const t = await getTranslations();
 
   const [clients, users, companyProfiles, documentTemplates, taxRates] = await Promise.all([
     prisma.client.findMany({
-      where: { deletedAt: null, anonymizedAt: null },
+      where: { workspaceId: workspace.id, deletedAt: null, anonymizedAt: null },
       orderBy: { updatedAt: "desc" },
     }),
     prisma.user.findMany({
-      where: { deactivatedAt: null },
+      where: { deactivatedAt: null, memberships: { some: { workspaceId: workspace.id } } },
       select: { id: true, name: true, calendarColor: true },
       orderBy: { name: "asc" },
     }),
     prisma.companyProfile.findMany({
-      where: { archivedAt: null },
+      where: { workspaceId: workspace.id, archivedAt: null },
       orderBy: [{ isDefault: "desc" }, { createdAt: "asc" }],
       select: { id: true, name: true },
     }),
     prisma.documentTemplate.findMany({
-      where: { archivedAt: null, type: "FINAL_INVOICE" },
+      where: {
+        archivedAt: null,
+        type: "FINAL_INVOICE",
+        companyProfile: { workspaceId: workspace.id },
+      },
       orderBy: [{ isDefault: "desc" }, { createdAt: "asc" }],
       select: { id: true, name: true },
     }),

@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { requireOwner } from "@/lib/session";
+import { requireWorkspaceOwner } from "@/lib/session";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { CustomFieldForm } from "./custom-field-form";
 import { archiveCustomField } from "./actions";
@@ -12,11 +12,11 @@ export default async function CustomFieldsPage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  await requireOwner();
+  const { workspace } = await requireWorkspaceOwner();
   const t = await getTranslations();
 
   const defs = await prisma.customFieldDef.findMany({
-    where: { archivedAt: null },
+    where: { workspaceId: workspace.id, archivedAt: null },
     orderBy: { createdAt: "asc" },
   });
 

@@ -1,23 +1,32 @@
 import { prisma } from "./prisma";
 
 // Seed default tax rates / item categories / units / expense categories /
-// document templates. Idempotent but still expensive (5 count queries).
-// We memoize success per server instance so subsequent page visits are free.
-let seeded = false;
+// document templates. Idempotent.
+//
+// Tax rates and units are GLOBAL (no workspaceId) — only seeded once per DB.
+// ItemCategory, ExpenseCategory, DocumentTemplate are per-workspace and need
+// to be seeded for each workspace the user touches. We memoize per-workspace
+// success per server instance so subsequent page visits are free.
+const seededWorkspaces = new Set<string>();
+let seededGlobals = false;
 
-export async function seedDefaults(): Promise<void> {
-  if (seeded) return;
+export async function seedDefaults(workspaceId?: string): Promise<void> {
+  // Globals can run regardless of workspace context.
+  if (!seededGlobals) {
+    await Promise.all([seedTaxRates(), seedUnits()]);
+    seededGlobals = true;
+  }
+  if (!workspaceId) return;
+  if (seededWorkspaces.has(workspaceId)) return;
 
   await Promise.all([
-    seedTaxRates(),
-    seedCategories(),
-    seedUnits(),
-    seedExpenseCategories(),
+    seedCategories(workspaceId),
+    seedExpenseCategories(workspaceId),
   ]);
   // Templates depend on knowing whether any company profile exists, so run last.
-  await seedDocumentTemplates();
+  await seedDocumentTemplates(workspaceId);
 
-  seeded = true;
+  seededWorkspaces.add(workspaceId);
 }
 
 async function seedTaxRates() {
@@ -32,15 +41,15 @@ async function seedTaxRates() {
   });
 }
 
-async function seedCategories() {
-  const count = await prisma.itemCategory.count();
+async function seedCategories(workspaceId: string) {
+  const count = await prisma.itemCategory.count({ where: { workspaceId } });
   if (count > 0) return;
   await prisma.itemCategory.createMany({
     data: [
-      { name: "Labor" },
-      { name: "Materials" },
-      { name: "Travel" },
-      { name: "Diagnosis" },
+      { workspaceId, name: "Labor" },
+      { workspaceId, name: "Materials" },
+      { workspaceId, name: "Travel" },
+      { workspaceId, name: "Diagnosis" },
     ],
   });
 }
@@ -59,33 +68,44 @@ async function seedUnits() {
   });
 }
 
-async function seedExpenseCategories() {
-  const count = await prisma.expenseCategory.count();
+async function seedExpenseCategories(workspaceId: string) {
+  const count = await prisma.expenseCategory.count({ where: { workspaceId } });
   if (count > 0) return;
   await prisma.expenseCategory.createMany({
     data: [
-      { name: "Materials" },
-      { name: "Fuel" },
-      { name: "Tools" },
-      { name: "Subcontractor" },
-      { name: "Office" },
-      { name: "Other" },
+      { workspaceId, name: "Materials" },
+      { workspaceId, name: "Fuel" },
+      { workspaceId, name: "Tools" },
+      { workspaceId, name: "Subcontractor" },
+      { workspaceId, name: "Office" },
+      { workspaceId, name: "Other" },
     ],
   });
 }
 
-async function seedDocumentTemplates() {
-  const count = await prisma.documentTemplate.count();
-  if (count > 0) return;
-  const firstCompany = await prisma.companyProfile.findFirst({
-    where: { isDefault: true, archivedAt: null },
+async function seedDocumentTemplates(workspaceId: string) {
+  // DocumentTemplate is per-CompanyProfile; only seed if no template exists yet
+  // for any of the current workspace's company profiles.
+  const profiles = await prisma.companyProfile.findMany({
+    where: { workspaceId, archivedAt: null },
+    select: { id: true, isDefault: true },
   });
+  if (profiles.length === 0) return;
+
+  const existing = await prisma.documentTemplate.count({
+    where: { companyProfileId: { in: profiles.map((p) => p.id) } },
+  });
+  if (existing > 0) return;
+
+  const firstCompany =
+    profiles.find((p) => p.isDefault) ?? profiles[0];
+
   await prisma.documentTemplate.createMany({
     data: [
-      { name: "Default quote",           type: "QUOTE",           companyProfileId: firstCompany?.id ?? null, isDefault: true },
-      { name: "Default advance invoice", type: "ADVANCE_INVOICE", companyProfileId: firstCompany?.id ?? null, isDefault: true },
-      { name: "Default final invoice",   type: "FINAL_INVOICE",   companyProfileId: firstCompany?.id ?? null, isDefault: true },
-      { name: "Default credit note",     type: "CREDIT_NOTE",     companyProfileId: firstCompany?.id ?? null, isDefault: true },
+      { name: "Default quote",           type: "QUOTE",           companyProfileId: firstCompany.id, isDefault: true },
+      { name: "Default advance invoice", type: "ADVANCE_INVOICE", companyProfileId: firstCompany.id, isDefault: true },
+      { name: "Default final invoice",   type: "FINAL_INVOICE",   companyProfileId: firstCompany.id, isDefault: true },
+      { name: "Default credit note",     type: "CREDIT_NOTE",     companyProfileId: firstCompany.id, isDefault: true },
     ],
   });
 }

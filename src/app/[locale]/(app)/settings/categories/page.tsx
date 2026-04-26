@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { requireOwner } from "@/lib/session";
+import { requireWorkspaceOwner } from "@/lib/session";
 import { seedDefaults } from "@/lib/seed-defaults";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { CategoryForm } from "./category-form";
@@ -13,12 +13,12 @@ export default async function CategoriesPage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  await requireOwner();
-  await seedDefaults();
+  const { workspace } = await requireWorkspaceOwner();
+  await seedDefaults(workspace.id);
   const t = await getTranslations();
 
   const categories = await prisma.itemCategory.findMany({
-    where: { archivedAt: null },
+    where: { workspaceId: workspace.id, archivedAt: null },
     orderBy: { name: "asc" },
   });
 

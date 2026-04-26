@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { requireOwner } from "@/lib/session";
+import { requireWorkspaceOwner } from "@/lib/session";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { InviteForm } from "./invite-form";
 import { UserRow } from "./user-row";
@@ -11,13 +11,16 @@ export default async function UsersPage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const owner = await requireOwner();
+  const { user: owner, workspace } = await requireWorkspaceOwner();
   const t = await getTranslations();
 
   const [users, pendingInvites] = await Promise.all([
-    prisma.user.findMany({ orderBy: [{ role: "asc" }, { createdAt: "asc" }] }),
+    prisma.user.findMany({
+      where: { memberships: { some: { workspaceId: workspace.id } } },
+      orderBy: [{ role: "asc" }, { createdAt: "asc" }],
+    }),
     prisma.invite.findMany({
-      where: { acceptedAt: null, expiresAt: { gt: new Date() } },
+      where: { workspaceId: workspace.id, acceptedAt: null, expiresAt: { gt: new Date() } },
       orderBy: { createdAt: "desc" },
     }),
   ]);

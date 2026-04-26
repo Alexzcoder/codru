@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { requireOwner } from "@/lib/session";
+import { requireWorkspaceOwner } from "@/lib/session";
 import { writeAudit } from "@/lib/audit";
 import { saveImageUpload, deleteUpload } from "@/lib/uploads";
 import { revalidatePath } from "next/cache";
@@ -60,24 +60,35 @@ export async function createCompanyProfile(
   _prev: CompanyProfileState,
   formData: FormData,
 ): Promise<CompanyProfileState> {
-  const user = await requireOwner();
+  const { user, workspace } = await requireWorkspaceOwner();
   const parsed = schema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: "invalidInput" };
 
   const payload = toPayload(parsed.data);
   const logoPath = await handleLogo(formData.get("logo") as File | null);
-  const makeDefault = parsed.data.isDefault || (await prisma.companyProfile.count()) === 0;
+  const makeDefault =
+    parsed.data.isDefault ||
+    (await prisma.companyProfile.count({ where: { workspaceId: workspace.id } })) === 0;
 
   const created = await prisma.$transaction(async (tx) => {
     if (makeDefault) {
-      await tx.companyProfile.updateMany({ data: { isDefault: false }, where: { isDefault: true } });
+      await tx.companyProfile.updateMany({
+        data: { isDefault: false },
+        where: { workspaceId: workspace.id, isDefault: true },
+      });
     }
     return tx.companyProfile.create({
-      data: { ...payload, logoPath: logoPath ?? null, isDefault: makeDefault },
+      data: {
+        ...payload,
+        workspaceId: workspace.id,
+        logoPath: logoPath ?? null,
+        isDefault: makeDefault,
+      },
     });
   });
 
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: user.id,
     entity: "CompanyProfile",
     entityId: created.id,
@@ -93,11 +104,11 @@ export async function updateCompanyProfile(
   _prev: CompanyProfileState,
   formData: FormData,
 ): Promise<CompanyProfileState> {
-  const user = await requireOwner();
+  const { user, workspace } = await requireWorkspaceOwner();
   const parsed = schema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: "invalidInput" };
 
-  const existing = await prisma.companyProfile.findUnique({ where: { id } });
+  const existing = await prisma.companyProfile.findFirst({ where: { id, workspaceId: workspace.id } });
   if (!existing) return { error: "notFound" };
 
   const payload = toPayload(parsed.data);
@@ -108,7 +119,7 @@ export async function updateCompanyProfile(
     if (shouldBeDefault && !existing.isDefault) {
       await tx.companyProfile.updateMany({
         data: { isDefault: false },
-        where: { isDefault: true, NOT: { id } },
+        where: { workspaceId: workspace.id, isDefault: true, NOT: { id } },
       });
     }
     return tx.companyProfile.update({
@@ -122,6 +133,7 @@ export async function updateCompanyProfile(
   });
 
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: user.id,
     entity: "CompanyProfile",
     entityId: id,
@@ -135,8 +147,8 @@ export async function updateCompanyProfile(
 }
 
 export async function archiveCompanyProfile(id: string) {
-  const user = await requireOwner();
-  const existing = await prisma.companyProfile.findUnique({ where: { id } });
+  const { user, workspace } = await requireWorkspaceOwner();
+  const existing = await prisma.companyProfile.findFirst({ where: { id, workspaceId: workspace.id } });
   if (!existing) return;
 
   await prisma.companyProfile.update({
@@ -145,6 +157,7 @@ export async function archiveCompanyProfile(id: string) {
   });
 
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: user.id,
     entity: "CompanyProfile",
     entityId: id,

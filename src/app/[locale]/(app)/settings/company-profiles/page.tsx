@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { requireOwner } from "@/lib/session";
+import { requireWorkspaceOwner } from "@/lib/session";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
@@ -11,11 +11,11 @@ export default async function CompanyProfilesPage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  await requireOwner();
+  const { workspace } = await requireWorkspaceOwner();
   const t = await getTranslations();
 
   const profiles = await prisma.companyProfile.findMany({
-    where: { archivedAt: null },
+    where: { workspaceId: workspace.id, archivedAt: null },
     orderBy: [{ isDefault: "desc" }, { createdAt: "asc" }],
   });
 

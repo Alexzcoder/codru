@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/session";
+import { requireWorkspace } from "@/lib/session";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { clientDisplayName } from "@/lib/client-display";
@@ -22,7 +22,7 @@ export default async function CreditNotesPage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  await requireUser();
+  const { workspace } = await requireWorkspace();
   const t = await getTranslations();
   const sp = await searchParams;
   const q = sp.q?.trim() ?? "";
@@ -40,6 +40,7 @@ export default async function CreditNotesPage({
 
   const docs = await prisma.document.findMany({
     where: {
+      workspaceId: workspace.id,
       type: "CREDIT_NOTE",
       deletedAt: null,
       ...(q && {

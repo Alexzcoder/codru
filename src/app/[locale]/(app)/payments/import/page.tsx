@@ -1,4 +1,4 @@
-import { requireUser } from "@/lib/session";
+import { requireWorkspace } from "@/lib/session";
 import { setRequestLocale } from "next-intl/server";
 import { BackLink } from "@/components/back-link";
 import { ImportForm } from "./form";
@@ -11,7 +11,7 @@ export default async function PaymentsImportPage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  await requireUser();
+  await requireWorkspace();
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-8">

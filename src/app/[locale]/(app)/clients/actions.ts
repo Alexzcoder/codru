@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/session";
+import { requireWorkspace } from "@/lib/session";
 import { writeAudit } from "@/lib/audit";
 import { isValidIco, isValidDic } from "@/lib/czech-validation";
 import { revalidatePath } from "next/cache";
@@ -49,6 +49,7 @@ export type ClientState = {
 type DupField = "ico" | "email";
 
 async function findDuplicate(
+  workspaceId: string,
   field: DupField,
   value: string,
   excludeId?: string,
@@ -56,6 +57,7 @@ async function findDuplicate(
   if (!value) return null;
   return prisma.client.findFirst({
     where: {
+      workspaceId,
       [field]: value,
       deletedAt: null,
       anonymizedAt: null,
@@ -113,7 +115,7 @@ export async function createClient(
   _prev: ClientState,
   formData: FormData,
 ): Promise<ClientState> {
-  const user = await requireUser();
+  const { user, workspace } = await requireWorkspace();
   const parsed = clientSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) {
     const issue = parsed.error.issues[0];
@@ -130,23 +132,24 @@ export async function createClient(
 
   if (!d.duplicateAck) {
     if (d.ico) {
-      const dup = await findDuplicate("ico", d.ico);
+      const dup = await findDuplicate(workspace.id, "ico", d.ico);
       if (dup) {
         return { duplicateIcoId: dup.id, duplicateName: displayOf(dup) };
       }
     }
     if (d.email) {
-      const dup = await findDuplicate("email", d.email);
+      const dup = await findDuplicate(workspace.id, "email", d.email);
       if (dup) {
         return { duplicateEmailId: dup.id, duplicateName: displayOf(dup) };
       }
     }
   }
 
-  const client = await prisma.client.create({ data: toPayload(d) });
+  const client = await prisma.client.create({ data: { ...toPayload(d), workspaceId: workspace.id } });
   await saveCustomFields(client.id, d.customFields);
 
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: user.id,
     entity: "Client",
     entityId: client.id,
@@ -177,7 +180,7 @@ export async function updateClient(
   _prev: ClientState,
   formData: FormData,
 ): Promise<ClientState> {
-  const user = await requireUser();
+  const { user, workspace } = await requireWorkspace();
   const parsed = clientSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) {
     const issue = parsed.error.issues[0];
@@ -192,16 +195,16 @@ export async function updateClient(
     return { error: "dicInvalid", fieldError: "dic" };
   }
 
-  const existing = await prisma.client.findUnique({ where: { id } });
+  const existing = await prisma.client.findFirst({ where: { id, workspaceId: workspace.id } });
   if (!existing || existing.deletedAt) return { error: "notFound" };
 
   if (!d.duplicateAck) {
     if (d.ico) {
-      const dup = await findDuplicate("ico", d.ico, id);
+      const dup = await findDuplicate(workspace.id, "ico", d.ico, id);
       if (dup) return { duplicateIcoId: dup.id, duplicateName: displayOf(dup) };
     }
     if (d.email) {
-      const dup = await findDuplicate("email", d.email, id);
+      const dup = await findDuplicate(workspace.id, "email", d.email, id);
       if (dup) return { duplicateEmailId: dup.id, duplicateName: displayOf(dup) };
     }
   }
@@ -210,6 +213,7 @@ export async function updateClient(
   await saveCustomFields(id, d.customFields);
 
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: user.id,
     entity: "Client",
     entityId: id,
@@ -224,8 +228,8 @@ export async function updateClient(
 }
 
 export async function deleteClient(id: string) {
-  const user = await requireUser();
-  const existing = await prisma.client.findUnique({ where: { id } });
+  const { user, workspace } = await requireWorkspace();
+  const existing = await prisma.client.findFirst({ where: { id, workspaceId: workspace.id } });
   if (!existing) return;
 
   // Delete-protection gate for fiscal records will live in M11 once Documents ship.
@@ -234,6 +238,7 @@ export async function deleteClient(id: string) {
   await prisma.client.update({ where: { id }, data: { deletedAt: new Date() } });
 
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: user.id,
     entity: "Client",
     entityId: id,
@@ -246,8 +251,8 @@ export async function deleteClient(id: string) {
 }
 
 export async function anonymizeClient(id: string) {
-  const user = await requireUser();
-  const existing = await prisma.client.findUnique({ where: { id } });
+  const { user, workspace } = await requireWorkspace();
+  const existing = await prisma.client.findFirst({ where: { id, workspaceId: workspace.id } });
   if (!existing) return;
 
   await prisma.client.update({
@@ -268,6 +273,7 @@ export async function anonymizeClient(id: string) {
   });
 
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: user.id,
     entity: "Client",
     entityId: id,
@@ -291,10 +297,11 @@ function displayOf(c: {
 
 export async function createDemoClient() {
   const { generateDemoClient } = await import("@/lib/demo-data");
-  const user = await requireUser();
+  const { user, workspace } = await requireWorkspace();
   const data = generateDemoClient();
-  const client = await prisma.client.create({ data });
+  const client = await prisma.client.create({ data: { ...data, workspaceId: workspace.id } });
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: user.id,
     entity: "Client",
     entityId: client.id,

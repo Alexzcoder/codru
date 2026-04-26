@@ -35,12 +35,22 @@ export async function requestPasswordReset(
   const resetUrl = `${baseUrl}/reset-password/${token}`;
   const result = await sendPasswordResetEmail({ to: user.email, resetUrl });
 
-  await writeAudit({
-    actorId: user.id,
-    entity: "User",
-    entityId: user.id,
-    action: "reset-password",
+  // User-level action — audit row needs a workspace; fall back to first
+  // membership and skip the audit if the user has none.
+  const membership = await prisma.membership.findFirst({
+    where: { userId: user.id, workspace: { deletedAt: null } },
+    orderBy: [{ joinedAt: "asc" }],
+    select: { workspaceId: true },
   });
+  if (membership) {
+    await writeAudit({
+      workspaceId: membership.workspaceId,
+      actorId: user.id,
+      entity: "User",
+      entityId: user.id,
+      action: "reset-password",
+    });
+  }
 
   return result.sent ? { done: true } : { done: true, devInviteLink: result.fallbackLink };
 }

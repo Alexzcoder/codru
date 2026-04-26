@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/session";
+import { requireWorkspace } from "@/lib/session";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
@@ -24,7 +24,7 @@ export default async function QuotesPage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  await requireUser();
+  const { workspace } = await requireWorkspace();
   const t = await getTranslations();
   const sp = await searchParams;
 
@@ -49,6 +49,7 @@ export default async function QuotesPage({
     : { updatedAt: "desc" as const };
 
   const where = {
+    workspaceId: workspace.id,
     type: "QUOTE" as const,
     deletedAt: null,
     ...(statusFilter && { status: statusFilter }),

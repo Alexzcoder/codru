@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/session";
+import { requireWorkspace } from "@/lib/session";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
@@ -20,22 +20,23 @@ export default async function PaymentsPage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  await requireUser();
+  const { workspace } = await requireWorkspace();
   const t = await getTranslations();
   const sp = await searchParams;
   const q = sp.q?.trim() ?? "";
 
   const payments = await prisma.payment.findMany({
-    where: q
-      ? {
-          OR: [
-            { client: { companyName: { contains: q, mode: "insensitive" as const } } },
-            { client: { fullName: { contains: q, mode: "insensitive" as const } } },
-            { notes: { contains: q, mode: "insensitive" as const } },
-            { reference: { contains: q, mode: "insensitive" as const } },
-          ],
-        }
-      : undefined,
+    where: {
+      workspaceId: workspace.id,
+      ...(q && {
+        OR: [
+          { client: { companyName: { contains: q, mode: "insensitive" as const } } },
+          { client: { fullName: { contains: q, mode: "insensitive" as const } } },
+          { notes: { contains: q, mode: "insensitive" as const } },
+          { reference: { contains: q, mode: "insensitive" as const } },
+        ],
+      }),
+    },
     include: {
       client: true,
       allocations: { include: { document: { select: { id: true, type: true, number: true } } } },

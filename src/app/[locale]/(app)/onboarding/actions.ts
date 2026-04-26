@@ -1,8 +1,8 @@
 "use server";
 
 import { z } from "zod";
-import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { requireWorkspace } from "@/lib/session";
 import { redirect } from "next/navigation";
 
 const companySchema = z.object({
@@ -17,27 +17,19 @@ const companySchema = z.object({
 
 const localeSchema = z.object({ locale: z.enum(["cs", "en"]) });
 
-async function requireOwner() {
-  const session = await auth();
-  if (!session?.user?.id) redirect("/login");
-  const user = await prisma.user.findUnique({ where: { id: session.user.id } });
-  if (!user || user.role !== "OWNER") redirect("/dashboard");
-  return user;
-}
-
 export type OnboardingState = { error?: string };
 
 export async function saveCompanyProfile(
   _prev: OnboardingState,
   formData: FormData,
 ): Promise<OnboardingState> {
-  await requireOwner();
+  const { workspace } = await requireWorkspace();
   const parsed = companySchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: "invalidInput" };
 
   const d = parsed.data;
   const existing = await prisma.companyProfile.findFirst({
-    where: { isDefault: true },
+    where: { workspaceId: workspace.id, isDefault: true },
   });
   const payload = {
     name: d.name,
@@ -56,7 +48,7 @@ export async function saveCompanyProfile(
     });
   } else {
     await prisma.companyProfile.create({
-      data: { ...payload, isDefault: true },
+      data: { ...payload, workspaceId: workspace.id, isDefault: true },
     });
   }
 
@@ -67,7 +59,7 @@ export async function saveLocale(
   _prev: OnboardingState,
   formData: FormData,
 ): Promise<OnboardingState> {
-  const user = await requireOwner();
+  const { user } = await requireWorkspace();
   const parsed = localeSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: "invalidInput" };
 
@@ -79,7 +71,7 @@ export async function saveLocale(
 }
 
 export async function skipOnboarding() {
-  const user = await requireOwner();
+  const { user } = await requireWorkspace();
   await prisma.user.update({
     where: { id: user.id },
     data: { onboardingDoneAt: new Date() },

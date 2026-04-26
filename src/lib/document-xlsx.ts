@@ -5,13 +5,15 @@ import { clientDisplayName } from "./client-display";
 import type { DocumentType } from "@prisma/client";
 
 export async function buildDocumentsWorkbook(opts: {
+  workspaceId: string;
   type: DocumentType;
   q?: string | null;
   sheetName: string;
 }): Promise<{ buffer: ArrayBuffer; filename: string }> {
-  const { type, q, sheetName } = opts;
+  const { workspaceId, type, q, sheetName } = opts;
 
   const where = {
+    workspaceId,
     type,
     deletedAt: null,
     ...(q && {

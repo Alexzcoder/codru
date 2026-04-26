@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/session";
+import { requireWorkspace } from "@/lib/session";
 import { writeAudit } from "@/lib/audit";
 import { saveJobAttachment, deleteUpload } from "@/lib/uploads";
 import { revalidatePath } from "next/cache";
@@ -65,15 +65,16 @@ export async function createJob(
   _prev: JobState,
   formData: FormData,
 ): Promise<JobState> {
-  const user = await requireUser();
+  const { user, workspace } = await requireWorkspace();
   const parsed = jobSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: "invalidInput" };
 
-  const job = await prisma.job.create({ data: toPayload(parsed.data) });
+  const job = await prisma.job.create({ data: { ...toPayload(parsed.data), workspaceId: workspace.id } });
   const assignees = parseAssignees(parsed.data.assignees);
   if (assignees.length) await syncAssignees(job.id, assignees);
 
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: user.id,
     entity: "Job",
     entityId: job.id,
@@ -91,11 +92,11 @@ export async function updateJob(
   _prev: JobState,
   formData: FormData,
 ): Promise<JobState> {
-  const user = await requireUser();
+  const { user, workspace } = await requireWorkspace();
   const parsed = jobSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: "invalidInput" };
 
-  const existing = await prisma.job.findUnique({ where: { id } });
+  const existing = await prisma.job.findFirst({ where: { id, workspaceId: workspace.id } });
   if (!existing) return { error: "notFound" };
 
   const updated = await prisma.job.update({
@@ -105,6 +106,7 @@ export async function updateJob(
   await syncAssignees(id, parseAssignees(parsed.data.assignees));
 
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: user.id,
     entity: "Job",
     entityId: id,
@@ -120,16 +122,17 @@ export async function updateJob(
 }
 
 export async function setJobStatus(id: string, status: string) {
-  const user = await requireUser();
+  const { user, workspace } = await requireWorkspace();
   const allowed = ["SCHEDULED", "IN_PROGRESS", "COMPLETED", "CANCELLED"] as const;
   if (!allowed.includes(status as (typeof allowed)[number])) return;
-  const before = await prisma.job.findUnique({ where: { id } });
+  const before = await prisma.job.findFirst({ where: { id, workspaceId: workspace.id } });
   if (!before) return;
   const after = await prisma.job.update({
     where: { id },
     data: { status: status as (typeof allowed)[number] },
   });
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: user.id,
     entity: "Job",
     entityId: id,
@@ -167,15 +170,16 @@ async function flipPpcAdvancesToPaid(jobId: string) {
 }
 
 export async function bulkSetJobStatus(ids: string[], status: string) {
-  const user = await requireUser();
+  const { user, workspace } = await requireWorkspace();
   const allowed = ["SCHEDULED", "IN_PROGRESS", "COMPLETED", "CANCELLED"] as const;
   if (!allowed.includes(status as (typeof allowed)[number]) || ids.length === 0) return;
   await prisma.job.updateMany({
-    where: { id: { in: ids } },
+    where: { id: { in: ids }, workspaceId: workspace.id },
     data: { status: status as (typeof allowed)[number] },
   });
   for (const id of ids) {
     await writeAudit({
+      workspaceId: workspace.id,
       actorId: user.id,
       entity: "Job",
       entityId: id,
@@ -191,14 +195,15 @@ export async function bulkSetJobStatus(ids: string[], status: string) {
 }
 
 export async function deleteJob(id: string) {
-  const user = await requireUser();
-  const existing = await prisma.job.findUnique({ where: { id } });
+  const { user, workspace } = await requireWorkspace();
+  const existing = await prisma.job.findFirst({ where: { id, workspaceId: workspace.id } });
   if (!existing) return;
   // Attachments cascade; also delete files on disk.
   const attachments = await prisma.attachment.findMany({ where: { jobId: id } });
   await prisma.job.delete({ where: { id } });
   for (const a of attachments) await deleteUpload(a.path);
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: user.id,
     entity: "Job",
     entityId: id,
@@ -217,12 +222,16 @@ export async function uploadAttachment(
   _prev: AttachmentState,
   formData: FormData,
 ): Promise<AttachmentState> {
-  const user = await requireUser();
+  const { user, workspace } = await requireWorkspace();
   const file = formData.get("file") as File | null;
   const caption = (formData.get("caption") as string | null)?.trim() || null;
   if (!file || file.size === 0) return { error: "noFile" };
 
-  const count = await prisma.attachment.count({ where: { jobId } });
+  // Verify job belongs to active workspace
+  const job = await prisma.job.findFirst({ where: { id: jobId, workspaceId: workspace.id }, select: { id: true } });
+  if (!job) return { error: "notFound" };
+
+  const count = await prisma.attachment.count({ where: { jobId, workspaceId: workspace.id } });
   if (count >= MAX_FILES_PER_JOB) return { error: "tooManyFiles" };
 
   let saved;
@@ -234,6 +243,7 @@ export async function uploadAttachment(
 
   const att = await prisma.attachment.create({
     data: {
+      workspaceId: workspace.id,
       jobId,
       filename: saved.filename,
       mimeType: saved.mimeType,
@@ -245,6 +255,7 @@ export async function uploadAttachment(
     },
   });
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: user.id,
     entity: "Attachment",
     entityId: att.id,
@@ -257,18 +268,18 @@ export async function uploadAttachment(
 
 export async function createDemoJob() {
   const { generateDemoJob, generateDemoClient } = await import("@/lib/demo-data");
-  const user = await requireUser();
+  const { user, workspace } = await requireWorkspace();
 
   // Pick a random existing non-deleted client, or create one if the DB is empty.
   let client = await prisma.client.findFirst({
-    where: { deletedAt: null, anonymizedAt: null },
+    where: { workspaceId: workspace.id, deletedAt: null, anonymizedAt: null },
     orderBy: { createdAt: "desc" },
   });
   if (!client) {
-    client = await prisma.client.create({ data: generateDemoClient() });
+    client = await prisma.client.create({ data: { ...generateDemoClient(), workspaceId: workspace.id } });
   }
 
-  const job = await prisma.job.create({ data: generateDemoJob(client.id) });
+  const job = await prisma.job.create({ data: { ...generateDemoJob(client.id), workspaceId: workspace.id } });
 
   // Assign the current user so the job has a team member badge.
   await prisma.jobAssignment.create({
@@ -276,6 +287,7 @@ export async function createDemoJob() {
   });
 
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: user.id,
     entity: "Job",
     entityId: job.id,
@@ -288,12 +300,13 @@ export async function createDemoJob() {
 }
 
 export async function deleteAttachment(id: string) {
-  const user = await requireUser();
-  const att = await prisma.attachment.findUnique({ where: { id } });
+  const { user, workspace } = await requireWorkspace();
+  const att = await prisma.attachment.findFirst({ where: { id, workspaceId: workspace.id } });
   if (!att) return;
   await prisma.attachment.delete({ where: { id } });
   await deleteUpload(att.path);
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: user.id,
     entity: "Attachment",
     entityId: id,

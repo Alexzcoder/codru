@@ -1,14 +1,15 @@
-import { requireUser } from "@/lib/session";
+import { requireWorkspace } from "@/lib/session";
 import { buildDocumentsWorkbook } from "@/lib/document-xlsx";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
-  await requireUser();
+  const { workspace } = await requireWorkspace();
   const url = new URL(req.url);
   const q = url.searchParams.get("q");
   const { buffer, filename } = await buildDocumentsWorkbook({
+    workspaceId: workspace.id,
     type: "QUOTE",
     q,
     sheetName: "Quotes",

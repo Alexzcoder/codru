@@ -8,14 +8,18 @@ import type {
   TaxRateOption,
 } from "../quotes/line-items-editor";
 
-export async function loadCreditNoteFormData() {
+export async function loadCreditNoteFormData(workspaceId: string) {
   const [companyProfiles, templates, itemTemplates, taxRates] = await Promise.all([
     prisma.companyProfile.findMany({
-      where: { archivedAt: null },
+      where: { workspaceId, archivedAt: null },
       orderBy: [{ isDefault: "desc" }, { createdAt: "asc" }],
     }),
     prisma.documentTemplate.findMany({
-      where: { archivedAt: null, type: "CREDIT_NOTE" },
+      where: {
+        archivedAt: null,
+        type: "CREDIT_NOTE",
+        companyProfile: { workspaceId },
+      },
       orderBy: [{ isDefault: "desc" }, { createdAt: "asc" }],
     }),
     prisma.itemTemplate.findMany({

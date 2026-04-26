@@ -1,4 +1,4 @@
-import { requireUser } from "@/lib/session";
+import { requireWorkspace } from "@/lib/session";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { BackLink } from "@/components/back-link";
@@ -10,7 +10,7 @@ export default async function NewRecurringChooser({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  await requireUser();
+  await requireWorkspace();
   const t = await getTranslations();
 
   const cards = [

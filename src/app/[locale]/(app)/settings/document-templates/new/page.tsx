@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { requireOwner } from "@/lib/session";
+import { requireWorkspaceOwner } from "@/lib/session";
 import { seedDefaults } from "@/lib/seed-defaults";
 import { setRequestLocale } from "next-intl/server";
 import { DocumentTemplateForm } from "../document-template-form";
@@ -13,11 +13,11 @@ export default async function NewDocumentTemplatePage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  await requireOwner();
-  await seedDefaults();
+  const { workspace } = await requireWorkspaceOwner();
+  await seedDefaults(workspace.id);
 
   const companyProfiles = await prisma.companyProfile.findMany({
-    where: { archivedAt: null },
+    where: { workspaceId: workspace.id, archivedAt: null },
     orderBy: [{ isDefault: "desc" }, { createdAt: "asc" }],
   });
 

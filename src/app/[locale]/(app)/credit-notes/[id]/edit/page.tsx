@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/session";
+import { requireWorkspace } from "@/lib/session";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { CreditNoteForm } from "../../credit-note-form";
@@ -17,11 +17,11 @@ export default async function EditCreditNotePage({
 }) {
   const { locale, id } = await params;
   setRequestLocale(locale);
-  await requireUser();
+  const { workspace } = await requireWorkspace();
   const t = await getTranslations();
 
-  const doc = await prisma.document.findUnique({
-    where: { id },
+  const doc = await prisma.document.findFirst({
+    where: { id, workspaceId: workspace.id },
     include: {
       client: true,
       lineItems: { orderBy: { position: "asc" } },
@@ -30,7 +30,7 @@ export default async function EditCreditNotePage({
   });
   if (!doc || doc.type !== "CREDIT_NOTE" || doc.deletedAt || !doc.originalDocument) notFound();
 
-  const data = await loadCreditNoteFormData();
+  const data = await loadCreditNoteFormData(workspace.id);
   const bound = updateCreditNote.bind(null, id);
 
   const lines: EditorLine[] = doc.lineItems.map((l) => ({

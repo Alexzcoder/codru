@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/session";
+import { requireWorkspace } from "@/lib/session";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,7 @@ export default async function RecurringPage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  await requireUser();
+  const { workspace } = await requireWorkspace();
   const t = await getTranslations();
   const sp = await searchParams;
 
@@ -36,7 +36,7 @@ export default async function RecurringPage({
         : {};
 
   const rules = await prisma.recurrenceRule.findMany({
-    where: ruleKindFilter,
+    where: { workspaceId: workspace.id, ...ruleKindFilter },
     orderBy: { nextRunAt: "asc" },
     include: { _count: { select: { jobs: true, expenses: true, documents: true } } },
   });

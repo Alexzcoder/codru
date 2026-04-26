@@ -1,16 +1,17 @@
 import ExcelJS from "exceljs";
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/session";
+import { requireWorkspace } from "@/lib/session";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
-  await requireUser();
+  const { workspace } = await requireWorkspace();
   const url = new URL(req.url);
   const sp = Object.fromEntries(url.searchParams.entries());
 
   const where = {
+    workspaceId: workspace.id,
     ...(sp.from && { date: { gte: new Date(sp.from) } }),
     ...(sp.to && { date: { lte: new Date(sp.to) } }),
     ...(sp.categoryId && { categoryId: sp.categoryId }),

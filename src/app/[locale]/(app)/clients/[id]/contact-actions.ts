@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/session";
+import { requireWorkspace } from "@/lib/session";
 import { writeAudit } from "@/lib/audit";
 import { revalidatePath } from "next/cache";
 
@@ -20,12 +20,13 @@ export async function addContactLog(
   _prev: ContactLogState,
   formData: FormData,
 ): Promise<ContactLogState> {
-  const user = await requireUser();
+  const { user, workspace } = await requireWorkspace();
   const parsed = schema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: "invalidInput" };
 
   const log = await prisma.contactLog.create({
     data: {
+      workspaceId: workspace.id,
       clientId: parsed.data.clientId,
       jobId: parsed.data.jobId || null,
       type: parsed.data.type,
@@ -36,6 +37,7 @@ export async function addContactLog(
   });
 
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: user.id,
     entity: "ContactLog",
     entityId: log.id,

@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { requireOwner } from "@/lib/session";
+import { requireWorkspaceOwner } from "@/lib/session";
 import { writeAudit } from "@/lib/audit";
 import { revalidatePath } from "next/cache";
 
@@ -18,7 +18,7 @@ export async function createTaxRate(
   _prev: TaxRateState,
   formData: FormData,
 ): Promise<TaxRateState> {
-  const user = await requireOwner();
+  const { user, workspace } = await requireWorkspaceOwner();
   const parsed = createSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: "invalidInput" };
 
@@ -40,6 +40,7 @@ export async function createTaxRate(
       });
     });
     await writeAudit({
+      workspaceId: workspace.id,
       actorId: user.id,
       entity: "TaxRate",
       entityId: created.id,
@@ -55,7 +56,7 @@ export async function createTaxRate(
 }
 
 export async function archiveTaxRate(id: string) {
-  const user = await requireOwner();
+  const { user, workspace } = await requireWorkspaceOwner();
   const existing = await prisma.taxRate.findUnique({ where: { id } });
   if (!existing) return;
 
@@ -65,6 +66,7 @@ export async function archiveTaxRate(id: string) {
   });
 
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: user.id,
     entity: "TaxRate",
     entityId: id,
@@ -76,7 +78,7 @@ export async function archiveTaxRate(id: string) {
 }
 
 export async function setDefaultTaxRate(id: string) {
-  await requireOwner();
+  await requireWorkspaceOwner();
   await prisma.$transaction([
     prisma.taxRate.updateMany({ data: { isDefault: false }, where: { isDefault: true } }),
     prisma.taxRate.update({ where: { id }, data: { isDefault: true } }),

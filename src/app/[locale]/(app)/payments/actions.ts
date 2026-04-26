@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/session";
+import { requireWorkspace } from "@/lib/session";
 import { writeAudit } from "@/lib/audit";
 import { recomputeInvoiceStatus } from "@/lib/payment-status";
 import { revalidatePath } from "next/cache";
@@ -40,7 +40,7 @@ export async function createPayment(
   _prev: PaymentState,
   formData: FormData,
 ): Promise<PaymentState> {
-  const user = await requireUser();
+  const { user, workspace } = await requireWorkspace();
   const parsed = paymentSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: "invalidInput" };
   const d = parsed.data;
@@ -54,6 +54,7 @@ export async function createPayment(
 
   const payment = await prisma.payment.create({
     data: {
+      workspaceId: workspace.id,
       clientId: d.clientId,
       date: new Date(d.date),
       method: d.method,
@@ -72,6 +73,7 @@ export async function createPayment(
   });
 
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: user.id,
     entity: "Payment",
     entityId: payment.id,
@@ -85,8 +87,8 @@ export async function createPayment(
   }
 
   const { createNotification } = await import("@/lib/notifications");
-  const client = await prisma.client.findUnique({
-    where: { id: d.clientId },
+  const client = await prisma.client.findFirst({
+    where: { id: d.clientId, workspaceId: workspace.id },
     select: { companyName: true, fullName: true, anonymizedAt: true, type: true },
   });
   const clientName = client?.anonymizedAt
@@ -115,7 +117,7 @@ export async function updatePayment(
   _prev: PaymentState,
   formData: FormData,
 ): Promise<PaymentState> {
-  const user = await requireUser();
+  const { user, workspace } = await requireWorkspace();
   const parsed = paymentSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: "invalidInput" };
   const d = parsed.data;
@@ -127,8 +129,8 @@ export async function updatePayment(
     return { error: "invalidAllocations" };
   }
 
-  const before = await prisma.payment.findUnique({
-    where: { id },
+  const before = await prisma.payment.findFirst({
+    where: { id, workspaceId: workspace.id },
     include: { allocations: true },
   });
   if (!before) return { error: "notFound" };
@@ -158,6 +160,7 @@ export async function updatePayment(
   });
 
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: user.id,
     entity: "Payment",
     entityId: id,
@@ -179,15 +182,16 @@ export async function updatePayment(
 }
 
 export async function deletePayment(id: string) {
-  const user = await requireUser();
-  const payment = await prisma.payment.findUnique({
-    where: { id },
+  const { user, workspace } = await requireWorkspace();
+  const payment = await prisma.payment.findFirst({
+    where: { id, workspaceId: workspace.id },
     include: { allocations: true },
   });
   if (!payment) return;
   const touched = payment.allocations.map((a) => a.documentId);
   await prisma.payment.delete({ where: { id } });
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: user.id,
     entity: "Payment",
     entityId: id,

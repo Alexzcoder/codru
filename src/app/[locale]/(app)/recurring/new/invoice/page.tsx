@@ -1,4 +1,4 @@
-import { requireUser } from "@/lib/session";
+import { requireWorkspace } from "@/lib/session";
 import { seedDefaults } from "@/lib/seed-defaults";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { InvoiceRuleForm } from "./form";
@@ -13,11 +13,11 @@ export default async function NewInvoiceRulePage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  await requireUser();
-  await seedDefaults();
+  const { workspace } = await requireWorkspace();
+  await seedDefaults(workspace.id);
   const t = await getTranslations();
 
-  const data = await loadFinalInvoiceFormData();
+  const data = await loadFinalInvoiceFormData(workspace.id);
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-8">

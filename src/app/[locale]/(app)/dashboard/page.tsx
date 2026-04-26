@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/session";
+import { requireWorkspace } from "@/lib/session";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { clientDisplayName } from "@/lib/client-display";
@@ -38,7 +38,7 @@ export default async function DashboardPage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  await requireUser();
+  const { workspace } = await requireWorkspace();
   const t = await getTranslations();
 
   // Fire implicit notification scan (throttled internally to once per 5 min).
@@ -58,14 +58,15 @@ export default async function DashboardPage({
     upcomingJobs,
     invoicesLast12m,
   ] = await Promise.all([
-    prisma.job.groupBy({ by: ["status"], _count: true }),
+    prisma.job.groupBy({ by: ["status"], _count: true, where: { workspaceId: workspace.id } }),
     prisma.client.groupBy({
       by: ["status"],
       _count: true,
-      where: { deletedAt: null, anonymizedAt: null },
+      where: { workspaceId: workspace.id, deletedAt: null, anonymizedAt: null },
     }),
     prisma.client.count({
       where: {
+        workspaceId: workspace.id,
         status: "POTENTIAL",
         createdAt: { gte: sevenDaysAgo },
         deletedAt: null,
@@ -73,12 +74,14 @@ export default async function DashboardPage({
       },
     }),
     prisma.contactLog.findMany({
+      where: { workspaceId: workspace.id },
       include: { client: true, loggedBy: { select: { name: true } } },
       orderBy: { date: "desc" },
       take: 8,
     }),
     prisma.job.findMany({
       where: {
+        workspaceId: workspace.id,
         status: { in: ["SCHEDULED", "IN_PROGRESS"] },
         scheduledStart: { gte: now, lt: sevenDaysAhead },
       },
@@ -88,6 +91,7 @@ export default async function DashboardPage({
     }),
     prisma.document.findMany({
       where: {
+        workspaceId: workspace.id,
         type: { in: ["FINAL_INVOICE", "ADVANCE_INVOICE"] },
         status: { in: ["PAID", "PAID_PENDING_COMPLETION", "PARTIALLY_PAID"] },
         issueDate: { gte: twelveMonthsAgo },

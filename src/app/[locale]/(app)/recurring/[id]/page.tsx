@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/session";
+import { requireWorkspace } from "@/lib/session";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { Link } from "@/i18n/navigation";
@@ -15,11 +15,11 @@ export default async function RecurrenceRuleDetailPage({
 }) {
   const { locale, id } = await params;
   setRequestLocale(locale);
-  await requireUser();
+  const { workspace } = await requireWorkspace();
   const t = await getTranslations();
 
-  const rule = await prisma.recurrenceRule.findUnique({
-    where: { id },
+  const rule = await prisma.recurrenceRule.findFirst({
+    where: { id, workspaceId: workspace.id },
     include: {
       jobs: { orderBy: { createdAt: "desc" }, take: 20 },
       expenses: { orderBy: { date: "desc" }, take: 20 },

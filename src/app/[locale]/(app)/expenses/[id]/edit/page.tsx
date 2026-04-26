@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/session";
+import { requireWorkspace } from "@/lib/session";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { ExpenseForm } from "../../expense-form";
@@ -13,16 +13,17 @@ export default async function EditExpensePage({
 }) {
   const { locale, id } = await params;
   setRequestLocale(locale);
-  await requireUser();
+  const { workspace } = await requireWorkspace();
   const t = await getTranslations();
 
   const [expense, categories, jobs] = await Promise.all([
-    prisma.expense.findUnique({ where: { id } }),
+    prisma.expense.findFirst({ where: { id, workspaceId: workspace.id } }),
     prisma.expenseCategory.findMany({
-      where: { archivedAt: null },
+      where: { workspaceId: workspace.id, archivedAt: null },
       orderBy: { name: "asc" },
     }),
     prisma.job.findMany({
+      where: { workspaceId: workspace.id },
       select: { id: true, title: true },
       orderBy: { updatedAt: "desc" },
       take: 500,

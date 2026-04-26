@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { requireOwner } from "@/lib/session";
+import { requireWorkspaceOwner } from "@/lib/session";
 import { revalidatePath } from "next/cache";
 
 const schema = z.object({
@@ -18,11 +18,18 @@ export async function createEmailIdentity(
   _prev: EmailIdentityState,
   formData: FormData,
 ): Promise<EmailIdentityState> {
-  await requireOwner();
+  const { workspace } = await requireWorkspaceOwner();
   const parsed = schema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: "invalidInput" };
   const d = parsed.data;
   const makeDefault = d.isDefault ?? false;
+
+  // Verify CompanyProfile belongs to active workspace.
+  const profile = await prisma.companyProfile.findFirst({
+    where: { id: d.companyProfileId, workspaceId: workspace.id },
+    select: { id: true },
+  });
+  if (!profile) return { error: "notFound" };
 
   await prisma.$transaction(async (tx) => {
     if (makeDefault) {
@@ -46,8 +53,10 @@ export async function createEmailIdentity(
 }
 
 export async function setDefaultEmailIdentity(id: string) {
-  await requireOwner();
-  const identity = await prisma.emailIdentity.findUnique({ where: { id } });
+  const { workspace } = await requireWorkspaceOwner();
+  const identity = await prisma.emailIdentity.findFirst({
+    where: { id, companyProfile: { workspaceId: workspace.id } },
+  });
   if (!identity) return;
   await prisma.$transaction([
     prisma.emailIdentity.updateMany({
@@ -60,7 +69,12 @@ export async function setDefaultEmailIdentity(id: string) {
 }
 
 export async function archiveEmailIdentity(id: string) {
-  await requireOwner();
+  const { workspace } = await requireWorkspaceOwner();
+  const identity = await prisma.emailIdentity.findFirst({
+    where: { id, companyProfile: { workspaceId: workspace.id } },
+    select: { id: true },
+  });
+  if (!identity) return;
   await prisma.emailIdentity.update({
     where: { id },
     data: { archivedAt: new Date(), isDefault: false },

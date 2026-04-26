@@ -1,4 +1,4 @@
-import { requireUser } from "@/lib/session";
+import { requireWorkspace } from "@/lib/session";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { seedDefaults } from "@/lib/seed-defaults";
 import { QuoteForm } from "../quote-form";
@@ -17,12 +17,12 @@ export default async function NewQuotePage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  await requireUser();
-  await seedDefaults();
+  const { workspace } = await requireWorkspace();
+  await seedDefaults(workspace.id);
   const t = await getTranslations();
   const { fromJob } = await searchParams;
 
-  const data = await loadQuoteFormData();
+  const data = await loadQuoteFormData(workspace.id);
 
   // Need at least one client and one company profile to create a quote.
   if (data.clientOptions.length === 0) redirect("/clients/new");

@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/session";
+import { requireWorkspace } from "@/lib/session";
 import { writeAudit } from "@/lib/audit";
 import { transitionToSent } from "@/lib/documents";
 import { sanitizeUnitName } from "@/lib/sanitize";
@@ -64,7 +64,7 @@ export async function createCreditNote(
   _prev: CreditNoteState,
   formData: FormData,
 ): Promise<CreditNoteState> {
-  const user = await requireUser();
+  const { user, workspace } = await requireWorkspace();
   const parsed = creditSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: "invalidInput" };
   const d = parsed.data;
@@ -76,8 +76,8 @@ export async function createCreditNote(
     return { error: "invalidLines" };
   }
 
-  const original = await prisma.document.findUnique({
-    where: { id: d.originalDocumentId },
+  const original = await prisma.document.findFirst({
+    where: { id: d.originalDocumentId, workspaceId: workspace.id },
   });
   if (!original) return { error: "originalNotFound" };
   if (
@@ -93,6 +93,7 @@ export async function createCreditNote(
 
   const created = await prisma.document.create({
     data: {
+      workspaceId: workspace.id,
       type: "CREDIT_NOTE",
       status: "UNSENT",
       clientId: original.clientId,
@@ -115,6 +116,7 @@ export async function createCreditNote(
   });
 
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: user.id,
     entity: "Document",
     entityId: created.id,
@@ -136,7 +138,7 @@ export async function updateCreditNote(
   _prev: CreditNoteState,
   formData: FormData,
 ): Promise<CreditNoteState> {
-  const user = await requireUser();
+  const { user, workspace } = await requireWorkspace();
   const parsed = creditSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: "invalidInput" };
   const d = parsed.data;
@@ -148,7 +150,7 @@ export async function updateCreditNote(
     return { error: "invalidLines" };
   }
 
-  const before = await prisma.document.findUnique({ where: { id } });
+  const before = await prisma.document.findFirst({ where: { id, workspaceId: workspace.id } });
   if (!before) return { error: "notFound" };
 
   await prisma.$transaction(async (tx) => {
@@ -172,6 +174,7 @@ export async function updateCreditNote(
   });
 
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: user.id,
     entity: "Document",
     entityId: id,
@@ -189,7 +192,9 @@ export async function updateCreditNote(
 }
 
 export async function markCreditNoteSent(id: string) {
-  const user = await requireUser();
+  const { user, workspace } = await requireWorkspace();
+  const target = await prisma.document.findFirst({ where: { id, workspaceId: workspace.id }, select: { id: true } });
+  if (!target) return;
   await transitionToSent(user.id, id);
   const doc = await prisma.document.findUnique({ where: { id } });
   revalidatePath("/credit-notes");
@@ -201,14 +206,15 @@ export async function markCreditNoteSent(id: string) {
 }
 
 export async function deleteCreditNoteDraft(id: string) {
-  const user = await requireUser();
-  const doc = await prisma.document.findUnique({ where: { id } });
+  const { user, workspace } = await requireWorkspace();
+  const doc = await prisma.document.findFirst({ where: { id, workspaceId: workspace.id } });
   if (!doc) return;
   // PRD §13.3: "Cannot be deleted once sent; a second credit note corrects
   // a mistaken one." So delete only while UNSENT.
   if (doc.status !== "UNSENT") return;
   await prisma.document.update({ where: { id }, data: { deletedAt: new Date() } });
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: user.id,
     entity: "Document",
     entityId: id,

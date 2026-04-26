@@ -8,24 +8,29 @@ import type {
 } from "./quote-form";
 import type { TemplateOption, TaxRateOption } from "./line-items-editor";
 
-export async function loadQuoteFormData() {
+export async function loadQuoteFormData(workspaceId: string) {
   const [clients, jobs, companyProfiles, documentTemplates, itemTemplates, taxRates] =
     await Promise.all([
       prisma.client.findMany({
-        where: { deletedAt: null, anonymizedAt: null },
+        where: { workspaceId, deletedAt: null, anonymizedAt: null },
         orderBy: { updatedAt: "desc" },
       }),
       prisma.job.findMany({
+        where: { workspaceId },
         select: { id: true, title: true, clientId: true },
         orderBy: { updatedAt: "desc" },
         take: 500,
       }),
       prisma.companyProfile.findMany({
-        where: { archivedAt: null },
+        where: { workspaceId, archivedAt: null },
         orderBy: [{ isDefault: "desc" }, { createdAt: "asc" }],
       }),
       prisma.documentTemplate.findMany({
-        where: { archivedAt: null, type: "QUOTE" },
+        where: {
+          archivedAt: null,
+          type: "QUOTE",
+          companyProfile: { workspaceId },
+        },
         orderBy: [{ isDefault: "desc" }, { createdAt: "asc" }],
       }),
       prisma.itemTemplate.findMany({

@@ -3,7 +3,7 @@
 import Decimal from "decimal.js";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/session";
+import { requireWorkspace } from "@/lib/session";
 import { writeAudit } from "@/lib/audit";
 import { saveReceiptUpload, deleteUpload } from "@/lib/uploads";
 import { revalidatePath } from "next/cache";
@@ -50,7 +50,7 @@ export async function createExpense(
   _prev: ExpenseState,
   formData: FormData,
 ): Promise<ExpenseState> {
-  const user = await requireUser();
+  const { user, workspace } = await requireWorkspace();
   const parsed = expenseSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: "invalidInput" };
   const d = parsed.data;
@@ -68,6 +68,7 @@ export async function createExpense(
 
   const expense = await prisma.expense.create({
     data: {
+      workspaceId: workspace.id,
       date: new Date(d.date),
       categoryId: d.categoryId,
       supplier: d.supplier || null,
@@ -88,6 +89,7 @@ export async function createExpense(
   });
 
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: user.id,
     entity: "Expense",
     entityId: expense.id,
@@ -105,13 +107,13 @@ export async function updateExpense(
   _prev: ExpenseState,
   formData: FormData,
 ): Promise<ExpenseState> {
-  const user = await requireUser();
+  const { user, workspace } = await requireWorkspace();
   const parsed = expenseSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: "invalidInput" };
   const d = parsed.data;
   const amounts = computeAmounts(d);
 
-  const before = await prisma.expense.findUnique({ where: { id } });
+  const before = await prisma.expense.findFirst({ where: { id, workspaceId: workspace.id } });
   if (!before) return { error: "notFound" };
 
   let receiptPath: string | null | undefined;
@@ -147,6 +149,7 @@ export async function updateExpense(
   });
 
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: user.id,
     entity: "Expense",
     entityId: id,
@@ -164,12 +167,13 @@ export async function updateExpense(
 }
 
 export async function deleteExpense(id: string) {
-  const user = await requireUser();
-  const existing = await prisma.expense.findUnique({ where: { id } });
+  const { user, workspace } = await requireWorkspace();
+  const existing = await prisma.expense.findFirst({ where: { id, workspaceId: workspace.id } });
   if (!existing) return;
   await prisma.expense.delete({ where: { id } });
   if (existing.receiptPath) await deleteUpload(existing.receiptPath);
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: user.id,
     entity: "Expense",
     entityId: id,

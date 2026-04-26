@@ -13,10 +13,11 @@ function format(type: DocumentType, year: number, seq: number): string {
   return `${PREFIX[type]}-${year}-${String(seq).padStart(4, "0")}`;
 }
 
-// Atomically allocate the next number for (type, year).
+// Atomically allocate the next number for (workspaceId, type, year).
 // Must be called INSIDE a prisma.$transaction so the upsert + update commit together.
 export async function allocateNumber(
   tx: Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends">,
+  workspaceId: string,
   type: DocumentType,
   year: number,
 ): Promise<{ number: string; seq: number; year: number }> {
@@ -24,8 +25,8 @@ export async function allocateNumber(
   // UPDATE, which holds a row lock inside the transaction — that's what makes this
   // gapless under concurrent issuers.
   const existing = await tx.numberSeries.upsert({
-    where: { type_year: { type, year } },
-    create: { type, year, nextSeq: 2 }, // just allocated seq=1
+    where: { workspaceId_type_year: { workspaceId, type, year } },
+    create: { workspaceId, type, year, nextSeq: 2 }, // just allocated seq=1
     update: { nextSeq: { increment: 1 } },
   });
   const seq = existing.nextSeq - 1; // upsert returns the row AFTER increment

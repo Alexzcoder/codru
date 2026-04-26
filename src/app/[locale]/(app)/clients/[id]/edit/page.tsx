@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/session";
+import { requireWorkspace } from "@/lib/session";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { ClientForm } from "../../client-form";
@@ -14,13 +14,13 @@ export default async function EditClientPage({
 }) {
   const { locale, id } = await params;
   setRequestLocale(locale);
-  await requireUser();
+  const { workspace } = await requireWorkspace();
   const t = await getTranslations();
 
   const [client, defs, values] = await Promise.all([
-    prisma.client.findUnique({ where: { id } }),
+    prisma.client.findFirst({ where: { id, workspaceId: workspace.id } }),
     prisma.customFieldDef.findMany({
-      where: { archivedAt: null },
+      where: { workspaceId: workspace.id, archivedAt: null },
       orderBy: { createdAt: "asc" },
     }),
     prisma.customFieldValue.findMany({ where: { clientId: id } }),

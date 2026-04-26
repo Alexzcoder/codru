@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/session";
+import { requireWorkspace } from "@/lib/session";
 import { writeAudit } from "@/lib/audit";
 import { transitionToSent } from "@/lib/documents";
 import { calculateDocument } from "@/lib/line-items";
@@ -70,7 +70,7 @@ export async function createAdvanceInvoice(
   _prev: AdvanceState,
   formData: FormData,
 ): Promise<AdvanceState> {
-  const user = await requireUser();
+  const { user, workspace } = await requireWorkspace();
   const parsed = advanceSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: "invalidInput" };
   const d = parsed.data;
@@ -83,12 +83,13 @@ export async function createAdvanceInvoice(
   }
 
   if (d.reverseCharge) {
-    const client = await prisma.client.findUnique({ where: { id: d.clientId } });
+    const client = await prisma.client.findFirst({ where: { id: d.clientId, workspaceId: workspace.id } });
     if (!client?.ico) return { error: "reverseChargeRequiresIco" };
   }
 
   const created = await prisma.document.create({
     data: {
+      workspaceId: workspace.id,
       type: "ADVANCE_INVOICE",
       status: "UNSENT",
       clientId: d.clientId,
@@ -114,6 +115,7 @@ export async function createAdvanceInvoice(
   });
 
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: user.id,
     entity: "Document",
     entityId: created.id,
@@ -130,7 +132,7 @@ export async function updateAdvanceInvoice(
   _prev: AdvanceState,
   formData: FormData,
 ): Promise<AdvanceState> {
-  const user = await requireUser();
+  const { user, workspace } = await requireWorkspace();
   const parsed = advanceSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: "invalidInput" };
   const d = parsed.data;
@@ -142,10 +144,10 @@ export async function updateAdvanceInvoice(
     return { error: "invalidLines" };
   }
 
-  const before = await prisma.document.findUnique({ where: { id } });
+  const before = await prisma.document.findFirst({ where: { id, workspaceId: workspace.id } });
   if (!before) return { error: "notFound" };
   if (d.reverseCharge) {
-    const client = await prisma.client.findUnique({ where: { id: d.clientId } });
+    const client = await prisma.client.findFirst({ where: { id: d.clientId, workspaceId: workspace.id } });
     if (!client?.ico) return { error: "reverseChargeRequiresIco" };
   }
 
@@ -176,6 +178,7 @@ export async function updateAdvanceInvoice(
   });
 
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: user.id,
     entity: "Document",
     entityId: id,
@@ -189,7 +192,9 @@ export async function updateAdvanceInvoice(
 }
 
 export async function markAdvanceSent(id: string) {
-  const user = await requireUser();
+  const { user, workspace } = await requireWorkspace();
+  const doc = await prisma.document.findFirst({ where: { id, workspaceId: workspace.id }, select: { id: true } });
+  if (!doc) return;
   await transitionToSent(user.id, id);
   revalidatePath("/advance-invoices");
   revalidatePath(`/advance-invoices/${id}`);
@@ -200,7 +205,9 @@ export async function markAdvanceSent(id: string) {
 // CASH payment for the remaining outstanding amount and allocates it to this
 // document, then recomputes status. Full "Log payment" UX is at /payments/new.
 export async function markAdvancePaid(id: string) {
-  const user = await requireUser();
+  const { user, workspace } = await requireWorkspace();
+  const doc = await prisma.document.findFirst({ where: { id, workspaceId: workspace.id }, select: { id: true } });
+  if (!doc) return;
   const { quickMarkInvoicePaid } = await import("@/lib/quick-pay");
   await quickMarkInvoicePaid(user.id, id);
   revalidatePath("/advance-invoices");
@@ -208,9 +215,9 @@ export async function markAdvancePaid(id: string) {
 }
 
 export async function cancelAdvance(id: string) {
-  const user = await requireUser();
-  const doc = await prisma.document.findUnique({
-    where: { id },
+  const { user, workspace } = await requireWorkspace();
+  const doc = await prisma.document.findFirst({
+    where: { id, workspaceId: workspace.id },
     include: { paymentAllocations: true },
   });
   if (!doc || doc.type !== "ADVANCE_INVOICE") return;
@@ -223,6 +230,7 @@ export async function cancelAdvance(id: string) {
     data: { status: "CANCELLED" },
   });
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: user.id,
     entity: "Document",
     entityId: id,
@@ -234,12 +242,13 @@ export async function cancelAdvance(id: string) {
 }
 
 export async function deleteAdvanceDraft(id: string) {
-  const user = await requireUser();
-  const doc = await prisma.document.findUnique({ where: { id } });
+  const { user, workspace } = await requireWorkspace();
+  const doc = await prisma.document.findFirst({ where: { id, workspaceId: workspace.id } });
   if (!doc) return;
   if (doc.status !== "UNSENT") return;
   await prisma.document.update({ where: { id }, data: { deletedAt: new Date() } });
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: user.id,
     entity: "Document",
     entityId: id,

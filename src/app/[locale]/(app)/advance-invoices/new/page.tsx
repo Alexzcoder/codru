@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/session";
+import { requireWorkspace } from "@/lib/session";
 import { seedDefaults } from "@/lib/seed-defaults";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { AdvanceInvoiceForm } from "../advance-invoice-form";
@@ -17,18 +17,18 @@ export default async function NewAdvanceInvoicePage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  await requireUser();
-  await seedDefaults();
+  const { workspace } = await requireWorkspace();
+  await seedDefaults(workspace.id);
   const t = await getTranslations();
   const { fromQuote } = await searchParams;
 
-  const data = await loadAdvanceFormData();
+  const data = await loadAdvanceFormData(workspace.id);
   if (data.clientOptions.length === 0) redirect("/clients/new");
 
   // Optional preset from a source quote.
   const source = fromQuote
-    ? await prisma.document.findUnique({
-        where: { id: fromQuote },
+    ? await prisma.document.findFirst({
+        where: { id: fromQuote, workspaceId: workspace.id },
         include: { lineItems: true },
       })
     : null;

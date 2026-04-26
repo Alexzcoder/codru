@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { requireOwner } from "@/lib/session";
+import { requireWorkspaceOwner } from "@/lib/session";
 import { writeAudit } from "@/lib/audit";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -49,12 +49,13 @@ export async function createItemTemplate(
   _prev: ItemTemplateState,
   formData: FormData,
 ): Promise<ItemTemplateState> {
-  const user = await requireOwner();
+  const { user, workspace } = await requireWorkspaceOwner();
   const parsed = schema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: "invalidInput" };
 
   const tmpl = await prisma.itemTemplate.create({ data: toPayload(parsed.data) });
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: user.id,
     entity: "ItemTemplate",
     entityId: tmpl.id,
@@ -70,7 +71,7 @@ export async function updateItemTemplate(
   _prev: ItemTemplateState,
   formData: FormData,
 ): Promise<ItemTemplateState> {
-  const user = await requireOwner();
+  const { user, workspace } = await requireWorkspaceOwner();
   const parsed = schema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: "invalidInput" };
 
@@ -82,6 +83,7 @@ export async function updateItemTemplate(
     data: toPayload(parsed.data),
   });
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: user.id,
     entity: "ItemTemplate",
     entityId: id,
@@ -94,7 +96,7 @@ export async function updateItemTemplate(
 }
 
 export async function archiveItemTemplate(id: string) {
-  const user = await requireOwner();
+  const { user, workspace } = await requireWorkspaceOwner();
   const existing = await prisma.itemTemplate.findUnique({ where: { id } });
   if (!existing) return;
   await prisma.itemTemplate.update({
@@ -102,6 +104,7 @@ export async function archiveItemTemplate(id: string) {
     data: { archivedAt: new Date() },
   });
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: user.id,
     entity: "ItemTemplate",
     entityId: id,

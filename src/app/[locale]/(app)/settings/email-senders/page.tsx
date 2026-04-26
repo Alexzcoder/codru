@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { requireOwner } from "@/lib/session";
+import { requireWorkspaceOwner } from "@/lib/session";
 import { setRequestLocale } from "next-intl/server";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,10 +15,10 @@ export default async function EmailSendersPage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  await requireOwner();
+  const { workspace } = await requireWorkspaceOwner();
 
   const profiles = await prisma.companyProfile.findMany({
-    where: { archivedAt: null },
+    where: { workspaceId: workspace.id, archivedAt: null },
     include: {
       emailIdentities: {
         where: { archivedAt: null },

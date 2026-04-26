@@ -3,7 +3,7 @@
 import { z } from "zod";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/session";
+import { requireWorkspace } from "@/lib/session";
 import { writeAudit } from "@/lib/audit";
 import { fireRule } from "@/lib/recurrence";
 import { revalidatePath } from "next/cache";
@@ -94,7 +94,7 @@ export async function createExpenseRule(
   _prev: RuleState,
   formData: FormData,
 ): Promise<RuleState> {
-  const user = await requireUser();
+  const { user, workspace } = await requireWorkspace();
   const parsed = expenseKindSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: "invalidInput" };
   const d = parsed.data;
@@ -109,6 +109,7 @@ export async function createExpenseRule(
   const rule = await prisma.recurrenceRule.create({
     data: {
       ...toBaseRule(d),
+      workspaceId: workspace.id,
       targetKind: "EXPENSE",
       createdById: user.id,
       payload: {
@@ -130,6 +131,7 @@ export async function createExpenseRule(
   });
 
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: user.id,
     entity: "RecurrenceRule",
     entityId: rule.id,
@@ -145,7 +147,7 @@ export async function createJobRule(
   _prev: RuleState,
   formData: FormData,
 ): Promise<RuleState> {
-  const user = await requireUser();
+  const { user, workspace } = await requireWorkspace();
   const parsed = jobKindSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: "invalidInput" };
   const d = parsed.data;
@@ -199,6 +201,7 @@ export async function createJobRule(
   const rule = await prisma.recurrenceRule.create({
     data: {
       ...toBaseRule(d),
+      workspaceId: workspace.id,
       targetKind: "JOB",
       createdById: user.id,
       // Prisma's Json input type doesn't carry our payload union; cast.
@@ -207,6 +210,7 @@ export async function createJobRule(
   });
 
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: user.id,
     entity: "RecurrenceRule",
     entityId: rule.id,
@@ -222,7 +226,7 @@ export async function createInvoiceRule(
   _prev: RuleState,
   formData: FormData,
 ): Promise<RuleState> {
-  const user = await requireUser();
+  const { user, workspace } = await requireWorkspace();
   const parsed = invoiceKindSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: "invalidInput" };
   const d = parsed.data;
@@ -238,6 +242,7 @@ export async function createInvoiceRule(
   const rule = await prisma.recurrenceRule.create({
     data: {
       ...toBaseRule(d),
+      workspaceId: workspace.id,
       targetKind: "INVOICE",
       createdById: user.id,
       payload: {
@@ -260,6 +265,7 @@ export async function createInvoiceRule(
   });
 
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: user.id,
     entity: "RecurrenceRule",
     entityId: rule.id,
@@ -272,12 +278,15 @@ export async function createInvoiceRule(
 }
 
 export async function pauseRule(id: string) {
-  const user = await requireUser();
+  const { user, workspace } = await requireWorkspace();
+  const rule = await prisma.recurrenceRule.findFirst({ where: { id, workspaceId: workspace.id }, select: { id: true } });
+  if (!rule) return;
   await prisma.recurrenceRule.update({
     where: { id },
     data: { pausedAt: new Date() },
   });
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: user.id,
     entity: "RecurrenceRule",
     entityId: id,
@@ -289,12 +298,15 @@ export async function pauseRule(id: string) {
 }
 
 export async function resumeRule(id: string) {
-  const user = await requireUser();
+  const { user, workspace } = await requireWorkspace();
+  const rule = await prisma.recurrenceRule.findFirst({ where: { id, workspaceId: workspace.id }, select: { id: true } });
+  if (!rule) return;
   await prisma.recurrenceRule.update({
     where: { id },
     data: { pausedAt: null },
   });
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: user.id,
     entity: "RecurrenceRule",
     entityId: id,
@@ -306,12 +318,15 @@ export async function resumeRule(id: string) {
 }
 
 export async function endRule(id: string) {
-  const user = await requireUser();
+  const { user, workspace } = await requireWorkspace();
+  const rule = await prisma.recurrenceRule.findFirst({ where: { id, workspaceId: workspace.id }, select: { id: true } });
+  if (!rule) return;
   await prisma.recurrenceRule.update({
     where: { id },
     data: { endDate: new Date(), pausedAt: new Date() },
   });
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: user.id,
     entity: "RecurrenceRule",
     entityId: id,
@@ -323,9 +338,12 @@ export async function endRule(id: string) {
 }
 
 export async function deleteRule(id: string) {
-  const user = await requireUser();
+  const { user, workspace } = await requireWorkspace();
+  const rule = await prisma.recurrenceRule.findFirst({ where: { id, workspaceId: workspace.id }, select: { id: true } });
+  if (!rule) return;
   await prisma.recurrenceRule.delete({ where: { id } });
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: user.id,
     entity: "RecurrenceRule",
     entityId: id,
@@ -336,7 +354,9 @@ export async function deleteRule(id: string) {
 }
 
 export async function runNow(id: string) {
-  await requireUser();
+  const { workspace } = await requireWorkspace();
+  const rule = await prisma.recurrenceRule.findFirst({ where: { id, workspaceId: workspace.id }, select: { id: true } });
+  if (!rule) return;
   try {
     await fireRule(id);
   } catch {

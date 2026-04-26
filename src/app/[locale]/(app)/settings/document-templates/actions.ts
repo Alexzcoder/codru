@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { requireOwner } from "@/lib/session";
+import { requireWorkspaceOwner } from "@/lib/session";
 import { writeAudit } from "@/lib/audit";
 import { saveImageUpload, deleteUpload } from "@/lib/uploads";
 import { revalidatePath } from "next/cache";
@@ -62,7 +62,7 @@ export async function createDocumentTemplate(
   _prev: DocumentTemplateState,
   formData: FormData,
 ): Promise<DocumentTemplateState> {
-  const user = await requireOwner();
+  const { user, workspace } = await requireWorkspaceOwner();
   const parsed = schema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: "invalidInput" };
 
@@ -88,6 +88,7 @@ export async function createDocumentTemplate(
   });
 
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: user.id,
     entity: "DocumentTemplate",
     entityId: created.id,
@@ -103,7 +104,7 @@ export async function updateDocumentTemplate(
   _prev: DocumentTemplateState,
   formData: FormData,
 ): Promise<DocumentTemplateState> {
-  const user = await requireOwner();
+  const { user, workspace } = await requireWorkspaceOwner();
   const parsed = schema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: "invalidInput" };
 
@@ -139,6 +140,7 @@ export async function updateDocumentTemplate(
   });
 
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: user.id,
     entity: "DocumentTemplate",
     entityId: id,
@@ -152,12 +154,13 @@ export async function updateDocumentTemplate(
 }
 
 export async function archiveDocumentTemplate(id: string) {
-  const user = await requireOwner();
+  const { user, workspace } = await requireWorkspaceOwner();
   await prisma.documentTemplate.update({
     where: { id },
     data: { archivedAt: new Date(), isDefault: false },
   });
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: user.id,
     entity: "DocumentTemplate",
     entityId: id,

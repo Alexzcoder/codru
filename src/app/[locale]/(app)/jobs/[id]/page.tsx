@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/session";
+import { requireWorkspace } from "@/lib/session";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { Link } from "@/i18n/navigation";
@@ -19,12 +19,12 @@ export default async function JobDetailPage({
 }) {
   const { locale, id } = await params;
   setRequestLocale(locale);
-  await requireUser();
+  const { workspace } = await requireWorkspace();
   const t = await getTranslations();
 
   const [job, logs, jobDocs] = await Promise.all([
-    prisma.job.findUnique({
-      where: { id },
+    prisma.job.findFirst({
+      where: { id, workspaceId: workspace.id },
       include: {
         client: true,
         assignments: { include: { user: { select: { name: true, calendarColor: true } } } },
@@ -35,13 +35,13 @@ export default async function JobDetailPage({
       },
     }),
     prisma.contactLog.findMany({
-      where: { jobId: id },
+      where: { workspaceId: workspace.id, jobId: id },
       orderBy: { date: "desc" },
       include: { loggedBy: { select: { name: true } } },
       take: 100,
     }),
     prisma.document.findMany({
-      where: { jobId: id, deletedAt: null },
+      where: { workspaceId: workspace.id, jobId: id, deletedAt: null },
       orderBy: { issueDate: "desc" },
       take: 50,
       select: { id: true, type: true, number: true, title: true, status: true, issueDate: true },

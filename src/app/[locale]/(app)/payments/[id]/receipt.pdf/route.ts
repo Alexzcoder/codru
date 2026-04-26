@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/session";
+import { requireWorkspace } from "@/lib/session";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { ReceiptPdf } from "@/lib/pdf/receipt-pdf";
 import { clientDisplayName } from "@/lib/client-display";
@@ -12,11 +12,11 @@ export async function GET(
   _req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  await requireUser();
+  const { workspace } = await requireWorkspace();
   const { id } = await params;
 
-  const payment = await prisma.payment.findUnique({
-    where: { id },
+  const payment = await prisma.payment.findFirst({
+    where: { id, workspaceId: workspace.id },
     include: {
       client: true,
       loggedBy: true,
@@ -27,7 +27,7 @@ export async function GET(
 
   // Pick a company profile — default or first.
   const company = await prisma.companyProfile.findFirst({
-    where: { archivedAt: null },
+    where: { workspaceId: workspace.id, archivedAt: null },
     orderBy: [{ isDefault: "desc" }, { createdAt: "asc" }],
   });
   if (!company) notFound();

@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/session";
+import { requireWorkspace } from "@/lib/session";
 import { clientDisplayName } from "@/lib/client-display";
 
 const HEADERS = [
@@ -30,9 +30,9 @@ function csvEscape(v: unknown): string {
 }
 
 export async function GET() {
-  await requireUser();
+  const { workspace } = await requireWorkspace();
   const rows = await prisma.client.findMany({
-    where: { deletedAt: null, anonymizedAt: null },
+    where: { workspaceId: workspace.id, deletedAt: null, anonymizedAt: null },
     orderBy: { createdAt: "asc" },
   });
 

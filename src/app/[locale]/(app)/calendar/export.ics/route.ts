@@ -1,4 +1,4 @@
-import { requireUser } from "@/lib/session";
+import { requireWorkspace } from "@/lib/session";
 import { parseDateParam, rangeForView, type View } from "@/lib/calendar-dates";
 import { loadCalendarItems } from "../load-items";
 import type { CalendarItem } from "../calendar-item";
@@ -55,7 +55,7 @@ function renderEvent(item: CalendarItem): string {
 }
 
 export async function GET(req: Request) {
-  await requireUser();
+  const { workspace } = await requireWorkspace();
   const url = new URL(req.url);
   const view: View = VIEWS.includes(url.searchParams.get("view") as View)
     ? (url.searchParams.get("view") as View)
@@ -63,7 +63,7 @@ export async function GET(req: Request) {
   const date = parseDateParam(url.searchParams.get("date") ?? undefined);
   const { start, end } = rangeForView(view, date);
 
-  const items = await loadCalendarItems({ start, end });
+  const items = await loadCalendarItems({ workspaceId: workspace.id, start, end });
 
   const body = [
     "BEGIN:VCALENDAR",

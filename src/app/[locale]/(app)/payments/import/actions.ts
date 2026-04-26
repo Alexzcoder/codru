@@ -2,7 +2,7 @@
 
 import ExcelJS from "exceljs";
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/session";
+import { requireWorkspace } from "@/lib/session";
 import { writeAudit } from "@/lib/audit";
 import { recomputeInvoiceStatus } from "@/lib/payment-status";
 import { revalidatePath } from "next/cache";
@@ -132,7 +132,7 @@ export async function importPayments(
   _prev: ImportPaymentsState,
   formData: FormData,
 ): Promise<ImportPaymentsState> {
-  const user = await requireUser();
+  const { user, workspace } = await requireWorkspace();
   const file = formData.get("file");
   if (!(file instanceof File) || file.size === 0) {
     return { ok: false, errors: ["Pick a .csv or .xlsx file."] };
@@ -198,6 +198,7 @@ export async function importPayments(
     if (vs) {
       const doc = await prisma.document.findFirst({
         where: {
+          workspaceId: workspace.id,
           number: { contains: vs },
           type: { in: ["FINAL_INVOICE", "ADVANCE_INVOICE"] },
           deletedAt: null,
@@ -221,6 +222,7 @@ export async function importPayments(
     try {
       const payment = await prisma.payment.create({
         data: {
+          workspaceId: workspace.id,
           clientId: matchedClientId,
           date,
           method: "BANK_TRANSFER",
@@ -246,6 +248,7 @@ export async function importPayments(
         await recomputeInvoiceStatus(matchedDocId);
       }
       await writeAudit({
+        workspaceId: workspace.id,
         actorId: user.id,
         entity: "Payment",
         entityId: payment.id,

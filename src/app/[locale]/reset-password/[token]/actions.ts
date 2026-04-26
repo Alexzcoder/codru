@@ -41,12 +41,22 @@ export async function resetPassword(
     }),
   ]);
 
-  await writeAudit({
-    actorId: record.userId,
-    entity: "User",
-    entityId: record.userId,
-    action: "reset-password",
+  // User-level action — audit row needs a workspace; fall back to first
+  // membership and skip the audit if the user has none.
+  const membership = await prisma.membership.findFirst({
+    where: { userId: record.userId, workspace: { deletedAt: null } },
+    orderBy: [{ joinedAt: "asc" }],
+    select: { workspaceId: true },
   });
+  if (membership) {
+    await writeAudit({
+      workspaceId: membership.workspaceId,
+      actorId: record.userId,
+      entity: "User",
+      entityId: record.userId,
+      action: "reset-password",
+    });
+  }
 
   redirect("/login");
 }

@@ -10,7 +10,7 @@ import { recomputeInvoiceStatus, computeOutstanding } from "./payment-status";
 export async function quickMarkInvoicePaid(actorId: string, documentId: string): Promise<void> {
   const doc = await prisma.document.findUnique({
     where: { id: documentId },
-    select: { id: true, clientId: true, currency: true, status: true, type: true },
+    select: { id: true, workspaceId: true, clientId: true, currency: true, status: true, type: true },
   });
   if (!doc) return;
   if (doc.type !== "ADVANCE_INVOICE" && doc.type !== "FINAL_INVOICE") return;
@@ -26,6 +26,7 @@ export async function quickMarkInvoicePaid(actorId: string, documentId: string):
 
   const payment = await prisma.payment.create({
     data: {
+      workspaceId: doc.workspaceId,
       clientId: doc.clientId,
       date: new Date(),
       method: "CASH",
@@ -40,6 +41,7 @@ export async function quickMarkInvoicePaid(actorId: string, documentId: string):
   });
 
   await writeAudit({
+    workspaceId: doc.workspaceId,
     actorId,
     entity: "Payment",
     entityId: payment.id,

@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/session";
+import { requireWorkspace } from "@/lib/session";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
@@ -23,7 +23,7 @@ export default async function ClientsPage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  await requireUser();
+  const { workspace } = await requireWorkspace();
   const t = await getTranslations();
   const sp = await searchParams;
 
@@ -34,6 +34,7 @@ export default async function ClientsPage({
   const page = Math.max(1, Number(sp.page) || 1);
 
   const where = {
+    workspaceId: workspace.id,
     deletedAt: null,
     ...(statusFilter && { status: statusFilter }),
     ...(q && {

@@ -7,10 +7,12 @@ const FALLBACK_COLOR = "#6b7280";
 const RECURRENCE_COLOR = "#8b5cf6"; // soft violet — distinct from user colors
 
 export async function loadCalendarItems({
+  workspaceId,
   start,
   end,
   assigneeId,
 }: {
+  workspaceId: string;
   start: Date;
   end: Date;
   assigneeId?: string;
@@ -18,6 +20,7 @@ export async function loadCalendarItems({
   const [jobs, events, rules] = await Promise.all([
     prisma.job.findMany({
       where: {
+        workspaceId,
         scheduledStart: { gte: start, lt: end },
         ...(assigneeId && { assignments: { some: { userId: assigneeId } } }),
       },
@@ -30,6 +33,7 @@ export async function loadCalendarItems({
     }),
     prisma.calendarEvent.findMany({
       where: {
+        workspaceId,
         startsAt: { gte: start, lt: end },
         ...(assigneeId && { assigneeId }),
       },
@@ -42,6 +46,7 @@ export async function loadCalendarItems({
     // (we expand into multiple synthetic items below).
     prisma.recurrenceRule.findMany({
       where: {
+        workspaceId,
         pausedAt: null,
         nextRunAt: { lte: end },
         OR: [{ endDate: null }, { endDate: { gte: start } }],

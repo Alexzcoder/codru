@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { requireOwner } from "@/lib/session";
+import { requireWorkspaceOwner } from "@/lib/session";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { CompanyProfileForm } from "../company-profile-form";
@@ -14,10 +14,10 @@ export default async function EditCompanyProfilePage({
 }) {
   const { locale, id } = await params;
   setRequestLocale(locale);
-  await requireOwner();
+  const { workspace } = await requireWorkspaceOwner();
   const t = await getTranslations();
 
-  const profile = await prisma.companyProfile.findUnique({ where: { id } });
+  const profile = await prisma.companyProfile.findFirst({ where: { id, workspaceId: workspace.id } });
   if (!profile || profile.archivedAt) notFound();
 
   const updateBound = updateCompanyProfile.bind(null, id);

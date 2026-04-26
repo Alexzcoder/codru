@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/session";
+import { requireWorkspace } from "@/lib/session";
 import { renderDocumentPdf, latestSnapshotPath } from "@/lib/documents";
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -12,13 +12,13 @@ export async function GET(
   req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  await requireUser();
+  const { workspace } = await requireWorkspace();
   const { id } = await params;
   const url = new URL(req.url);
   const disp = url.searchParams.get("download") === "1" ? "attachment" : "inline";
 
-  const doc = await prisma.document.findUnique({
-    where: { id },
+  const doc = await prisma.document.findFirst({
+    where: { id, workspaceId: workspace.id },
     include: { lineItems: { orderBy: { position: "asc" } } },
   });
   if (!doc || doc.type !== "CREDIT_NOTE" || doc.deletedAt) notFound();

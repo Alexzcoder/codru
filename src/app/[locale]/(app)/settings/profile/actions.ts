@@ -19,6 +19,17 @@ const profileSchema = z.object({
 
 export type ProfileState = { error?: string; saved?: boolean };
 
+// Profile is global (per-User). The audit row needs a workspaceId; fall back
+// to the user's first membership. Skip the audit row if the user has none.
+async function firstWorkspaceId(userId: string): Promise<string | null> {
+  const m = await prisma.membership.findFirst({
+    where: { userId, workspace: { deletedAt: null } },
+    orderBy: [{ joinedAt: "asc" }],
+    select: { workspaceId: true },
+  });
+  return m?.workspaceId ?? null;
+}
+
 export async function saveProfile(
   _prev: ProfileState,
   formData: FormData,
@@ -50,14 +61,18 @@ export async function saveProfile(
     },
   });
 
-  await writeAudit({
-    actorId: user.id,
-    entity: "User",
-    entityId: user.id,
-    action: "update",
-    before: user as unknown as Record<string, unknown>,
-    after: updated as unknown as Record<string, unknown>,
-  });
+  const workspaceId = await firstWorkspaceId(user.id);
+  if (workspaceId) {
+    await writeAudit({
+      workspaceId,
+      actorId: user.id,
+      entity: "User",
+      entityId: user.id,
+      action: "update",
+      before: user as unknown as Record<string, unknown>,
+      after: updated as unknown as Record<string, unknown>,
+    });
+  }
 
   revalidatePath("/settings/profile");
   return { saved: true };
@@ -84,12 +99,16 @@ export async function changePassword(
   const passwordHash = await bcrypt.hash(parsed.data.newPassword, 12);
   await prisma.user.update({ where: { id: user.id }, data: { passwordHash } });
 
-  await writeAudit({
-    actorId: user.id,
-    entity: "User",
-    entityId: user.id,
-    action: "reset-password",
-  });
+  const workspaceId = await firstWorkspaceId(user.id);
+  if (workspaceId) {
+    await writeAudit({
+      workspaceId,
+      actorId: user.id,
+      entity: "User",
+      entityId: user.id,
+      action: "reset-password",
+    });
+  }
 
   return { saved: true };
 }

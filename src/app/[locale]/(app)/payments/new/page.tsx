@@ -1,4 +1,4 @@
-import { requireUser } from "@/lib/session";
+import { requireWorkspace } from "@/lib/session";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { PaymentForm } from "../payment-form";
 import { createPayment } from "../actions";
@@ -14,11 +14,11 @@ export default async function NewPaymentPage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  await requireUser();
+  const { workspace } = await requireWorkspace();
   const t = await getTranslations();
   const { forInvoice } = await searchParams;
 
-  const { clientChoices, openInvoices } = await loadPaymentFormData();
+  const { clientChoices, openInvoices } = await loadPaymentFormData(workspace.id);
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-8">

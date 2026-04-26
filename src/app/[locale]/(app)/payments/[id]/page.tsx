@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/session";
+import { requireWorkspace } from "@/lib/session";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { Link } from "@/i18n/navigation";
@@ -16,11 +16,11 @@ export default async function PaymentDetailPage({
 }) {
   const { locale, id } = await params;
   setRequestLocale(locale);
-  await requireUser();
+  const { workspace } = await requireWorkspace();
   const t = await getTranslations();
 
-  const payment = await prisma.payment.findUnique({
-    where: { id },
+  const payment = await prisma.payment.findFirst({
+    where: { id, workspaceId: workspace.id },
     include: {
       client: true,
       loggedBy: { select: { name: true } },

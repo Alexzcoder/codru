@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/session";
+import { requireWorkspace } from "@/lib/session";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
@@ -36,7 +36,7 @@ export default async function JobsPage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  await requireUser();
+  const { workspace } = await requireWorkspace();
   const t = await getTranslations();
   const sp = await searchParams;
 
@@ -52,6 +52,7 @@ export default async function JobsPage({
   const page = Math.max(1, Number(sp.page) || 1);
 
   const where = {
+    workspaceId: workspace.id,
     ...(statusFilter
       ? { status: statusFilter }
       : isActiveDefault
@@ -85,12 +86,12 @@ export default async function JobsPage({
     }),
     prisma.job.count({ where }),
     prisma.client.findMany({
-      where: { deletedAt: null, anonymizedAt: null },
+      where: { workspaceId: workspace.id, deletedAt: null, anonymizedAt: null },
       select: { id: true, type: true, companyName: true, fullName: true, anonymizedAt: true },
       orderBy: { updatedAt: "desc" },
     }),
     prisma.user.findMany({
-      where: { deactivatedAt: null },
+      where: { deactivatedAt: null, memberships: { some: { workspaceId: workspace.id } } },
       select: { id: true, name: true },
       orderBy: { name: "asc" },
     }),

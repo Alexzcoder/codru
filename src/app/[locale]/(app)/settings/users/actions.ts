@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { requireOwner } from "@/lib/session";
+import { requireWorkspaceOwner } from "@/lib/session";
 import { writeAudit } from "@/lib/audit";
 import { generateToken } from "@/lib/tokens";
 import { sendInviteEmail, sendPasswordResetEmail } from "@/lib/email";
@@ -25,21 +25,29 @@ export async function inviteUser(
   _prev: InviteState,
   formData: FormData,
 ): Promise<InviteState> {
-  const owner = await requireOwner();
+  const { user: owner, workspace } = await requireWorkspaceOwner();
   const parsed = inviteSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: "invalidInput" };
   const { email } = parsed.data;
 
+  // If the user already exists and is already a member of this workspace, refuse.
   const existingUser = await prisma.user.findUnique({ where: { email } });
-  if (existingUser) return { error: "alreadyMember" };
+  if (existingUser) {
+    const membership = await prisma.membership.findUnique({
+      where: { workspaceId_userId: { workspaceId: workspace.id, userId: existingUser.id } },
+    });
+    if (membership) return { error: "alreadyMember" };
+  }
 
   const { token, hash } = generateToken();
   const expiresAt = new Date(Date.now() + INVITE_TTL_HOURS * 60 * 60 * 1000);
 
   const invite = await prisma.invite.create({
     data: {
+      workspaceId: workspace.id,
       email,
       tokenHash: hash,
+      role: "MEMBER",
       createdById: owner.id,
       expiresAt,
     },
@@ -55,6 +63,7 @@ export async function inviteUser(
   });
 
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: owner.id,
     entity: "Invite",
     entityId: invite.id,
@@ -68,7 +77,7 @@ export async function inviteUser(
 }
 
 export async function deactivateUser(id: string) {
-  const owner = await requireOwner();
+  const { user: owner, workspace } = await requireWorkspaceOwner();
   if (owner.id === id) return; // cannot deactivate self
   const existing = await prisma.user.findUnique({ where: { id } });
   if (!existing) return;
@@ -77,6 +86,7 @@ export async function deactivateUser(id: string) {
     data: { deactivatedAt: new Date() },
   });
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: owner.id,
     entity: "User",
     entityId: id,
@@ -87,12 +97,13 @@ export async function deactivateUser(id: string) {
 }
 
 export async function reactivateUser(id: string) {
-  const owner = await requireOwner();
+  const { user: owner, workspace } = await requireWorkspaceOwner();
   await prisma.user.update({
     where: { id },
     data: { deactivatedAt: null },
   });
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: owner.id,
     entity: "User",
     entityId: id,
@@ -102,7 +113,7 @@ export async function reactivateUser(id: string) {
 }
 
 export async function triggerPasswordResetFor(userId: string) {
-  const owner = await requireOwner();
+  const { user: owner, workspace } = await requireWorkspaceOwner();
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) return { devInviteLink: null };
 
@@ -117,6 +128,7 @@ export async function triggerPasswordResetFor(userId: string) {
   const result = await sendPasswordResetEmail({ to: user.email, resetUrl });
 
   await writeAudit({
+    workspaceId: workspace.id,
     actorId: owner.id,
     entity: "User",
     entityId: user.id,

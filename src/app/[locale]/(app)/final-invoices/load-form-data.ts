@@ -16,7 +16,7 @@ import type {
   QuoteChoice,
 } from "./final-invoice-form";
 
-export async function loadFinalInvoiceFormData(opts?: {
+export async function loadFinalInvoiceFormData(workspaceId: string, opts?: {
   excludeAdvanceIdsUsedOn?: string; // final invoice id we're editing — include its own advances too
 }) {
   const [
@@ -31,16 +31,18 @@ export async function loadFinalInvoiceFormData(opts?: {
     deducted,
   ] = await Promise.all([
     prisma.client.findMany({
-      where: { deletedAt: null, anonymizedAt: null },
+      where: { workspaceId, deletedAt: null, anonymizedAt: null },
       orderBy: { updatedAt: "desc" },
     }),
     prisma.job.findMany({
+      where: { workspaceId },
       select: { id: true, title: true, clientId: true },
       orderBy: { updatedAt: "desc" },
       take: 500,
     }),
     prisma.document.findMany({
       where: {
+        workspaceId,
         type: "QUOTE",
         deletedAt: null,
         status: { in: ["SENT", "ACCEPTED"] },
@@ -52,11 +54,15 @@ export async function loadFinalInvoiceFormData(opts?: {
       take: 500,
     }),
     prisma.companyProfile.findMany({
-      where: { archivedAt: null },
+      where: { workspaceId, archivedAt: null },
       orderBy: [{ isDefault: "desc" }, { createdAt: "asc" }],
     }),
     prisma.documentTemplate.findMany({
-      where: { archivedAt: null, type: "FINAL_INVOICE" },
+      where: {
+        archivedAt: null,
+        type: "FINAL_INVOICE",
+        companyProfile: { workspaceId },
+      },
       orderBy: [{ isDefault: "desc" }, { createdAt: "asc" }],
     }),
     prisma.itemTemplate.findMany({
@@ -72,6 +78,7 @@ export async function loadFinalInvoiceFormData(opts?: {
     // (Spec says PPC; once paid, they're also fair game if not already deducted.)
     prisma.document.findMany({
       where: {
+        workspaceId,
         type: "ADVANCE_INVOICE",
         deletedAt: null,
         status: { in: ["PAID_PENDING_COMPLETION", "PAID", "SENT", "OVERDUE"] },
@@ -80,9 +87,10 @@ export async function loadFinalInvoiceFormData(opts?: {
       orderBy: { createdAt: "desc" },
     }),
     prisma.advanceDeduction.findMany({
-      where: opts?.excludeAdvanceIdsUsedOn
-        ? { NOT: { finalInvoiceId: opts.excludeAdvanceIdsUsedOn } }
-        : undefined,
+      where: {
+        finalInvoice: { workspaceId },
+        ...(opts?.excludeAdvanceIdsUsedOn ? { NOT: { finalInvoiceId: opts.excludeAdvanceIdsUsedOn } } : {}),
+      },
       select: { advanceId: true },
     }),
   ]);
