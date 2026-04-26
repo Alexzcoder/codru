@@ -6,6 +6,7 @@ import { createQuote } from "../actions";
 import { loadQuoteFormData } from "../load-form-data";
 import { BackLink } from "@/components/back-link";
 import { redirect } from "next/navigation";
+import { loadJobSitePhotos } from "@/lib/job-photos";
 
 export default async function NewQuotePage({
   params,
@@ -29,6 +30,7 @@ export default async function NewQuotePage({
   const seededJob = fromJob
     ? data.jobOptions.find((j) => j.id === fromJob)
     : undefined;
+  const seededPhotos = seededJob ? await loadJobSitePhotos(seededJob.id) : undefined;
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-8">
@@ -45,6 +47,7 @@ export default async function NewQuotePage({
                 }
               : undefined
           }
+          initialPhotos={seededPhotos}
           clients={data.clientOptions}
           jobs={data.jobOptions}
           companyProfiles={data.companyOptions}

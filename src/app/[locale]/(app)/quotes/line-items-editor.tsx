@@ -53,6 +53,7 @@ const EMPTY_LINE: EditorLine = {
 
 export function LineItemsEditor({
   initialLines,
+  initialPhotos,
   templates,
   taxRates,
   currency,
@@ -61,6 +62,7 @@ export function LineItemsEditor({
   reverseCharge,
 }: {
   initialLines: EditorLine[];
+  initialPhotos?: SitePhoto[];
   templates: TemplateOption[];
   taxRates: TaxRateOption[];
   currency: string;
@@ -75,7 +77,7 @@ export function LineItemsEditor({
   );
   const [templateId, setTemplateId] = useState<string>("");
   const [suggesterTarget, setSuggesterTarget] = useState<SuggesterTarget | null>(null);
-  const [photos, setPhotos] = useState<SitePhoto[]>([]);
+  const [photos, setPhotos] = useState<SitePhoto[]>(initialPhotos ?? []);
   const [photoError, setPhotoError] = useState<string | null>(null);
 
   const totals = useMemo(
@@ -164,7 +166,14 @@ export function LineItemsEditor({
       <div className="rounded-xl border border-dashed border-border bg-secondary/20 p-3">
         <div className="flex items-center justify-between gap-2">
           <div>
-            <p className="text-xs font-medium">Site photos for AI</p>
+            <p className="text-xs font-medium">
+              Site photos for AI
+              {(initialPhotos?.length ?? 0) > 0 && (
+                <span className="ml-2 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-medium text-emerald-800">
+                  {initialPhotos!.length} from job
+                </span>
+              )}
+            </p>
             <p className="text-[11px] text-muted-foreground">
               Up to 4 photos · used when you ask Claude for a price · not saved with the quote
             </p>

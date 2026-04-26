@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 import { LineItemsEditor, type EditorLine, type TemplateOption, type TaxRateOption } from "./line-items-editor";
 import type { QuoteState } from "./actions";
+import type { SitePhoto } from "@/components/price-suggester";
 
 export type ClientOption = {
   id: string;
@@ -40,6 +41,7 @@ type Initial = {
 
 export function QuoteForm({
   initial,
+  initialPhotos,
   clients,
   jobs,
   companyProfiles,
@@ -50,6 +52,7 @@ export function QuoteForm({
   isDraft,
 }: {
   initial?: Initial;
+  initialPhotos?: SitePhoto[];
   clients: ClientOption[];
   jobs: JobOption[];
   companyProfiles: CompanyOption[];
@@ -267,6 +270,7 @@ export function QuoteForm({
         <h3 className="text-sm font-medium mb-2">{t("lineItems.title")}</h3>
         <LineItemsEditor
           initialLines={initial?.lines ?? []}
+          initialPhotos={initialPhotos}
           templates={itemTemplates}
           taxRates={taxRates}
           currency={currency}

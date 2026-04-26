@@ -1,6 +1,7 @@
 "use server";
 
 import { z } from "zod";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import { writeAudit } from "@/lib/audit";
@@ -46,6 +47,16 @@ const jobKindSchema = baseSchema.extend({
   siteCountry: z.string().optional(),
   assignees: z.string().optional(),
   notes: z.string().optional(),
+
+  // Auto-invoice on each cycle (optional)
+  autoInvoice: z.coerce.boolean().optional(),
+  invoiceCompanyProfileId: z.string().optional(),
+  invoiceDocumentTemplateId: z.string().optional(),
+  invoiceCurrency: z.enum(["CZK", "EUR", "USD"]).optional(),
+  invoiceLocale: z.enum(["cs", "en"]).optional(),
+  invoiceDueInDays: z.coerce.number().int().min(0).max(180).default(14),
+  invoiceReverseCharge: z.coerce.boolean().optional(),
+  invoiceLinesJson: z.string().optional(),
 });
 
 const invoiceKindSchema = baseSchema.extend({
@@ -141,25 +152,57 @@ export async function createJobRule(
 
   const assigneeIds = (d.assignees ?? "").split(",").map((s) => s.trim()).filter(Boolean);
 
+  // Auto-invoice payload — only if all required fields set and at least one
+  // line. Drop the whole sub-object otherwise so the runner skips invoicing.
+  let invoiceLines: unknown = null;
+  if (d.autoInvoice && d.invoiceLinesJson) {
+    try {
+      invoiceLines = JSON.parse(d.invoiceLinesJson);
+    } catch {
+      return { error: "invalidLines" };
+    }
+  }
+  const auto =
+    d.autoInvoice &&
+    d.invoiceCompanyProfileId &&
+    d.invoiceDocumentTemplateId &&
+    Array.isArray(invoiceLines) &&
+    invoiceLines.length > 0;
+
+  const payload = {
+    kind: "JOB" as const,
+    title: d.title,
+    clientId: d.clientId,
+    notes: d.notes || null,
+    durationDays: d.durationDays,
+    startHour: d.startHour,
+    durationHours: d.durationHours,
+    assigneeUserIds: assigneeIds,
+    siteStreet: d.siteStreet || null,
+    siteCity: d.siteCity || null,
+    siteZip: d.siteZip || null,
+    siteCountry: d.siteCountry || null,
+    ...(auto
+      ? {
+          autoInvoice: true,
+          invoiceCompanyProfileId: d.invoiceCompanyProfileId!,
+          invoiceDocumentTemplateId: d.invoiceDocumentTemplateId!,
+          invoiceCurrency: d.invoiceCurrency ?? "CZK",
+          invoiceLocale: d.invoiceLocale ?? "cs",
+          invoiceDueInDays: d.invoiceDueInDays,
+          invoiceReverseCharge: d.invoiceReverseCharge ?? false,
+          invoiceLines: invoiceLines as unknown[],
+        }
+      : { autoInvoice: false }),
+  };
+
   const rule = await prisma.recurrenceRule.create({
     data: {
       ...toBaseRule(d),
       targetKind: "JOB",
       createdById: user.id,
-      payload: {
-        kind: "JOB",
-        title: d.title,
-        clientId: d.clientId,
-        notes: d.notes || null,
-        durationDays: d.durationDays,
-        startHour: d.startHour,
-        durationHours: d.durationHours,
-        assigneeUserIds: assigneeIds,
-        siteStreet: d.siteStreet || null,
-        siteCity: d.siteCity || null,
-        siteZip: d.siteZip || null,
-        siteCountry: d.siteCountry || null,
-      },
+      // Prisma's Json input type doesn't carry our payload union; cast.
+      payload: payload as unknown as Prisma.InputJsonValue,
     },
   });
 

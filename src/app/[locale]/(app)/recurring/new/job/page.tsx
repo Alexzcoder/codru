@@ -16,7 +16,7 @@ export default async function NewJobRulePage({
   await requireUser();
   const t = await getTranslations();
 
-  const [clients, users] = await Promise.all([
+  const [clients, users, companyProfiles, documentTemplates, taxRates] = await Promise.all([
     prisma.client.findMany({
       where: { deletedAt: null, anonymizedAt: null },
       orderBy: { updatedAt: "desc" },
@@ -25,6 +25,21 @@ export default async function NewJobRulePage({
       where: { deactivatedAt: null },
       select: { id: true, name: true, calendarColor: true },
       orderBy: { name: "asc" },
+    }),
+    prisma.companyProfile.findMany({
+      where: { archivedAt: null },
+      orderBy: [{ isDefault: "desc" }, { createdAt: "asc" }],
+      select: { id: true, name: true },
+    }),
+    prisma.documentTemplate.findMany({
+      where: { archivedAt: null, type: "FINAL_INVOICE" },
+      orderBy: [{ isDefault: "desc" }, { createdAt: "asc" }],
+      select: { id: true, name: true },
+    }),
+    prisma.taxRate.findMany({
+      where: { archivedAt: null },
+      orderBy: [{ isDefault: "desc" }, { percent: "desc" }],
+      select: { id: true, label: true, percent: true },
     }),
   ]);
 
@@ -38,6 +53,9 @@ export default async function NewJobRulePage({
         <JobRuleForm
           clients={clients.map((c) => ({ id: c.id, name: clientDisplayName(c) }))}
           users={users}
+          companyProfiles={companyProfiles}
+          documentTemplates={documentTemplates}
+          defaultTaxRatePercent={taxRates[0]?.percent.toString() ?? "21"}
           action={createJobRule}
         />
       </div>

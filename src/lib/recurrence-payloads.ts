@@ -14,6 +14,18 @@ export type JobPayload = {
   siteCity: string | null;
   siteZip: string | null;
   siteCountry: string | null;
+
+  // Optional: emit an invoice on each cycle, linked to the freshly-created job.
+  // When autoInvoice=true, the runner mints a UNSENT FINAL_INVOICE alongside
+  // the job — owner can edit lines / send / mark paid as usual.
+  autoInvoice?: boolean;
+  invoiceCompanyProfileId?: string | null;
+  invoiceDocumentTemplateId?: string | null;
+  invoiceCurrency?: string;
+  invoiceLocale?: "cs" | "en";
+  invoiceDueInDays?: number;
+  invoiceReverseCharge?: boolean;
+  invoiceLines?: InvoiceLinePayload[];
 };
 
 export type ExpensePayload = {

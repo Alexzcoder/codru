@@ -19,6 +19,7 @@ import type {
   TemplateChoice,
 } from "../quotes/quote-form";
 import type { FinalInvoiceState } from "./actions";
+import type { SitePhoto } from "@/components/price-suggester";
 
 export type AvailableAdvance = {
   id: string;
@@ -64,6 +65,7 @@ type Initial = {
 
 export function FinalInvoiceForm({
   initial,
+  initialPhotos,
   clients,
   jobs,
   quotes,
@@ -77,6 +79,7 @@ export function FinalInvoiceForm({
   isDraft,
 }: {
   initial?: Initial;
+  initialPhotos?: SitePhoto[];
   clients: ClientOption[];
   jobs: JobOption[];
   quotes: QuoteChoice[];
@@ -425,6 +428,7 @@ export function FinalInvoiceForm({
         <LineItemsEditor
           key={`${sourceQuoteId || "blank"}-${selectedAdvances.size}`}
           initialLines={allLines}
+          initialPhotos={initialPhotos}
           templates={itemTemplates}
           taxRates={taxRates}
           currency={currency}

@@ -53,7 +53,7 @@ async function generateJobInstance(rule: RecurrenceRule, payload: JobPayload): P
   end.setHours(end.getHours() + (payload.durationHours || 0));
   if (payload.durationDays > 0) end.setDate(end.getDate() + payload.durationDays);
 
-  await prisma.job.create({
+  const job = await prisma.job.create({
     data: {
       title: payload.title,
       clientId: payload.clientId,
@@ -71,6 +71,44 @@ async function generateJobInstance(rule: RecurrenceRule, payload: JobPayload): P
       },
     },
   });
+
+  // Auto-invoice: same cycle gets a UNSENT FINAL_INVOICE linked to the new job.
+  if (payload.autoInvoice && payload.invoiceCompanyProfileId && payload.invoiceDocumentTemplateId && payload.invoiceLines && payload.invoiceLines.length > 0) {
+    const issue = new Date(rule.nextRunAt);
+    const due = addDays(issue, payload.invoiceDueInDays ?? 14);
+    await prisma.document.create({
+      data: {
+        type: "FINAL_INVOICE",
+        status: "UNSENT",
+        clientId: payload.clientId,
+        jobId: job.id,
+        companyProfileId: payload.invoiceCompanyProfileId,
+        documentTemplateId: payload.invoiceDocumentTemplateId,
+        createdById: rule.createdById,
+        currency: payload.invoiceCurrency ?? "CZK",
+        locale: payload.invoiceLocale ?? "cs",
+        issueDate: issue,
+        taxPointDate: issue,
+        dueDate: due,
+        reverseCharge: payload.invoiceReverseCharge ?? false,
+        recurrenceRuleId: rule.id,
+        lineItems: {
+          create: payload.invoiceLines.map((l, idx) => ({
+            position: idx + 1,
+            name: l.name,
+            description: l.description,
+            quantity: l.quantity,
+            unit: l.unit,
+            unitPrice: l.unitPrice,
+            taxRatePercent: l.taxRatePercent,
+            taxMode: l.taxMode,
+            lineDiscountPercent: l.lineDiscountPercent,
+            lineDiscountAmount: l.lineDiscountAmount,
+          })),
+        },
+      },
+    });
+  }
 }
 
 async function generateExpenseInstance(rule: RecurrenceRule, payload: ExpensePayload): Promise<void> {

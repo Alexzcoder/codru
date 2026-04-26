@@ -7,6 +7,7 @@ import { createFinalInvoice } from "../actions";
 import { loadFinalInvoiceFormData } from "../load-form-data";
 import { BackLink } from "@/components/back-link";
 import { redirect } from "next/navigation";
+import { loadJobSitePhotos } from "@/lib/job-photos";
 
 export default async function NewFinalInvoicePage({
   params,
@@ -26,6 +27,7 @@ export default async function NewFinalInvoicePage({
   if (data.clientOptions.length === 0) redirect("/clients/new");
 
   let initial: Parameters<typeof FinalInvoiceForm>[0]["initial"] | undefined;
+  let seededJobId: string | null = null;
   if (fromQuote) {
     const quote = await prisma.document.findUnique({ where: { id: fromQuote } });
     if (quote) {
@@ -36,6 +38,7 @@ export default async function NewFinalInvoicePage({
         currency: quote.currency,
         locale: quote.locale,
       };
+      seededJobId = quote.jobId;
     }
   } else if (fromJob) {
     const job = await prisma.job.findUnique({ where: { id: fromJob } });
@@ -44,8 +47,10 @@ export default async function NewFinalInvoicePage({
         clientId: job.clientId,
         jobId: job.id,
       };
+      seededJobId = job.id;
     }
   }
+  const seededPhotos = seededJobId ? await loadJobSitePhotos(seededJobId) : undefined;
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-8">
@@ -54,6 +59,7 @@ export default async function NewFinalInvoicePage({
       <div className="mt-8">
         <FinalInvoiceForm
           initial={initial}
+          initialPhotos={seededPhotos}
           clients={data.clientOptions}
           jobs={data.jobOptions}
           quotes={data.quoteChoices}
