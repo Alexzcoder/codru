@@ -265,7 +265,7 @@ export default async function AccountingDashboardPage({
                 return (
                   <li key={doc.id} className="flex justify-between">
                     <Link href={href} className="hover:underline truncate pr-2">
-                      {doc.number ?? "(draft)"} · {clientDisplayName(doc.client)}
+                      {doc.number ?? t("Common.draft")} · {clientDisplayName(doc.client)}
                     </Link>
                     <span className="tabular-nums">{outstanding.toFixed(2)}</span>
                   </li>
@@ -288,7 +288,7 @@ export default async function AccountingDashboardPage({
                 return (
                   <li key={d.id} className="flex justify-between">
                     <Link href={href} className="hover:underline truncate pr-2">
-                      {d.number ?? "(draft)"}
+                      {d.number ?? t("Common.draft")}
                     </Link>
                     <span className="text-muted-foreground text-xs">
                       {d.dueDate?.toISOString().slice(0, 10)}
@@ -317,10 +317,10 @@ export default async function AccountingDashboardPage({
               {staleQuotes.map((q) => (
                 <li key={q.id} className="flex justify-between">
                   <Link href={`/quotes/${q.id}`} className="hover:underline truncate pr-2">
-                    {q.number ?? "(draft)"} · {clientDisplayName(q.client)}
+                    {q.number ?? t("Common.draft")} · {clientDisplayName(q.client)}
                   </Link>
                   <span className="text-xs text-muted-foreground">
-                    {q.status === "UNSENT" ? "draft" : q.status}
+                    {q.status === "UNSENT" ? t("Common.draft") : q.status}
                   </span>
                 </li>
               ))}
@@ -339,7 +339,7 @@ export default async function AccountingDashboardPage({
                     href={`/advance-invoices/${a.id}`}
                     className="hover:underline truncate pr-2"
                   >
-                    {a.number ?? "(draft)"} · {clientDisplayName(a.client)}
+                    {a.number ?? t("Common.draft")} · {clientDisplayName(a.client)}
                   </Link>
                   <span className="text-xs text-muted-foreground">
                     {a.job?.title ?? "—"}

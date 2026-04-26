@@ -52,6 +52,7 @@ export function PaymentForm({
 }) {
   const t = useTranslations("Payments");
   const tSet = useTranslations("Settings");
+  const tC = useTranslations("Common");
   const [state, formAction, pending] = useActionState<PaymentState, FormData>(
     action,
     {},
@@ -257,7 +258,7 @@ export function PaymentForm({
                   key={i.id}
                   className="grid grid-cols-[auto_1fr_auto_auto_auto] items-center gap-3 text-sm"
                 >
-                  <span className="font-medium">{i.number ?? "(draft)"}</span>
+                  <span className="font-medium">{i.number ?? tC("draft")}</span>
                   <span className="text-xs text-muted-foreground">
                     {i.type === "ADVANCE_INVOICE" ? "Advance" : "Final"}
                     {i.dueDate ? ` · due ${i.dueDate}` : ""}

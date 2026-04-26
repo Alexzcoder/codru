@@ -100,7 +100,7 @@ export function CreditNoteForm({
           {t("fields.originalDocument")}
         </p>
         <p className="mt-1 font-medium">
-          {original.number ?? "(draft)"} · {original.clientName}
+          {original.number ?? t("Common.draft")} · {original.clientName}
         </p>
       </div>
 

@@ -92,6 +92,7 @@ export function FinalInvoiceForm({
   const t = useTranslations("FinalInvoices");
   const tQ = useTranslations("Quotes");
   const tSet = useTranslations("Settings");
+  const tC = useTranslations("Common");
   const [state, formAction, pending] = useActionState<FinalInvoiceState, FormData>(
     action,
     {},
@@ -387,7 +388,7 @@ export function FinalInvoiceForm({
                     checked={selectedAdvances.has(a.id)}
                     onChange={() => toggleAdvance(a.id)}
                   />
-                  <span className="font-medium">{a.number ?? "(draft)"}</span>
+                  <span className="font-medium">{a.number ?? tC("draft")}</span>
                   <span className="text-muted-foreground">
                     {a.bands
                       .map(

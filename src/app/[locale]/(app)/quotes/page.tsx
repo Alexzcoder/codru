@@ -8,6 +8,7 @@ import { calculateDocument } from "@/lib/line-items";
 import { PageHeader } from "@/components/page-header";
 import { ClickableRow } from "@/components/clickable-row";
 import { SearchBar } from "@/components/search-bar";
+import { SortHeader } from "@/components/sort-header";
 import { Plus, Download } from "lucide-react";
 import type { DocumentStatus } from "@prisma/client";
 import { documentStatusClass } from "@/lib/status-style";
@@ -19,7 +20,7 @@ export default async function QuotesPage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ status?: string; page?: string; q?: string }>;
+  searchParams: Promise<{ status?: string; page?: string; q?: string; sort?: string; dir?: string }>;
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
@@ -33,6 +34,19 @@ export default async function QuotesPage({
     : undefined;
   const page = Math.max(1, Number(sp.page) || 1);
   const q = sp.q?.trim() ?? "";
+
+  // Sortable columns. Default = updatedAt desc (most recently touched first).
+  const SORT_FIELDS: Record<string, Record<string, "asc" | "desc">> = {
+    number: { number: "asc" },
+    issueDate: { issueDate: "asc" },
+    validUntilDate: { validUntilDate: "asc" },
+    status: { status: "asc" },
+  };
+  const dir: "asc" | "desc" = sp.dir === "asc" ? "asc" : "desc";
+  const sortKey = sp.sort && SORT_FIELDS[sp.sort] ? sp.sort : null;
+  const orderBy = sortKey
+    ? Object.fromEntries(Object.entries(SORT_FIELDS[sortKey]).map(([k]) => [k, dir]))
+    : { updatedAt: "desc" as const };
 
   const where = {
     type: "QUOTE" as const,
@@ -51,7 +65,7 @@ export default async function QuotesPage({
     prisma.document.findMany({
       where,
       include: { client: true, lineItems: true },
-      orderBy: { updatedAt: "desc" },
+      orderBy,
       skip: (page - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
     }),
@@ -121,12 +135,20 @@ export default async function QuotesPage({
           <table className="w-full text-sm">
             <thead className="border-b border-border bg-secondary/40 text-xs uppercase tracking-wider text-muted-foreground">
               <tr>
-                <th className="px-4 py-3 text-left">{t("Quotes.fields.number")}</th>
+                <th className="px-4 py-3 text-left">
+                  <SortHeader label={t("Quotes.fields.number")} field="number" />
+                </th>
                 <th className="px-4 py-3 text-left">{t("Quotes.fields.client")}</th>
-                <th className="px-4 py-3 text-left">{t("Quotes.fields.issueDate")}</th>
-                <th className="px-4 py-3 text-left">{t("Quotes.fields.validUntil")}</th>
+                <th className="px-4 py-3 text-left">
+                  <SortHeader label={t("Quotes.fields.issueDate")} field="issueDate" />
+                </th>
+                <th className="px-4 py-3 text-left">
+                  <SortHeader label={t("Quotes.fields.validUntil")} field="validUntilDate" />
+                </th>
                 <th className="px-4 py-3 text-right">{t("Quotes.totals.totalGross")}</th>
-                <th className="px-4 py-3 text-left">{t("Common.status")}</th>
+                <th className="px-4 py-3 text-left">
+                  <SortHeader label={t("Common.status")} field="status" />
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">

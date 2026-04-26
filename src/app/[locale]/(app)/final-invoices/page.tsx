@@ -8,6 +8,7 @@ import { calculateDocument } from "@/lib/line-items";
 import { PageHeader } from "@/components/page-header";
 import { ClickableRow } from "@/components/clickable-row";
 import { SearchBar } from "@/components/search-bar";
+import { SortHeader } from "@/components/sort-header";
 import { Plus, Download } from "lucide-react";
 
 import { documentStatusClass } from "@/lib/status-style";
@@ -19,7 +20,7 @@ export default async function FinalInvoicesPage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; sort?: string; dir?: string }>;
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
@@ -27,6 +28,18 @@ export default async function FinalInvoicesPage({
   const t = await getTranslations();
   const sp = await searchParams;
   const q = sp.q?.trim() ?? "";
+
+  const SORT_FIELDS: Record<string, string> = {
+    number: "number",
+    issueDate: "issueDate",
+    dueDate: "dueDate",
+    status: "status",
+  };
+  const dir: "asc" | "desc" = sp.dir === "asc" ? "asc" : "desc";
+  const sortKey = sp.sort && SORT_FIELDS[sp.sort] ? sp.sort : null;
+  const orderBy = sortKey
+    ? { [SORT_FIELDS[sortKey]]: dir }
+    : { updatedAt: "desc" as const };
 
   const docs = await prisma.document.findMany({
     where: {
@@ -41,7 +54,7 @@ export default async function FinalInvoicesPage({
       }),
     },
     include: { client: true, lineItems: true },
-    orderBy: { updatedAt: "desc" },
+    orderBy,
     take: PAGE_SIZE,
   });
 
@@ -79,12 +92,20 @@ export default async function FinalInvoicesPage({
           <table className="w-full text-sm">
             <thead className="border-b border-border bg-secondary/40 text-xs uppercase tracking-wider text-muted-foreground">
               <tr>
-                <th className="px-4 py-2 text-left">{t("FinalInvoices.fields.number")}</th>
+                <th className="px-4 py-2 text-left">
+                  <SortHeader label={t("FinalInvoices.fields.number")} field="number" />
+                </th>
                 <th className="px-4 py-2 text-left">{t("Quotes.fields.client")}</th>
-                <th className="px-4 py-2 text-left">{t("Quotes.fields.issueDate")}</th>
-                <th className="px-4 py-2 text-left">{t("FinalInvoices.fields.dueDate")}</th>
+                <th className="px-4 py-2 text-left">
+                  <SortHeader label={t("Quotes.fields.issueDate")} field="issueDate" />
+                </th>
+                <th className="px-4 py-2 text-left">
+                  <SortHeader label={t("FinalInvoices.fields.dueDate")} field="dueDate" />
+                </th>
                 <th className="px-4 py-2 text-right">{t("Quotes.totals.totalGross")}</th>
-                <th className="px-4 py-2 text-left">{t("Common.status")}</th>
+                <th className="px-4 py-2 text-left">
+                  <SortHeader label={t("Common.status")} field="status" />
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">

@@ -7,7 +7,7 @@ import { clientDisplayName } from "@/lib/client-display";
 import { PageHeader } from "@/components/page-header";
 import { ClickableRow } from "@/components/clickable-row";
 import { SearchBar } from "@/components/search-bar";
-import { Plus } from "lucide-react";
+import { Plus, Upload } from "lucide-react";
 
 const PAGE_SIZE = 50;
 
@@ -51,11 +51,18 @@ export default async function PaymentsPage({
         title={t("Payments.title")}
         description={`${payments.length} ${payments.length === 1 ? "payment" : "payments"}`}
         actions={
-          <Link href="/payments/new">
-            <Button size="sm" className="gap-1.5">
-              <Plus size={14} /> {t("Payments.new")}
-            </Button>
-          </Link>
+          <>
+            <Link href="/payments/import">
+              <Button variant="outline" size="sm" className="gap-1.5">
+                <Upload size={14} /> Import bank statement
+              </Button>
+            </Link>
+            <Link href="/payments/new">
+              <Button size="sm" className="gap-1.5">
+                <Plus size={14} /> {t("Payments.new")}
+              </Button>
+            </Link>
+          </>
         }
       />
 
@@ -98,7 +105,7 @@ export default async function PaymentsPage({
                     {p.allocations.length === 0
                       ? "—"
                       : p.allocations
-                          .map((a) => a.document.number ?? "draft")
+                          .map((a) => a.document.number ?? t("Common.draft"))
                           .join(", ")}
                   </td>
                 </ClickableRow>

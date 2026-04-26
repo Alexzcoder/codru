@@ -114,7 +114,7 @@ export default async function PaymentDetailPage({
                 <tr key={a.id}>
                   <td className="px-4 py-2 font-medium">
                     <Link href={href} className="hover:underline">
-                      {a.document.number ?? "(draft)"}
+                      {a.document.number ?? t("Common.draft")}
                     </Link>
                   </td>
                   <td className="px-4 py-2 text-muted-foreground text-xs">

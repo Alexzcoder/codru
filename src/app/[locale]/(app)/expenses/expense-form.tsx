@@ -1,13 +1,15 @@
 "use client";
 
-import { useActionState, useMemo, useState } from "react";
+import { useActionState, useMemo, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import type { Expense } from "@prisma/client";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
+import { Sparkles } from "lucide-react";
 import type { ExpenseState } from "./actions";
+import { scanReceipt } from "./scan-actions";
 
 type Initial = Partial<Expense>;
 
@@ -34,6 +36,63 @@ export function ExpenseForm({
   const [reverseCharge, setReverseCharge] = useState(
     initial?.reverseCharge ?? false,
   );
+  const [date, setDate] = useState(toDateInput(initial?.date ?? new Date()));
+  const [supplier, setSupplier] = useState(initial?.supplier ?? "");
+  const [description, setDescription] = useState(initial?.description ?? "");
+  const [scanPending, startScan] = useTransition();
+  const [scanInfo, setScanInfo] = useState<string | null>(null);
+  const [scanError, setScanError] = useState<string | null>(null);
+
+  const onScanFile = async (file: File | null) => {
+    if (!file) return;
+    setScanError(null);
+    setScanInfo(null);
+    if (file.size > 5 * 1024 * 1024) {
+      setScanError("Receipt photo too large (max 5 MB).");
+      return;
+    }
+    if (!/^image\/(jpeg|png|webp|gif)$/.test(file.type)) {
+      setScanError("Use a JPEG / PNG / WebP / GIF photo.");
+      return;
+    }
+    const dataUrl = await new Promise<string>((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result as string);
+      r.onerror = () => reject(r.error);
+      r.readAsDataURL(file);
+    });
+    const m = dataUrl.match(/^data:(image\/[a-z]+);base64,(.+)$/);
+    if (!m) {
+      setScanError("Could not read photo.");
+      return;
+    }
+    startScan(async () => {
+      const r = await scanReceipt({
+        mediaType: m[1] as "image/jpeg" | "image/png" | "image/webp" | "image/gif",
+        base64: m[2],
+      });
+      if (!r.ok) {
+        setScanError(r.message);
+        return;
+      }
+      const s = r.scan;
+      if (s.supplier) setSupplier(s.supplier);
+      if (s.date) setDate(s.date.slice(0, 10));
+      if (s.description) setDescription(s.description);
+      if (s.vatRatePercent != null) setRate(String(s.vatRatePercent));
+      // Prefer net if printed; else derive from total + vat rate.
+      if (s.netAmount != null) {
+        setNet(s.netAmount.toFixed(2));
+      } else if (s.totalAmount != null) {
+        const r = s.vatRatePercent ?? 21;
+        const netFromTotal = s.totalAmount / (1 + r / 100);
+        setNet(netFromTotal.toFixed(2));
+      }
+      setScanInfo(
+        `Filled from photo. Cost ≈ $${s.estimatedCostUsd.toFixed(4)}. Confirm before saving.`,
+      );
+    });
+  };
 
   const autoVat = useMemo(() => {
     if (reverseCharge) return "0.00";
@@ -50,6 +109,32 @@ export function ExpenseForm({
 
   return (
     <form action={formAction} className="space-y-5 max-w-3xl">
+      <div className="rounded-xl border border-dashed border-emerald-200 bg-emerald-50/40 p-3">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-xs font-medium text-emerald-900">Scan receipt with AI</p>
+            <p className="text-[11px] text-emerald-900/70">
+              Snap a photo of the receipt — Claude reads supplier, date, amount, and VAT (~$0.02 / scan).
+            </p>
+          </div>
+          <label className="cursor-pointer">
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              className="hidden"
+              onChange={(e) => onScanFile(e.target.files?.[0] ?? null)}
+            />
+            <span className="inline-flex h-8 items-center gap-1.5 rounded-md bg-emerald-600 px-3 text-xs font-medium text-white hover:bg-emerald-700">
+              <Sparkles size={14} /> {scanPending ? "Reading…" : "Scan receipt"}
+            </span>
+          </label>
+        </div>
+        {scanInfo && (
+          <p className="mt-2 text-xs text-emerald-900/80">{scanInfo}</p>
+        )}
+        {scanError && <p className="mt-2 text-xs text-red-700">{scanError}</p>}
+      </div>
+
       <div className="grid gap-4 md:grid-cols-3">
         <div className="space-y-2">
           <Label htmlFor="date">{t("fields.date")}</Label>
@@ -57,7 +142,8 @@ export function ExpenseForm({
             id="date"
             name="date"
             type="date"
-            defaultValue={toDateInput(initial?.date ?? new Date())}
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
             required
           />
         </div>
@@ -94,7 +180,12 @@ export function ExpenseForm({
       <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="supplier">{t("fields.supplier")}</Label>
-          <Input id="supplier" name="supplier" defaultValue={initial?.supplier ?? ""} />
+          <Input
+            id="supplier"
+            name="supplier"
+            value={supplier}
+            onChange={(e) => setSupplier(e.target.value)}
+          />
         </div>
         <div className="space-y-2">
           <Label htmlFor="jobId">{t("fields.job")}</Label>
@@ -119,7 +210,8 @@ export function ExpenseForm({
         <textarea
           id="description"
           name="description"
-          defaultValue={initial?.description ?? ""}
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
           required
           className="h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
         />

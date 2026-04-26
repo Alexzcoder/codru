@@ -10,18 +10,33 @@ import { Plus } from "lucide-react";
 
 export default async function RecurringPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ kind?: string }>;
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
   await requireUser();
   const t = await getTranslations();
+  const sp = await searchParams;
 
   // Fire due rules lazily (throttled inside the function).
   await runDueRecurrences();
 
+  // Kind filter: business (JOB + INVOICE — both bill the client) vs expense
+  // (overhead / supplier bills). Default to business so the operator's main
+  // billing rules don't get mixed with admin overhead.
+  const kind = sp.kind === "expense" ? "expense" : sp.kind === "all" ? "all" : "business";
+  const ruleKindFilter =
+    kind === "business"
+      ? { targetKind: { in: ["JOB", "INVOICE"] as ("JOB" | "INVOICE")[] } }
+      : kind === "expense"
+        ? { targetKind: "EXPENSE" as const }
+        : {};
+
   const rules = await prisma.recurrenceRule.findMany({
+    where: ruleKindFilter,
     orderBy: { nextRunAt: "asc" },
     include: { _count: { select: { jobs: true, expenses: true, documents: true } } },
   });
@@ -39,6 +54,28 @@ export default async function RecurringPage({
           </Link>
         }
       />
+
+      <div className="mb-6 flex flex-wrap gap-2 text-sm">
+        {(
+          [
+            { key: "business", label: "Jobs & Invoices" },
+            { key: "expense", label: t("Expenses.title") },
+            { key: "all", label: t("Common.all") },
+          ] as const
+        ).map((tab) => (
+          <Link
+            key={tab.key}
+            href={tab.key === "business" ? "/recurring" : `/recurring?kind=${tab.key}`}
+            className={
+              kind === tab.key
+                ? "rounded-full bg-primary px-3 py-1 text-white"
+                : "rounded-full bg-secondary px-3 py-1 text-foreground hover:bg-neutral-200"
+            }
+          >
+            {tab.label}
+          </Link>
+        ))}
+      </div>
 
       {rules.length === 0 ? (
         <div className="mt-12 rounded-xl border border-dashed border-border bg-card shadow-sm p-12 text-center">

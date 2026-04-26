@@ -205,7 +205,7 @@ export default async function FinalInvoiceDetailPage({
                   href={`/advance-invoices/${d.advanceId}`}
                   className="hover:underline"
                 >
-                  {d.advance.number ?? "(draft)"}
+                  {d.advance.number ?? t("Common.draft")}
                 </Link>
               </li>
             ))}
@@ -300,7 +300,7 @@ export default async function FinalInvoiceDetailPage({
             {creditNotes.notes.map((n) => (
               <li key={n.id} className="flex items-center justify-between">
                 <Link href={`/credit-notes/${n.id}`} className="hover:underline">
-                  {n.number ?? "(draft)"} ·{" "}
+                  {n.number ?? t("Common.draft")} ·{" "}
                   <span className="text-xs text-muted-foreground">
                     {t(`CreditNotes.status.${n.status === "PAID" ? "APPLIED" : n.status}`)}
                   </span>

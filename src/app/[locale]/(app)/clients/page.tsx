@@ -8,7 +8,7 @@ import { ClientListFilters } from "./list-filters";
 import { createDemoClient } from "./actions";
 import { PageHeader } from "@/components/page-header";
 import { ClickableRow } from "@/components/clickable-row";
-import { Plus, Download, Sparkles } from "lucide-react";
+import { Plus, Download, Sparkles, Upload } from "lucide-react";
 import type { ClientStatus } from "@prisma/client";
 
 const PAGE_SIZE = 50;
@@ -70,6 +70,11 @@ export default async function ClientsPage({
                 <Sparkles size={14} /> Demo
               </Button>
             </form>
+            <Link href="/clients/import">
+              <Button variant="outline" size="sm" className="gap-1.5">
+                <Upload size={14} /> Import
+              </Button>
+            </Link>
             <Link href="/clients/export" prefetch={false}>
               <Button variant="outline" size="sm" className="gap-1.5">
                 <Download size={14} /> {t("Clients.exportCsv")}

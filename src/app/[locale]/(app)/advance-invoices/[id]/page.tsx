@@ -284,7 +284,7 @@ export default async function AdvanceInvoiceDetailPage({
             {creditNotes.notes.map((n) => (
               <li key={n.id} className="flex items-center justify-between">
                 <Link href={`/credit-notes/${n.id}`} className="hover:underline">
-                  {n.number ?? "(draft)"} ·{" "}
+                  {n.number ?? t("Common.draft")} ·{" "}
                   <span className="text-xs text-muted-foreground">
                     {t(`CreditNotes.status.${n.status === "PAID" ? "APPLIED" : n.status}`)}
                   </span>

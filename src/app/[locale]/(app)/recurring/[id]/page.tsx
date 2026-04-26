@@ -172,7 +172,7 @@ export default async function RecurrenceRuleDetailPage({
               items={rule.documents.map((d) => ({
                 id: d.id,
                 href: `/final-invoices/${d.id}`,
-                label: d.number ?? "(draft)",
+                label: d.number ?? t("Common.draft"),
                 date: d.issueDate.toISOString().slice(0, 10),
               }))}
             />
