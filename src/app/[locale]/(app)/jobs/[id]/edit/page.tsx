@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { clientDisplayName } from "@/lib/client-display";
 import { JobForm } from "../../job-form";
 import { updateJob } from "../../actions";
+import { BackLink } from "@/components/back-link";
 
 export default async function EditJobPage({
   params,
@@ -38,7 +39,7 @@ export default async function EditJobPage({
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-8">
-      <p className="text-xs text-muted-foreground">{t("Jobs.title")}</p>
+      <BackLink href={`/jobs/${id}`} label={job.title} />
       <h1 className="text-2xl font-semibold tracking-tight">{job.title}</h1>
       <div className="mt-8">
         <JobForm

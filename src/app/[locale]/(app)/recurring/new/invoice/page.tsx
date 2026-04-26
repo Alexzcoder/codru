@@ -4,6 +4,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { InvoiceRuleForm } from "./form";
 import { createInvoiceRule } from "../../actions";
 import { loadFinalInvoiceFormData } from "../../../final-invoices/load-form-data";
+import { BackLink } from "@/components/back-link";
 
 export default async function NewInvoiceRulePage({
   params,
@@ -20,6 +21,7 @@ export default async function NewInvoiceRulePage({
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-8">
+      <BackLink href="/recurring/new" label={t("Recurring.title")} />
       <h1 className="text-2xl font-semibold tracking-tight">
         {t("Recurring.new")} · {t("Recurring.kinds.INVOICE")}
       </h1>

@@ -6,6 +6,7 @@ import { clientDisplayName } from "@/lib/client-display";
 import { EventForm } from "../../event-form";
 import { updateCalendarEvent, toggleComplete, deleteCalendarEvent } from "../../actions";
 import { Button } from "@/components/ui/button";
+import { BackLink } from "@/components/back-link";
 
 export default async function EditEventPage({
   params,
@@ -49,7 +50,7 @@ export default async function EditEventPage({
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-8">
-      <p className="text-xs text-muted-foreground">{t("Calendar.title")}</p>
+      <BackLink href="/calendar" label={t("Calendar.title")} />
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold tracking-tight">{event.title}</h1>
         <div className="flex gap-2">

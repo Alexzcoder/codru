@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { DocumentTemplateForm } from "../document-template-form";
 import { updateDocumentTemplate, archiveDocumentTemplate } from "../actions";
 import { Button } from "@/components/ui/button";
+import { BackLink } from "@/components/back-link";
 
 export default async function EditDocumentTemplatePage({
   params,
@@ -32,6 +33,7 @@ export default async function EditDocumentTemplatePage({
 
   return (
     <div>
+      <BackLink href="/settings/document-templates" label="Document templates" />
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold tracking-tight">{tmpl.name}</h2>
         <a

@@ -4,6 +4,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { clientDisplayName } from "@/lib/client-display";
 import { JobForm } from "../job-form";
 import { createJob } from "../actions";
+import { BackLink } from "@/components/back-link";
 
 export default async function NewJobPage({
   params,
@@ -33,6 +34,7 @@ export default async function NewJobPage({
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-8">
+      <BackLink href="/jobs" label={t("Jobs.title")} />
       <h1 className="text-2xl font-semibold tracking-tight">{t("Jobs.newJob")}</h1>
       <div className="mt-8">
         <JobForm

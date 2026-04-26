@@ -1,6 +1,7 @@
 import { requireUser } from "@/lib/session";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
+import { BackLink } from "@/components/back-link";
 
 export default async function NewRecurringChooser({
   params,
@@ -32,6 +33,7 @@ export default async function NewRecurringChooser({
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-8">
+      <BackLink href="/recurring" label={t("Recurring.title")} />
       <h1 className="text-2xl font-semibold tracking-tight">{t("Recurring.new")}</h1>
       <p className="mt-2 text-sm text-muted-foreground">{t("Recurring.pickKind")}</p>
       <div className="mt-8 grid gap-4 md:grid-cols-3">

@@ -41,13 +41,24 @@ export default async function JobsPage({
   const sp = await searchParams;
 
   const q = sp.q?.trim() ?? "";
-  const statusFilter = VALID_STATUSES.includes(sp.status as JobStatus)
-    ? (sp.status as JobStatus)
+  // "active" is the new default — only Scheduled + In progress. Pick "all" or
+  // a specific status to broaden. Completed/Cancelled jobs land in History.
+  const rawStatus = sp.status ?? "active";
+  const statusFilter = VALID_STATUSES.includes(rawStatus as JobStatus)
+    ? (rawStatus as JobStatus)
     : undefined;
+  const isActiveDefault = rawStatus === "active";
+  const isAll = rawStatus === "all";
   const page = Math.max(1, Number(sp.page) || 1);
 
   const where = {
-    ...(statusFilter && { status: statusFilter }),
+    ...(statusFilter
+      ? { status: statusFilter }
+      : isActiveDefault
+        ? { status: { in: ["SCHEDULED", "IN_PROGRESS"] as JobStatus[] } }
+        : isAll
+          ? {}
+          : {}),
     ...(sp.clientId && { clientId: sp.clientId }),
     ...(sp.assigneeId && { assignments: { some: { userId: sp.assigneeId } } }),
     ...(sp.from && { scheduledStart: { gte: new Date(sp.from) } }),
@@ -112,7 +123,7 @@ export default async function JobsPage({
         <JobListFilters
           initial={{
             q,
-            status: statusFilter ?? "ALL",
+            status: statusFilter ?? (isAll ? "ALL" : "ACTIVE"),
             clientId: sp.clientId ?? "",
             assigneeId: sp.assigneeId ?? "",
             from: sp.from ?? "",

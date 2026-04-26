@@ -4,6 +4,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { ExpenseForm } from "../../expense-form";
 import { updateExpense } from "../../actions";
+import { BackLink } from "@/components/back-link";
 
 export default async function EditExpensePage({
   params,
@@ -33,7 +34,7 @@ export default async function EditExpensePage({
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-8">
-      <p className="text-xs text-muted-foreground">{t("Expenses.title")}</p>
+      <BackLink href="/expenses" label={t("Expenses.title")} />
       <h1 className="text-2xl font-semibold tracking-tight">{expense.description}</h1>
       <div className="mt-8">
         <ExpenseForm

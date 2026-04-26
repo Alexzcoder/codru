@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { clientDisplayName } from "@/lib/client-display";
+import { calculateDocument } from "@/lib/line-items";
 import { ContactLogForm } from "./contact-log-form";
 import { deleteClient, anonymizeClient } from "../actions";
 import { BackLink } from "@/components/back-link";
@@ -19,7 +20,7 @@ export default async function ClientDetailPage({
   await requireUser();
   const t = await getTranslations();
 
-  const [client, logs, customValues, customDefs, jobs, jobAttachments, docSnapshots] =
+  const [client, logs, customValues, customDefs, jobs, jobAttachments, docSnapshots, clientDocs] =
     await Promise.all([
       prisma.client.findUnique({ where: { id } }),
       prisma.contactLog.findMany({
@@ -50,6 +51,15 @@ export default async function ClientDetailPage({
           document: { select: { id: true, type: true, number: true, issueDate: true } },
         },
         orderBy: { createdAt: "desc" },
+        take: 200,
+      }),
+      prisma.document.findMany({
+        where: { clientId: id, deletedAt: null },
+        include: {
+          lineItems: true,
+          paymentAllocations: true,
+        },
+        orderBy: { issueDate: "desc" },
         take: 200,
       }),
     ]);
@@ -83,6 +93,39 @@ export default async function ClientDetailPage({
   const upcoming = scheduleItems.filter((i) => i.date.getTime() >= now);
   const past = scheduleItems.filter((i) => i.date.getTime() < now).reverse();
   if (!client || client.deletedAt) notFound();
+
+  // ── Financial summary ──────────────────────────────────────────────────────
+  // Sum gross from sent invoices (advance + final). Subtract credit notes.
+  // totalPaid = sum of allocations on the same invoices.
+  let totalBilled = 0;
+  let totalPaid = 0;
+  let totalCredited = 0;
+  for (const d of clientDocs) {
+    if (d.status === "UNSENT") continue;
+    const totals = calculateDocument({
+      lines: d.lineItems.map((l) => ({
+        quantity: l.quantity.toString(),
+        unitPrice: l.unitPrice.toString(),
+        taxRatePercent: l.taxRatePercent.toString(),
+        taxMode: l.taxMode,
+        lineDiscountPercent: l.lineDiscountPercent?.toString() ?? null,
+        lineDiscountAmount: l.lineDiscountAmount?.toString() ?? null,
+      })),
+      documentDiscountPercent: d.documentDiscountPercent?.toString() ?? null,
+      documentDiscountAmount: d.documentDiscountAmount?.toString() ?? null,
+      reverseCharge: d.reverseCharge,
+    });
+    const gross = Number.parseFloat(totals.totalGross);
+    if (d.type === "FINAL_INVOICE" || d.type === "ADVANCE_INVOICE") {
+      totalBilled += gross;
+      for (const a of d.paymentAllocations) {
+        totalPaid += Number(a.amount);
+      }
+    } else if (d.type === "CREDIT_NOTE") {
+      totalCredited += gross;
+    }
+  }
+  const outstanding = Math.max(totalBilled - totalCredited - totalPaid, 0);
 
   const deleteBound = async () => {
     "use server";
@@ -185,15 +228,77 @@ export default async function ClientDetailPage({
           </h2>
           <dl className="mt-3 grid grid-cols-2 gap-y-2 text-sm">
             <dt className="text-muted-foreground">{t("Clients.detail.totalBilled")}</dt>
-            <dd className="text-right tabular-nums">—</dd>
+            <dd className="text-right tabular-nums">{totalBilled.toFixed(2)} {client.preferredCurrency}</dd>
             <dt className="text-muted-foreground">{t("Clients.detail.totalPaid")}</dt>
-            <dd className="text-right tabular-nums">—</dd>
-            <dt className="text-muted-foreground">{t("Clients.detail.outstanding")}</dt>
-            <dd className="text-right tabular-nums">—</dd>
+            <dd className="text-right tabular-nums">{totalPaid.toFixed(2)} {client.preferredCurrency}</dd>
+            {totalCredited > 0 && (
+              <>
+                <dt className="text-muted-foreground">Credit notes</dt>
+                <dd className="text-right tabular-nums">−{totalCredited.toFixed(2)} {client.preferredCurrency}</dd>
+              </>
+            )}
+            <dt className="text-muted-foreground font-medium">{t("Clients.detail.outstanding")}</dt>
+            <dd className={`text-right tabular-nums font-semibold ${outstanding > 0 ? "text-amber-700" : "text-foreground"}`}>
+              {outstanding.toFixed(2)} {client.preferredCurrency}
+            </dd>
           </dl>
-          <p className="mt-3 text-xs text-muted-foreground">Available from M10.</p>
         </aside>
       </div>
+
+      <section className="mt-10">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-medium">Documents</h2>
+          <Link href={`/quotes/new?clientId=${id}`}>
+            <Button size="sm" variant="outline">
+              {t("Quotes.newQuote")}
+            </Button>
+          </Link>
+        </div>
+        {clientDocs.length === 0 ? (
+          <p className="mt-3 text-sm text-muted-foreground">No documents yet.</p>
+        ) : (
+          <ul className="mt-3 divide-y divide-border rounded-xl border border-border bg-card shadow-sm">
+            {clientDocs.map((d) => {
+              const href =
+                d.type === "QUOTE"
+                  ? `/quotes/${d.id}`
+                  : d.type === "ADVANCE_INVOICE"
+                  ? `/advance-invoices/${d.id}`
+                  : d.type === "FINAL_INVOICE"
+                  ? `/final-invoices/${d.id}`
+                  : `/credit-notes/${d.id}`;
+              const typeLabel =
+                d.type === "QUOTE"
+                  ? t("Quotes.title")
+                  : d.type === "ADVANCE_INVOICE"
+                  ? t("AdvanceInvoices.title")
+                  : d.type === "FINAL_INVOICE"
+                  ? t("FinalInvoices.title")
+                  : t("CreditNotes.title");
+              return (
+                <li key={d.id}>
+                  <Link
+                    href={href}
+                    className="flex items-center justify-between gap-3 px-4 py-2 text-sm hover:bg-secondary/40"
+                  >
+                    <span className="flex items-center gap-3 min-w-0">
+                      <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] uppercase tracking-wider text-muted-foreground shrink-0">
+                        {typeLabel}
+                      </span>
+                      <span className="font-medium truncate">
+                        {d.number ?? d.title ?? t("Common.draft")}
+                      </span>
+                    </span>
+                    <span className="flex items-center gap-3 text-xs text-muted-foreground shrink-0">
+                      <span>{d.issueDate.toISOString().slice(0, 10)}</span>
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </section>
 
       <section className="mt-10">
         <div className="flex items-center justify-between">

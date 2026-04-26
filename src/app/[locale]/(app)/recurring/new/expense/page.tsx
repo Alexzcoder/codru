@@ -4,6 +4,7 @@ import { seedDefaults } from "@/lib/seed-defaults";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ExpenseRuleForm } from "./form";
 import { createExpenseRule } from "../../actions";
+import { BackLink } from "@/components/back-link";
 
 export default async function NewExpenseRulePage({
   params,
@@ -30,6 +31,7 @@ export default async function NewExpenseRulePage({
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-8">
+      <BackLink href="/recurring/new" label={t("Recurring.title")} />
       <h1 className="text-2xl font-semibold tracking-tight">
         {t("Recurring.new")} · {t("Recurring.kinds.EXPENSE")}
       </h1>

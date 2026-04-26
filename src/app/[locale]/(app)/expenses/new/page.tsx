@@ -4,6 +4,7 @@ import { seedDefaults } from "@/lib/seed-defaults";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ExpenseForm } from "../expense-form";
 import { createExpense } from "../actions";
+import { BackLink } from "@/components/back-link";
 
 export default async function NewExpensePage({
   params,
@@ -33,6 +34,7 @@ export default async function NewExpensePage({
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-8">
+      <BackLink href="/expenses" label={t("Expenses.title")} />
       <h1 className="text-2xl font-semibold tracking-tight">{t("Expenses.new")}</h1>
       <div className="mt-8">
         <ExpenseForm

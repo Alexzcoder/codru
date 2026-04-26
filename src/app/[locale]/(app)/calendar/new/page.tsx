@@ -4,6 +4,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { clientDisplayName } from "@/lib/client-display";
 import { EventForm } from "../event-form";
 import { createCalendarEvent } from "../actions";
+import { BackLink } from "@/components/back-link";
 
 export default async function NewEventPage({
   params,
@@ -36,6 +37,7 @@ export default async function NewEventPage({
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-8">
+      <BackLink href="/calendar" label={t("Calendar.title")} />
       <h1 className="text-2xl font-semibold tracking-tight">
         {t("Calendar.newEvent")}
       </h1>

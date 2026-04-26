@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { ItemTemplateForm } from "../item-template-form";
 import { updateItemTemplate, archiveItemTemplate } from "../actions";
 import { Button } from "@/components/ui/button";
+import { BackLink } from "@/components/back-link";
 
 export default async function EditItemTemplatePage({
   params,
@@ -35,6 +36,7 @@ export default async function EditItemTemplatePage({
 
   return (
     <div>
+      <BackLink href="/settings/item-templates" label={t("ItemTemplates.title")} />
       <h2 className="text-lg font-semibold tracking-tight">{t("ItemTemplates.edit")}</h2>
       <div className="mt-6">
         <ItemTemplateForm

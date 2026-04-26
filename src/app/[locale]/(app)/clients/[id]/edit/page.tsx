@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { ClientForm } from "../../client-form";
 import { updateClient } from "../../actions";
 import { clientDisplayName } from "@/lib/client-display";
+import { BackLink } from "@/components/back-link";
 
 export default async function EditClientPage({
   params,
@@ -31,7 +32,7 @@ export default async function EditClientPage({
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-8">
-      <p className="text-xs text-muted-foreground">{t("Clients.title")}</p>
+      <BackLink href={`/clients/${id}`} label={clientDisplayName(client)} />
       <h1 className="text-2xl font-semibold tracking-tight">
         {clientDisplayName(client)}
       </h1>

@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { PaymentForm } from "../../payment-form";
 import { updatePayment } from "../../actions";
 import { loadPaymentFormData } from "../../load-form-data";
+import { BackLink } from "@/components/back-link";
 
 export default async function EditPaymentPage({
   params,
@@ -29,7 +30,7 @@ export default async function EditPaymentPage({
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-8">
-      <p className="text-xs text-muted-foreground">{t("Payments.title")}</p>
+      <BackLink href="/payments" label={t("Payments.title")} />
       <h1 className="text-2xl font-semibold tracking-tight">
         {payment.date.toISOString().slice(0, 10)} · {payment.amount.toString()}{" "}
         {payment.currency}

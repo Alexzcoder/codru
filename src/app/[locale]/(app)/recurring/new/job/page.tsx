@@ -4,6 +4,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { clientDisplayName } from "@/lib/client-display";
 import { JobRuleForm } from "./form";
 import { createJobRule } from "../../actions";
+import { BackLink } from "@/components/back-link";
 
 export default async function NewJobRulePage({
   params,
@@ -29,6 +30,7 @@ export default async function NewJobRulePage({
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-8">
+      <BackLink href="/recurring/new" label={t("Recurring.title")} />
       <h1 className="text-2xl font-semibold tracking-tight">
         {t("Recurring.new")} · {t("Recurring.kinds.JOB")}
       </h1>

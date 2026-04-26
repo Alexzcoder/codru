@@ -6,7 +6,14 @@ import { useRouter } from "@/i18n/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
-const STATUSES = ["ALL", "SCHEDULED", "IN_PROGRESS", "COMPLETED", "CANCELLED"] as const;
+const STATUSES = [
+  "ACTIVE",
+  "SCHEDULED",
+  "IN_PROGRESS",
+  "COMPLETED",
+  "CANCELLED",
+  "ALL",
+] as const;
 
 export function JobListFilters({
   initial,
@@ -32,7 +39,9 @@ export function JobListFilters({
   const apply = (next = state) => {
     const params = new URLSearchParams();
     if (next.q) params.set("q", next.q);
-    if (next.status !== "ALL") params.set("status", next.status);
+    // ACTIVE is the default — no status param. ALL → ?status=all.
+    if (next.status === "ALL") params.set("status", "all");
+    else if (next.status !== "ACTIVE") params.set("status", next.status);
     if (next.clientId) params.set("clientId", next.clientId);
     if (next.assigneeId) params.set("assigneeId", next.assigneeId);
     if (next.from) params.set("from", next.from);
@@ -62,7 +71,11 @@ export function JobListFilters({
       >
         {STATUSES.map((s) => (
           <option key={s} value={s}>
-            {s === "ALL" ? t("filters.all") : t(`status.${s}`)}
+            {s === "ALL"
+              ? t("filters.all")
+              : s === "ACTIVE"
+                ? t("filters.active")
+                : t(`status.${s}`)}
           </option>
         ))}
       </select>
@@ -116,13 +129,13 @@ export function JobListFilters({
           className="h-9 w-36"
         />
       </div>
-      {(state.q || state.status !== "ALL" || state.clientId || state.assigneeId || state.from || state.to) && (
+      {(state.q || state.status !== "ACTIVE" || state.clientId || state.assigneeId || state.from || state.to) && (
         <Button
           type="button"
           variant="ghost"
           size="sm"
           onClick={() => {
-            const cleared = { q: "", status: "ALL" as const, clientId: "", assigneeId: "", from: "", to: "" };
+            const cleared = { q: "", status: "ACTIVE" as const, clientId: "", assigneeId: "", from: "", to: "" };
             setState(cleared);
             apply(cleared);
           }}

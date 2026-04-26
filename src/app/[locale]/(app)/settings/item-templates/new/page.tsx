@@ -4,6 +4,7 @@ import { seedDefaults } from "@/lib/seed-defaults";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ItemTemplateForm } from "../item-template-form";
 import { createItemTemplate } from "../actions";
+import { BackLink } from "@/components/back-link";
 
 export default async function NewItemTemplatePage({
   params,
@@ -27,6 +28,7 @@ export default async function NewItemTemplatePage({
 
   return (
     <div>
+      <BackLink href="/settings/item-templates" label={t("ItemTemplates.title")} />
       <h2 className="text-lg font-semibold tracking-tight">{t("ItemTemplates.new")}</h2>
       <div className="mt-6">
         <ItemTemplateForm

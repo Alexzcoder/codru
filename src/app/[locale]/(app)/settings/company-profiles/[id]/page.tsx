@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { CompanyProfileForm } from "../company-profile-form";
 import { updateCompanyProfile, archiveCompanyProfile } from "../actions";
 import { Button } from "@/components/ui/button";
+import { BackLink } from "@/components/back-link";
 
 export default async function EditCompanyProfilePage({
   params,
@@ -27,6 +28,7 @@ export default async function EditCompanyProfilePage({
 
   return (
     <div>
+      <BackLink href="/settings/company-profiles" label={t("Settings.companyProfiles")} />
       <h2 className="text-lg font-semibold tracking-tight">{t("Settings.editCompanyProfile")}</h2>
       <div className="mt-6">
         <CompanyProfileForm initial={profile} action={updateBound} />

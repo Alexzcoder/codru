@@ -49,6 +49,14 @@ async function sumInvoiceGrossInRange(start: Date, end: Date): Promise<number> {
   return total;
 }
 
+async function sumExpenseGrossInRange(start: Date, end: Date): Promise<number> {
+  const agg = await prisma.expense.aggregate({
+    where: { date: { gte: start, lt: end } },
+    _sum: { totalAmount: true },
+  });
+  return Number(agg._sum.totalAmount ?? 0);
+}
+
 export default async function AccountingDashboardPage({
   params,
 }: {
@@ -75,6 +83,12 @@ export default async function AccountingDashboardPage({
     revQuarterPrev,
     revYear,
     revYearPrev,
+    expMonth,
+    expMonthPrev,
+    expQuarter,
+    expQuarterPrev,
+    expYear,
+    expYearPrev,
     unpaidInvoices,
     staleQuotes,
     ppcAdvances,
@@ -88,6 +102,12 @@ export default async function AccountingDashboardPage({
     sumInvoiceGrossInRange(qsPrev, qs),
     sumInvoiceGrossInRange(ys, now),
     sumInvoiceGrossInRange(ysPrev, ys),
+    sumExpenseGrossInRange(ms, now),
+    sumExpenseGrossInRange(msPrev, ms),
+    sumExpenseGrossInRange(qs, now),
+    sumExpenseGrossInRange(qsPrev, qs),
+    sumExpenseGrossInRange(ys, now),
+    sumExpenseGrossInRange(ysPrev, ys),
     prisma.document.findMany({
       where: {
         type: { in: ["ADVANCE_INVOICE", "FINAL_INVOICE"] },
@@ -203,6 +223,27 @@ export default async function AccountingDashboardPage({
           title={t("Accounting.revenue.thisYear")}
           amount={revYear}
           delta={fmtDelta(revYear, revYearPrev)}
+        />
+      </section>
+
+      <section className="mt-4 grid gap-4 md:grid-cols-3">
+        <ExpCard
+          title={`${t("Expenses.title")} — ${t("Accounting.revenue.thisMonth")}`}
+          amount={expMonth}
+          netProfit={revMonth - expMonth}
+          delta={fmtDelta(expMonth, expMonthPrev)}
+        />
+        <ExpCard
+          title={`${t("Expenses.title")} — ${t("Accounting.revenue.thisQuarter")}`}
+          amount={expQuarter}
+          netProfit={revQuarter - expQuarter}
+          delta={fmtDelta(expQuarter, expQuarterPrev)}
+        />
+        <ExpCard
+          title={`${t("Expenses.title")} — ${t("Accounting.revenue.thisYear")}`}
+          amount={expYear}
+          netProfit={revYear - expYear}
+          delta={fmtDelta(expYear, expYearPrev)}
         />
       </section>
 
@@ -388,6 +429,42 @@ function RevCard({
         className={`mt-1 text-xs tabular-nums ${delta.positive ? "text-green-700" : "text-red-600"}`}
       >
         {delta.text}
+      </p>
+    </div>
+  );
+}
+
+function ExpCard({
+  title,
+  amount,
+  netProfit,
+  delta,
+}: {
+  title: string;
+  amount: number;
+  netProfit: number;
+  delta: { text: string; positive: boolean };
+}) {
+  // For expenses, "positive delta" means MORE spending — flip the colour.
+  const expPositive = !delta.positive;
+  return (
+    <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+      <h2 className="text-xs uppercase tracking-wider text-muted-foreground">{title}</h2>
+      <p className="mt-2 text-2xl font-semibold tabular-nums text-foreground">
+        −{amount.toFixed(2)} CZK
+      </p>
+      <p
+        className={`mt-1 text-xs tabular-nums ${expPositive ? "text-green-700" : "text-red-600"}`}
+      >
+        {delta.text}
+      </p>
+      <p className="mt-3 border-t border-border pt-2 text-xs text-muted-foreground">
+        Net:{" "}
+        <span
+          className={`tabular-nums font-semibold ${netProfit >= 0 ? "text-green-700" : "text-red-600"}`}
+        >
+          {netProfit.toFixed(2)} CZK
+        </span>
       </p>
     </div>
   );

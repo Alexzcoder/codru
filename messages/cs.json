@@ -502,7 +502,8 @@
       "assignee": "Přiřazený tým",
       "from": "Od",
       "to": "Do",
-      "all": "Vše"
+      "all": "Vše",
+      "active": "Aktivní"
     }
   },
   "Clients": {

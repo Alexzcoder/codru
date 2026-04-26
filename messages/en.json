@@ -502,7 +502,8 @@
       "assignee": "Assigned team",
       "from": "From",
       "to": "To",
-      "all": "All"
+      "all": "All",
+      "active": "Active"
     }
   },
   "Clients": {

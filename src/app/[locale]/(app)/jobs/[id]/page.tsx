@@ -21,7 +21,7 @@ export default async function JobDetailPage({
   await requireUser();
   const t = await getTranslations();
 
-  const [job, logs] = await Promise.all([
+  const [job, logs, jobDocs] = await Promise.all([
     prisma.job.findUnique({
       where: { id },
       include: {
@@ -38,6 +38,12 @@ export default async function JobDetailPage({
       orderBy: { date: "desc" },
       include: { loggedBy: { select: { name: true } } },
       take: 100,
+    }),
+    prisma.document.findMany({
+      where: { jobId: id, deletedAt: null },
+      orderBy: { issueDate: "desc" },
+      take: 50,
+      select: { id: true, type: true, number: true, title: true, status: true, issueDate: true },
     }),
   ]);
   if (!job) notFound();
@@ -70,6 +76,11 @@ export default async function JobDetailPage({
           <Link href={`/jobs/${id}/edit`}>
             <Button variant="outline" size="sm">
               {t("Settings.edit")}
+            </Button>
+          </Link>
+          <Link href={`/quotes/new?fromJob=${id}`}>
+            <Button variant="outline" size="sm">
+              → {t("Quotes.newQuote")}
             </Button>
           </Link>
           <Link href={`/final-invoices/new?fromJob=${id}`}>
@@ -198,6 +209,56 @@ export default async function JobDetailPage({
           </Link>
         </aside>
       </div>
+
+      <section className="mt-10">
+        <h2 className="text-lg font-medium">Documents</h2>
+        {jobDocs.length === 0 ? (
+          <p className="mt-3 text-sm text-muted-foreground">
+            No quotes or invoices linked to this job yet.
+          </p>
+        ) : (
+          <ul className="mt-3 divide-y divide-border rounded-xl border border-border bg-card shadow-sm">
+            {jobDocs.map((d) => {
+              const href =
+                d.type === "QUOTE"
+                  ? `/quotes/${d.id}`
+                  : d.type === "ADVANCE_INVOICE"
+                  ? `/advance-invoices/${d.id}`
+                  : d.type === "FINAL_INVOICE"
+                  ? `/final-invoices/${d.id}`
+                  : `/credit-notes/${d.id}`;
+              const typeLabel =
+                d.type === "QUOTE"
+                  ? t("Quotes.title")
+                  : d.type === "ADVANCE_INVOICE"
+                  ? t("AdvanceInvoices.title")
+                  : d.type === "FINAL_INVOICE"
+                  ? t("FinalInvoices.title")
+                  : t("CreditNotes.title");
+              return (
+                <li key={d.id}>
+                  <Link
+                    href={href}
+                    className="flex items-center justify-between gap-3 px-4 py-2 text-sm hover:bg-secondary/40"
+                  >
+                    <span className="flex min-w-0 items-center gap-3">
+                      <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] uppercase tracking-wider text-muted-foreground shrink-0">
+                        {typeLabel}
+                      </span>
+                      <span className="font-medium truncate">
+                        {d.number ?? d.title ?? t("Common.draft")}
+                      </span>
+                    </span>
+                    <span className="shrink-0 text-xs text-muted-foreground">
+                      {d.issueDate.toISOString().slice(0, 10)}
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </section>
 
       <section className="mt-10">
         <h2 className="text-lg font-medium">{t("Jobs.detail.attachments")}</h2>
