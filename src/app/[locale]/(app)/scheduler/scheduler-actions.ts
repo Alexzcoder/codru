@@ -5,6 +5,7 @@ import { hasFeature } from "@/lib/features";
 import { notFound } from "next/navigation";
 import {
   pickTopSlotsForDay,
+  pickTopWindowsForDay,
   DEGREES,
   formatHour,
   type DegreeCode,
@@ -27,6 +28,7 @@ export async function analyzeSchedule(input: {
   date: string;
   ranges: DayRange[];
   degrees: DegreeCode[];
+  durationMinutes?: number;
 }): Promise<AnalyzeResult> {
   const { workspace } = await requireWorkspace();
   if (!hasFeature(workspace, "scheduler")) notFound();
@@ -44,9 +46,26 @@ export async function analyzeSchedule(input: {
     return { ok: false, error: "Pick at least one target degree." };
   }
 
-  const { ranked } = pickTopSlotsForDay(input.date, input.ranges, validDegrees, 3);
+  // If the caller specified an event duration, slide a window of that length
+  // through each availability range and rank candidate windows. Otherwise
+  // fall back to ranking the raw availability ranges.
+  const ranked = input.durationMinutes && input.durationMinutes > 0
+    ? pickTopWindowsForDay(
+        input.date,
+        input.ranges,
+        input.durationMinutes,
+        validDegrees,
+        3,
+      ).ranked
+    : pickTopSlotsForDay(input.date, input.ranges, validDegrees, 3).ranked;
+
   if (ranked.length === 0) {
-    return { ok: false, error: "None of those slots are usable — check the times." };
+    return {
+      ok: false,
+      error: input.durationMinutes
+        ? "No availability range is long enough for that duration."
+        : "None of those slots are usable — check the times.",
+    };
   }
 
   return {

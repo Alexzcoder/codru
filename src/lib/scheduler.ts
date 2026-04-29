@@ -205,6 +205,80 @@ export function pickTopSlotsForDay(
   };
 }
 
+/**
+ * Sub-window variant: caller specifies the EVENT duration. We slide a window
+ * of that length through every availability range (15-min step) and rank
+ * each candidate by overlap with the picked degree windows. Returns top N.
+ */
+export function pickTopWindowsForDay(
+  date: string,
+  ranges: DayRange[],
+  durationMinutes: number,
+  degrees: DegreeCode[],
+  topN = 3,
+): { ranked: RankedSlot[]; parsedCount: number; rejectedCount: number } {
+  const d = parseDate(date);
+  if (!d || !Number.isFinite(durationMinutes) || durationMinutes <= 0) {
+    return { ranked: [], parsedCount: 0, rejectedCount: ranges.length };
+  }
+  const weekday = d.getDay() as Weekday;
+  const stepHours = 15 / 60;
+  const durHours = durationMinutes / 60;
+
+  const windows: ParsedSlot[] = [];
+  let rejected = 0;
+  for (const r of ranges) {
+    if (
+      typeof r.fromHour !== "number" ||
+      typeof r.toHour !== "number" ||
+      r.toHour <= r.fromHour ||
+      r.fromHour < 0 ||
+      r.toHour > 24
+    ) {
+      rejected++;
+      continue;
+    }
+    if (r.toHour - r.fromHour < durHours) {
+      // Range too short to fit the event.
+      rejected++;
+      continue;
+    }
+    for (
+      let start = r.fromHour;
+      start + durHours <= r.toHour + 1e-9;
+      start += stepHours
+    ) {
+      // Snap to two decimals to avoid float drift in the dedupe key.
+      const startH = Math.round(start * 100) / 100;
+      const endH = Math.round((start + durHours) * 100) / 100;
+      windows.push({
+        date,
+        fromHour: startH,
+        toHour: endH,
+        weekday,
+        durationMinutes,
+      });
+    }
+  }
+
+  const seen = new Set<string>();
+  const dedup: ParsedSlot[] = [];
+  for (const w of windows) {
+    const key = `${w.fromHour}-${w.toHour}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    dedup.push(w);
+  }
+
+  const ranked = dedup.map((s) => rank(s, degrees));
+  ranked.sort((a, b) => b.totalScore - a.totalScore);
+  return {
+    ranked: ranked.slice(0, topN),
+    parsedCount: dedup.length,
+    rejectedCount: rejected,
+  };
+}
+
 export function formatHour(h: number): string {
   const hh = Math.floor(h);
   const mm = Math.round((h - hh) * 60);

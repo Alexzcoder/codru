@@ -27,9 +27,24 @@ export default async function EventDetailPage({
     include: {
       todos: {
         orderBy: [{ status: "asc" }, { position: "asc" }],
-        include: { assignee: { select: { id: true, name: true } } },
+        include: {
+          assignee: { select: { id: true, name: true } },
+          attachments: {
+            orderBy: { createdAt: "desc" },
+            select: {
+              id: true,
+              filename: true,
+              path: true,
+              kind: true,
+              caption: true,
+            },
+          },
+        },
       },
-      attachments: { orderBy: { createdAt: "desc" } },
+      attachments: {
+        orderBy: { createdAt: "desc" },
+        include: { todo: { select: { id: true, title: true } } },
+      },
     },
   });
   if (!event) notFound();
@@ -83,7 +98,8 @@ export default async function EventDetailPage({
       <section className="mt-8">
         <h2 className="text-lg font-medium">To-dos</h2>
         <p className="mt-1 text-xs text-muted-foreground">
-          Drag-free for now — pick a column with the buttons on each card.
+          Drag a card between columns to change its status. Files attached
+          here also appear in the event Files list below.
         </p>
         <div className="mt-4">
           <EventTodoList
@@ -96,6 +112,13 @@ export default async function EventDetailPage({
               assigneeId: t.assigneeId,
               assigneeName: t.assignee?.name ?? null,
               dueDate: t.dueDate ? t.dueDate.toISOString().slice(0, 10) : null,
+              attachments: t.attachments.map((a) => ({
+                id: a.id,
+                filename: a.filename,
+                path: a.path,
+                kind: a.kind as "IMAGE" | "PDF" | "OTHER",
+                caption: a.caption,
+              })),
             }))}
             assignees={members.map((m) => ({ id: m.id, name: m.name }))}
           />
@@ -151,6 +174,11 @@ export default async function EventDetailPage({
                     </p>
                     {a.caption && (
                       <p className="text-muted-foreground">{a.caption}</p>
+                    )}
+                    {a.todo && (
+                      <p className="mt-0.5 truncate text-[10px] uppercase tracking-wider text-muted-foreground">
+                        from to-do · {a.todo.title}
+                      </p>
                     )}
                     <form action={delBound} className="mt-2">
                       <button

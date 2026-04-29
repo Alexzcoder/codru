@@ -30,6 +30,19 @@ export async function uploadEventAttachment(
   });
   if (!event) return { error: "notFound" };
 
+  // Optional: when the upload came from a todo card the form posts a todoId.
+  // We set both event + todo links so the file shows on the card AND in the
+  // event Files section.
+  const rawTodoId = (formData.get("todoId") as string | null)?.trim() || null;
+  let todoId: string | null = null;
+  if (rawTodoId) {
+    const todo = await prisma.eventTodo.findFirst({
+      where: { id: rawTodoId, eventId },
+      select: { id: true },
+    });
+    if (todo) todoId = todo.id;
+  }
+
   const count = await prisma.eventAttachment.count({ where: { eventId } });
   if (count >= MAX_FILES_PER_EVENT) return { error: "tooManyFiles" };
 
@@ -43,6 +56,7 @@ export async function uploadEventAttachment(
   const att = await prisma.eventAttachment.create({
     data: {
       eventId,
+      todoId,
       filename: saved.filename,
       mimeType: saved.mimeType,
       sizeBytes: saved.sizeBytes,

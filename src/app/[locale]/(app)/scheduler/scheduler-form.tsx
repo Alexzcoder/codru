@@ -29,6 +29,7 @@ const todayIso = () => {
 
 export function SchedulerForm() {
   const [date, setDate] = useState(todayIso);
+  const [duration, setDuration] = useState("90"); // minutes
   const [rows, setRows] = useState<Row[]>([{ from: "18:00", to: "20:00" }]);
   const [picked, setPicked] = useState<Set<DegreeCode>>(
     new Set(["BBA", "BIR"]),
@@ -61,11 +62,13 @@ export function SchedulerForm() {
       })
       .filter((r): r is { fromHour: number; toHour: number } => r !== null);
 
+    const dur = Number.parseInt(duration, 10);
     startTransition(async () => {
       const r = await analyzeSchedule({
         date,
         ranges,
         degrees: Array.from(picked),
+        durationMinutes: Number.isFinite(dur) && dur > 0 ? dur : undefined,
       });
       setResult(r);
     });
@@ -73,17 +76,35 @@ export function SchedulerForm() {
 
   return (
     <form onSubmit={onSubmit} className="space-y-8">
-      {/* Date */}
-      <div className="space-y-2">
-        <Label htmlFor="date">Event day</Label>
-        <Input
-          id="date"
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          className="max-w-xs"
-          required
-        />
+      {/* Date + duration */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="space-y-2">
+          <Label htmlFor="date">Event day</Label>
+          <Input
+            id="date"
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            required
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="duration">Event duration</Label>
+          <select
+            id="duration"
+            value={duration}
+            onChange={(e) => setDuration(e.target.value)}
+            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
+          >
+            <option value="30">30 minutes</option>
+            <option value="45">45 minutes</option>
+            <option value="60">1 hour</option>
+            <option value="90">1 hour 30 min</option>
+            <option value="120">2 hours</option>
+            <option value="150">2 hours 30 min</option>
+            <option value="180">3 hours</option>
+          </select>
+        </div>
       </div>
 
       {/* Time slots */}
