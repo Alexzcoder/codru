@@ -159,6 +159,52 @@ export function pickTopSlots(
   };
 }
 
+/**
+ * Single-day variant: caller picks a target date and a list of time ranges
+ * the speaker is available within that date. UI exposes only date + time,
+ * dropping score / per-degree breakdown.
+ */
+export type DayRange = { fromHour: number; toHour: number };
+
+export function pickTopSlotsForDay(
+  date: string, // YYYY-MM-DD
+  ranges: DayRange[],
+  degrees: DegreeCode[],
+  topN = 3,
+): { ranked: RankedSlot[]; parsedCount: number; rejectedCount: number } {
+  const d = parseDate(date);
+  if (!d) return { ranked: [], parsedCount: 0, rejectedCount: ranges.length };
+  const weekday = d.getDay() as Weekday;
+  const slots: ParsedSlot[] = [];
+  let rejected = 0;
+  for (const r of ranges) {
+    if (
+      typeof r.fromHour !== "number" ||
+      typeof r.toHour !== "number" ||
+      r.toHour <= r.fromHour ||
+      r.fromHour < 0 ||
+      r.toHour > 24
+    ) {
+      rejected++;
+      continue;
+    }
+    slots.push({
+      date,
+      fromHour: r.fromHour,
+      toHour: r.toHour,
+      weekday,
+      durationMinutes: Math.round((r.toHour - r.fromHour) * 60),
+    });
+  }
+  const ranked = slots.map((s) => rank(s, degrees));
+  ranked.sort((a, b) => b.totalScore - a.totalScore);
+  return {
+    ranked: ranked.slice(0, topN),
+    parsedCount: slots.length,
+    rejectedCount: rejected,
+  };
+}
+
 export function formatHour(h: number): string {
   const hh = Math.floor(h);
   const mm = Math.round((h - hh) * 60);
