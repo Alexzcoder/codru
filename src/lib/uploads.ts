@@ -112,3 +112,39 @@ export async function saveJobAttachment({
     kind: meta.kind,
   };
 }
+
+export async function saveEventAttachment({
+  file,
+  eventId,
+}: {
+  file: File;
+  eventId: string;
+}): Promise<{
+  path: string;
+  filename: string;
+  mimeType: string;
+  sizeBytes: number;
+  kind: "IMAGE" | "PDF" | "OTHER";
+}> {
+  if (file.size === 0) throw new Error("Empty file");
+  if (file.size > JOB_FILE_MAX) throw new Error("File too large (max 25 MB)");
+
+  const meta = JOB_ALLOWED[file.type];
+  if (!meta) throw new Error(`Unsupported file type: ${file.type}`);
+
+  const dir = path.join(UPLOADS_DIR, "events", eventId);
+  await fs.mkdir(dir, { recursive: true });
+
+  const name = `${crypto.randomUUID()}.${meta.ext}`;
+  const filepath = path.join(dir, name);
+  const buffer = Buffer.from(await file.arrayBuffer());
+  await fs.writeFile(filepath, buffer);
+
+  return {
+    path: `/uploads/events/${eventId}/${name}`,
+    filename: file.name,
+    mimeType: file.type,
+    sizeBytes: file.size,
+    kind: meta.kind,
+  };
+}

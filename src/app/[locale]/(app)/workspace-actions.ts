@@ -3,10 +3,12 @@
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import { setActiveWorkspace } from "@/lib/active-workspace";
+import { writeAudit } from "@/lib/audit";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { sanitizeFreeName } from "@/lib/sanitize";
+import { FEATURES, type FeatureKey } from "@/lib/features";
 
 /**
  * Switch the active workspace. Server action wired to the WorkspaceSwitcher
@@ -74,4 +76,46 @@ export async function createWorkspace(
   await setActiveWorkspace(ws.id);
   revalidatePath("/", "layout");
   return { created: true };
+}
+
+export type UpdateFeaturesState = { error?: string; saved?: boolean };
+
+/**
+ * OWNER-only: replace a workspace's featureFlags object. Unknown keys are
+ * silently dropped to keep the JSON tidy — only flags listed in FEATURES are
+ * persisted.
+ */
+export async function updateWorkspaceFeatures(
+  workspaceId: string,
+  _prev: UpdateFeaturesState,
+  formData: FormData,
+): Promise<UpdateFeaturesState> {
+  const user = await requireUser();
+  const membership = await prisma.membership.findUnique({
+    where: { workspaceId_userId: { workspaceId, userId: user.id } },
+  });
+  if (!membership || membership.role !== "OWNER") {
+    return { error: "notOwner" };
+  }
+
+  const flags: Record<string, boolean> = {};
+  for (const key of Object.keys(FEATURES) as FeatureKey[]) {
+    flags[key] = formData.get(`feature_${key}`) === "on";
+  }
+
+  await prisma.workspace.update({
+    where: { id: workspaceId },
+    data: { featureFlags: flags },
+  });
+  await writeAudit({
+    workspaceId,
+    actorId: user.id,
+    entity: "Workspace",
+    entityId: workspaceId,
+    action: "update",
+    after: { featureFlags: flags } as unknown as Record<string, unknown>,
+  });
+
+  revalidatePath("/", "layout");
+  return { saved: true };
 }

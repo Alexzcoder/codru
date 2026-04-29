@@ -2,6 +2,7 @@
 
 import { useTransition } from "react";
 import { Button } from "@/components/ui/button";
+import { Link } from "@/i18n/navigation";
 import { switchWorkspace } from "../../workspace-actions";
 
 export function SwitchAndManage({
@@ -32,12 +33,11 @@ export function SwitchAndManage({
           {pending ? "Switching…" : "Switch to"}
         </Button>
       )}
-      {isOwner && (
-        <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
-          {/* Delete + invite arrive next phase. */}
-          Members coming soon
-        </span>
-      )}
+      <Link href={`/settings/workspaces/${workspaceId}`}>
+        <Button type="button" variant="outline" size="sm">
+          {isOwner ? "Manage" : "View"}
+        </Button>
+      </Link>
     </div>
   );
 }

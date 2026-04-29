@@ -30,12 +30,16 @@ enum WorkspaceRole {
 }
 
 model Workspace {
-  id        String    @id @default(cuid())
-  name      String
-  slug      String    @unique
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime?
+  id           String    @id @default(cuid())
+  name         String
+  slug         String    @unique
+  // Per-workspace optional features. Shape: { events?: bool, scheduler?: bool, ... }
+  // Future workspace templates (business / club / agency) write the same shape
+  // at create time; the OWNER can flip individual flags from settings.
+  featureFlags Json      @default("{}")
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
 
   memberships       Membership[]
   invites           Invite[]
@@ -56,6 +60,7 @@ model Workspace {
   contactLogs       ContactLog[]
   attachments       Attachment[]
   aiCalls           AiCall[]
+  events            Event[]
 }
 
 model Membership {
@@ -87,21 +92,24 @@ model User {
   createdAt          DateTime   @default(now())
   updatedAt          DateTime   @updatedAt
 
-  memberships            Membership[]
-  invitesCreated         Invite[]             @relation("InviteCreator")
-  passwordResets         PasswordResetToken[]
-  auditLogs              AuditLog[]
-  contactLogs            ContactLog[]
-  jobAssignments         JobAssignment[]
-  attachmentsUploaded    Attachment[]         @relation("AttachmentUploader")
-  calendarEventsCreated  CalendarEvent[]      @relation("CalendarEventCreator")
-  calendarEventsAssigned CalendarEvent[]      @relation("CalendarEventAssignee")
-  documentsCreated       Document[]           @relation("DocumentCreator")
-  paymentsLogged         Payment[]
-  expensesCreated        Expense[]            @relation("ExpenseCreator")
-  recurrencesCreated     RecurrenceRule[]     @relation("RecurrenceCreator")
-  notifications          Notification[]
-  emailsSent             EmailLog[]           @relation("EmailLogSender")
+  memberships              Membership[]
+  invitesCreated           Invite[]             @relation("InviteCreator")
+  passwordResets           PasswordResetToken[]
+  auditLogs                AuditLog[]
+  contactLogs              ContactLog[]
+  jobAssignments           JobAssignment[]
+  attachmentsUploaded      Attachment[]         @relation("AttachmentUploader")
+  calendarEventsCreated    CalendarEvent[]      @relation("CalendarEventCreator")
+  calendarEventsAssigned   CalendarEvent[]      @relation("CalendarEventAssignee")
+  documentsCreated         Document[]           @relation("DocumentCreator")
+  paymentsLogged           Payment[]
+  expensesCreated          Expense[]            @relation("ExpenseCreator")
+  recurrencesCreated       RecurrenceRule[]     @relation("RecurrenceCreator")
+  notifications            Notification[]
+  emailsSent               EmailLog[]           @relation("EmailLogSender")
+  eventsCreated            Event[]              @relation("EventCreator")
+  eventTodosAssigned       EventTodo[]          @relation("EventTodoAssignee")
+  eventAttachmentsUploaded EventAttachment[]    @relation("EventAttachmentUploader")
 }
 
 model Invite {
@@ -1050,4 +1058,72 @@ model AiCall {
   @@index([workspaceId, createdAt])
   @@index([userId, createdAt])
   @@index([feature, createdAt])
+}
+
+// ──────────────────────────────────────────────────────────
+// M18 — Events (PRD demo / IE Public Speaking template)
+// ──────────────────────────────────────────────────────────
+
+enum EventTodoStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  DONE
+}
+
+model Event {
+  id          String    @id @default(cuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  startDate   DateTime
+  endDate     DateTime?
+  location    String?
+  notes       String?
+  archivedAt  DateTime?
+  createdById String
+  createdBy   User      @relation("EventCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  todos       EventTodo[]
+  attachments EventAttachment[]
+
+  @@index([workspaceId, startDate])
+}
+
+model EventTodo {
+  id          String          @id @default(cuid())
+  eventId     String
+  event       Event           @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  status      EventTodoStatus @default(NOT_STARTED)
+  position    Int             @default(0)
+  assigneeId  String?
+  assignee    User?           @relation("EventTodoAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  dueDate     DateTime?
+  doneAt      DateTime?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([eventId, position])
+  @@index([assigneeId])
+}
+
+model EventAttachment {
+  id           String         @id @default(cuid())
+  eventId      String
+  event        Event          @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  filename     String
+  mimeType     String
+  sizeBytes    Int
+  kind         AttachmentKind
+  path         String
+  caption      String?
+  uploadedById String
+  uploadedBy   User           @relation("EventAttachmentUploader", fields: [uploadedById], references: [id], onDelete: Restrict)
+  createdAt    DateTime       @default(now())
+
+  @@index([eventId, createdAt])
 }

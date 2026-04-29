@@ -14,13 +14,19 @@ import {
   TrendingUp,
   Repeat,
   Settings as SettingsIcon,
+  Megaphone,
+  Sparkles,
 } from "lucide-react";
 import { SidebarLink } from "./sidebar-link";
+import type { Workspace } from "@prisma/client";
+import { hasFeature } from "@/lib/features";
 
 export async function Sidebar({
   workspaceEmail,
+  workspace,
 }: {
   workspaceEmail: string;
+  workspace: Workspace | null;
 }) {
   const t = await getTranslations();
 
@@ -60,6 +66,21 @@ export async function Sidebar({
       ],
     },
   ];
+
+  // Optional per-workspace tabs. Today the only consumer is the IE Public
+  // Speaking demo workspace (events + scheduler). Future workspace templates
+  // toggle the same flags from /settings/workspaces/[id].
+  const clubItems = [
+    hasFeature(workspace, "events")
+      ? { href: "/events", label: "Events", icon: <Megaphone size={16} /> }
+      : null,
+    hasFeature(workspace, "scheduler")
+      ? { href: "/scheduler", label: "Scheduler", icon: <Sparkles size={16} /> }
+      : null,
+  ].filter((x): x is NonNullable<typeof x> => x !== null);
+  if (clubItems.length > 0) {
+    sections.push({ label: "Club", items: clubItems });
+  }
 
   return (
     <aside
