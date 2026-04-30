@@ -30,16 +30,27 @@ export async function sendInviteEmail({
     return { sent: false, fallbackLink: inviteUrl };
   }
 
-  await resend.emails.send({
-    from,
-    to,
-    subject: `${inviterName} invited you to CRM`,
-    html: `
-      <p>${escape(inviterName)} invited you to join the CRM.</p>
-      <p><a href="${inviteUrl}">Accept invite</a></p>
-      <p>This link expires in 48 hours.</p>
-    `,
-  });
+  try {
+    const result = await resend.emails.send({
+      from,
+      to,
+      subject: `${inviterName} invited you to CRM`,
+      html: `
+        <p>${escape(inviterName)} invited you to join the CRM.</p>
+        <p><a href="${inviteUrl}">Accept invite</a></p>
+        <p>This link expires in 48 hours.</p>
+      `,
+    });
+    if (result.error) {
+      // Resend rejected (often free-tier destination limits). Surface the
+      // link so the OWNER can copy it manually.
+      console.warn(`[email] Resend rejected invite for ${to}: ${result.error.message ?? result.error}`);
+      return { sent: false, fallbackLink: inviteUrl };
+    }
+  } catch (e) {
+    console.warn(`[email] sendInviteEmail threw for ${to}: ${e instanceof Error ? e.message : e}`);
+    return { sent: false, fallbackLink: inviteUrl };
+  }
   return { sent: true };
 }
 
