@@ -7,7 +7,7 @@ import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/page-header";
 import { ClickableRow } from "@/components/clickable-row";
-import { Plus, Megaphone } from "lucide-react";
+import { Plus, Mic } from "lucide-react";
 import type { Campus } from "@prisma/client";
 
 const CAMPUS_LABELS: Record<Campus, string> = {
@@ -16,7 +16,7 @@ const CAMPUS_LABELS: Record<Campus, string> = {
   BOTH: "Both",
 };
 
-export default async function EventsPage({
+export default async function PodcastPage({
   params,
   searchParams,
 }: {
@@ -26,7 +26,7 @@ export default async function EventsPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const { workspace } = await requireWorkspace();
-  if (!hasFeature(workspace, "events")) notFound();
+  if (!hasFeature(workspace, "podcast")) notFound();
 
   const sp = await searchParams;
   const filter: "ALL" | Campus =
@@ -34,9 +34,6 @@ export default async function EventsPage({
       ? sp.campus
       : "ALL";
 
-  // "Madrid" filter shows MADRID + BOTH (a both-campuses event is relevant to
-  // either side); same logic mirrored for Segovia. "Both" filter shows only
-  // events explicitly tagged BOTH.
   const campusWhere =
     filter === "ALL"
       ? {}
@@ -44,10 +41,9 @@ export default async function EventsPage({
         ? { campus: "BOTH" as Campus }
         : { campus: { in: [filter, "BOTH"] as Campus[] } };
 
-  const events = await prisma.event.findMany({
+  const episodes = await prisma.podcastEpisode.findMany({
     where: { workspaceId: workspace.id, archivedAt: null, ...campusWhere },
-    orderBy: { startDate: "desc" },
-    include: { _count: { select: { todos: true, attachments: true } } },
+    orderBy: [{ recordingDate: "desc" }, { createdAt: "desc" }],
     take: 100,
   });
 
@@ -61,12 +57,12 @@ export default async function EventsPage({
   return (
     <div className="mx-auto max-w-6xl px-8 py-8">
       <PageHeader
-        title="Events"
-        description={`${events.length} ${events.length === 1 ? "event" : "events"}`}
+        title="Podcast"
+        description={`${episodes.length} ${episodes.length === 1 ? "episode" : "episodes"}`}
         actions={
-          <Link href="/events/new">
+          <Link href="/podcast/new">
             <Button size="sm" className="gap-1.5">
-              <Plus size={14} /> New event
+              <Plus size={14} /> New episode
             </Button>
           </Link>
         }
@@ -75,7 +71,7 @@ export default async function EventsPage({
       <div className="mt-4 flex flex-wrap gap-1.5">
         {pills.map((p) => {
           const active = p.key === filter;
-          const href = p.key === "ALL" ? "/events" : `/events?campus=${p.key}`;
+          const href = p.key === "ALL" ? "/podcast" : `/podcast?campus=${p.key}`;
           return (
             <Link
               key={p.key}
@@ -92,14 +88,14 @@ export default async function EventsPage({
         })}
       </div>
 
-      {events.length === 0 ? (
+      {episodes.length === 0 ? (
         <div className="mt-8 rounded-xl border border-dashed border-border bg-card p-12 text-center shadow-sm">
-          <Megaphone size={28} className="mx-auto text-muted-foreground" />
+          <Mic size={28} className="mx-auto text-muted-foreground" />
           <p className="mt-3 text-sm text-muted-foreground">
-            No events yet. Plan a speaker night, training, or social.
+            No episodes yet. Plan a guest or recording date to get started.
           </p>
-          <Link href="/events/new" className="mt-4 inline-block">
-            <Button size="sm">Create the first event</Button>
+          <Link href="/podcast/new" className="mt-4 inline-block">
+            <Button size="sm">Create the first episode</Button>
           </Link>
         </div>
       ) : (
@@ -107,27 +103,23 @@ export default async function EventsPage({
           <table className="w-full text-sm">
             <thead className="border-b border-border bg-secondary/40 text-xs uppercase tracking-wider text-muted-foreground">
               <tr>
-                <th className="px-4 py-3 text-left">Name</th>
+                <th className="px-4 py-3 text-left">Title</th>
+                <th className="px-4 py-3 text-left">Guest</th>
                 <th className="px-4 py-3 text-left">Campus</th>
-                <th className="px-4 py-3 text-left">Start</th>
-                <th className="px-4 py-3 text-left">End</th>
-                <th className="px-4 py-3 text-left">Location</th>
-                <th className="px-4 py-3 text-right">To-dos</th>
-                <th className="px-4 py-3 text-right">Files</th>
+                <th className="px-4 py-3 text-left">Recorded</th>
+                <th className="px-4 py-3 text-left">Published</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {events.map((e) => (
-                <ClickableRow key={e.id} href={`/events/${e.id}`}>
+              {episodes.map((e) => (
+                <ClickableRow key={e.id} href={`/podcast/${e.id}`}>
                   <td className="px-4 py-3 font-medium">
-                    <Link href={`/events/${e.id}`} className="hover:underline">
-                      {e.name}
+                    <Link href={`/podcast/${e.id}`} className="hover:underline">
+                      {e.title}
                     </Link>
-                    {e.description && (
-                      <div className="text-xs font-normal text-muted-foreground line-clamp-1">
-                        {e.description}
-                      </div>
-                    )}
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {e.guestName ?? "—"}
                   </td>
                   <td className="px-4 py-3">
                     <span className="inline-flex rounded-full bg-secondary/60 px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
@@ -135,19 +127,10 @@ export default async function EventsPage({
                     </span>
                   </td>
                   <td className="px-4 py-3 text-muted-foreground tabular-nums">
-                    {e.startDate.toISOString().slice(0, 10)}
+                    {e.recordingDate ? e.recordingDate.toISOString().slice(0, 10) : "—"}
                   </td>
                   <td className="px-4 py-3 text-muted-foreground tabular-nums">
-                    {e.endDate ? e.endDate.toISOString().slice(0, 10) : "—"}
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground">
-                    {e.location ?? "—"}
-                  </td>
-                  <td className="px-4 py-3 text-right tabular-nums">
-                    {e._count.todos}
-                  </td>
-                  <td className="px-4 py-3 text-right tabular-nums">
-                    {e._count.attachments}
+                    {e.publishDate ? e.publishDate.toISOString().slice(0, 10) : "—"}
                   </td>
                 </ClickableRow>
               ))}

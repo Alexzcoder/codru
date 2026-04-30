@@ -3,8 +3,9 @@ import { requireUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { BackLink } from "@/components/back-link";
-import { FEATURES, readFeatureFlags } from "@/lib/features";
+import { FEATURES, readFeatureFlags, readMemberScopes } from "@/lib/features";
 import { FeatureToggles } from "./feature-toggles";
+import { MemberScopes } from "./member-scopes";
 
 export default async function WorkspaceDetailPage({
   params,
@@ -23,6 +24,14 @@ export default async function WorkspaceDetailPage({
   const isOwner = membership.role === "OWNER";
   const ws = membership.workspace;
   const flags = readFeatureFlags(ws);
+
+  const otherMembers = isOwner
+    ? await prisma.membership.findMany({
+        where: { workspaceId: id, role: "MEMBER" },
+        include: { user: { select: { id: true, name: true, email: true } } },
+        orderBy: { user: { email: "asc" } },
+      })
+    : [];
 
   return (
     <div>
@@ -56,6 +65,33 @@ export default async function WorkspaceDetailPage({
           </ul>
         )}
       </section>
+
+      {isOwner && otherMembers.length > 0 && (
+        <section className="mt-10">
+          <h3 className="text-sm font-semibold">Member access</h3>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Restrict what each member sees. Leave everything ticked for full
+            access. Untick to create custom roles like &ldquo;Event Officer&rdquo;
+            who only sees Events.
+          </p>
+          <div className="mt-4 space-y-3">
+            {otherMembers.map((m) => (
+              <MemberScopes
+                key={m.id}
+                workspaceId={ws.id}
+                member={{
+                  id: m.user.id,
+                  name: m.user.name,
+                  email: m.user.email,
+                }}
+                definitions={FEATURES}
+                initialScopes={readMemberScopes(m)}
+                workspaceFlags={flags}
+              />
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

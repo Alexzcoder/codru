@@ -5,15 +5,15 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
-import type { EventState } from "./actions";
+import type { EpisodeState } from "./actions";
 
 type Initial = {
-  name?: string;
-  description?: string | null;
-  startDate?: Date | string;
-  endDate?: Date | string | null;
-  location?: string | null;
-  notes?: string | null;
+  title?: string;
+  guestName?: string | null;
+  recordingDate?: Date | string | null;
+  publishDate?: Date | string | null;
+  audioUrl?: string | null;
+  showNotes?: string | null;
   campus?: "MADRID" | "SEGOVIA" | "BOTH" | null;
 };
 
@@ -25,16 +25,16 @@ function toDateInput(d: Date | string | null | undefined): string {
   return `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}`;
 }
 
-export function EventForm({
+export function EpisodeForm({
   initial,
   action,
   submitLabel,
 }: {
   initial?: Initial;
-  action: (prev: EventState, formData: FormData) => Promise<EventState>;
+  action: (prev: EpisodeState, formData: FormData) => Promise<EpisodeState>;
   submitLabel: string;
 }) {
-  const [state, formAction, pending] = useActionState<EventState, FormData>(
+  const [state, formAction, pending] = useActionState<EpisodeState, FormData>(
     action,
     {},
   );
@@ -42,48 +42,26 @@ export function EventForm({
   return (
     <form action={formAction} className="space-y-5 max-w-2xl">
       <div className="space-y-2">
-        <Label htmlFor="name">Event name</Label>
+        <Label htmlFor="title">Episode title</Label>
         <Input
-          id="name"
-          name="name"
-          defaultValue={initial?.name ?? ""}
+          id="title"
+          name="title"
+          defaultValue={initial?.title ?? ""}
           required
           maxLength={200}
-          placeholder="e.g. Spring Speaker Night"
+          placeholder="e.g. The Power of Storytelling — Ep. 4"
         />
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="startDate">Start date</Label>
+          <Label htmlFor="guestName">Guest</Label>
           <Input
-            id="startDate"
-            name="startDate"
-            type="date"
-            defaultValue={toDateInput(initial?.startDate)}
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="endDate">End date (optional)</Label>
-          <Input
-            id="endDate"
-            name="endDate"
-            type="date"
-            defaultValue={toDateInput(initial?.endDate)}
-          />
-        </div>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="location">Location</Label>
-          <Input
-            id="location"
-            name="location"
-            defaultValue={initial?.location ?? ""}
+            id="guestName"
+            name="guestName"
+            defaultValue={initial?.guestName ?? ""}
             maxLength={200}
-            placeholder="e.g. Aula Magna, IE Tower"
+            placeholder="e.g. Dr. Marta Ruiz"
           />
         </div>
         <div className="space-y-2">
@@ -101,25 +79,47 @@ export function EventForm({
         </div>
       </div>
 
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="space-y-2">
+          <Label htmlFor="recordingDate">Recording date</Label>
+          <Input
+            id="recordingDate"
+            name="recordingDate"
+            type="date"
+            defaultValue={toDateInput(initial?.recordingDate)}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="publishDate">Publish date</Label>
+          <Input
+            id="publishDate"
+            name="publishDate"
+            type="date"
+            defaultValue={toDateInput(initial?.publishDate)}
+          />
+        </div>
+      </div>
+
       <div className="space-y-2">
-        <Label htmlFor="description">Short description</Label>
-        <textarea
-          id="description"
-          name="description"
-          defaultValue={initial?.description ?? ""}
-          className="h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-          maxLength={2000}
+        <Label htmlFor="audioUrl">Audio URL</Label>
+        <Input
+          id="audioUrl"
+          name="audioUrl"
+          type="url"
+          defaultValue={initial?.audioUrl ?? ""}
+          maxLength={500}
+          placeholder="https://example.com/episode.mp3"
         />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="notes">Notes</Label>
+        <Label htmlFor="showNotes">Show notes</Label>
         <textarea
-          id="notes"
-          name="notes"
-          defaultValue={initial?.notes ?? ""}
+          id="showNotes"
+          name="showNotes"
+          defaultValue={initial?.showNotes ?? ""}
           className="h-32 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-          placeholder="Anything the team should know — running orders, reminders, contact details…"
+          placeholder="Topics, timestamps, links mentioned…"
         />
       </div>
 
@@ -133,7 +133,7 @@ export function EventForm({
         <Button type="submit" disabled={pending}>
           {pending ? "Saving…" : submitLabel}
         </Button>
-        <Link href="/events">
+        <Link href="/podcast">
           <Button type="button" variant="ghost">
             Cancel
           </Button>

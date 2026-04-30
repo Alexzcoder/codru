@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
 import { prisma } from "./prisma";
 import { redirect } from "next/navigation";
-import type { User, Workspace, WorkspaceRole } from "@prisma/client";
+import type { User, Workspace, WorkspaceRole, Membership } from "@prisma/client";
 import { getActiveWorkspace } from "./active-workspace";
 
 // DEV_BYPASS: skip session check and use the first owner in the DB.
@@ -34,6 +34,7 @@ export type WorkspaceContext = {
   user: User;
   workspace: Workspace;
   role: WorkspaceRole;
+  membership: Membership;
 };
 
 /**
@@ -45,7 +46,12 @@ export async function requireWorkspace(): Promise<WorkspaceContext> {
   const user = await requireUser();
   const ctx = await getActiveWorkspace(user.id);
   if (!ctx) redirect("/onboarding/workspace");
-  return { user, workspace: ctx.workspace, role: ctx.role };
+  return {
+    user,
+    workspace: ctx.workspace,
+    role: ctx.role,
+    membership: ctx.membership,
+  };
 }
 
 /** OWNER-only actions on the active workspace (invite, remove, delete). */

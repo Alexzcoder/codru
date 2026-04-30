@@ -16,6 +16,7 @@ const eventSchema = z.object({
   endDate: z.string().optional(),
   location: z.string().max(200).optional(),
   notes: z.string().optional(),
+  campus: z.enum(["MADRID", "SEGOVIA", "BOTH"]).optional(),
 });
 
 export type EventState = { error?: string };
@@ -43,6 +44,7 @@ export async function createEvent(
       endDate: d.endDate ? new Date(d.endDate) : null,
       location: d.location?.trim() || null,
       notes: d.notes?.trim() || null,
+      campus: d.campus ?? "BOTH",
     },
   });
 
@@ -87,6 +89,7 @@ export async function updateEvent(
       endDate: d.endDate ? new Date(d.endDate) : null,
       location: d.location?.trim() || null,
       notes: d.notes?.trim() || null,
+      campus: d.campus ?? before.campus,
     },
   });
 

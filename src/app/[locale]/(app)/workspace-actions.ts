@@ -119,3 +119,59 @@ export async function updateWorkspaceFeatures(
   revalidatePath("/", "layout");
   return { saved: true };
 }
+
+export type UpdateMemberScopesState = { error?: string; saved?: boolean };
+
+/**
+ * OWNER-only: set the scope whitelist for a single MEMBER of a workspace.
+ * Empty array = "see everything the workspace has on" (default). Non-empty
+ * array = restrict to those keys (custom roles like "Event Officer" who only
+ * sees the events tab). OWNERs ignore scopes entirely so we forbid editing
+ * an OWNER's row.
+ */
+export async function updateMemberScopes(
+  workspaceId: string,
+  memberUserId: string,
+  _prev: UpdateMemberScopesState,
+  formData: FormData,
+): Promise<UpdateMemberScopesState> {
+  const user = await requireUser();
+  const ownerMembership = await prisma.membership.findUnique({
+    where: { workspaceId_userId: { workspaceId, userId: user.id } },
+  });
+  if (!ownerMembership || ownerMembership.role !== "OWNER") {
+    return { error: "notOwner" };
+  }
+
+  const target = await prisma.membership.findUnique({
+    where: { workspaceId_userId: { workspaceId, userId: memberUserId } },
+  });
+  if (!target) return { error: "notFound" };
+  if (target.role === "OWNER") return { error: "cannotRestrictOwner" };
+
+  const scopes: FeatureKey[] = [];
+  for (const key of Object.keys(FEATURES) as FeatureKey[]) {
+    if (formData.get(`scope_${key}`) === "on") scopes.push(key);
+  }
+
+  // If every feature is checked, treat it as "no restriction" (empty array)
+  // so toggling them all back on returns to default behavior cleanly.
+  const allChecked = scopes.length === Object.keys(FEATURES).length;
+  const persist = allChecked ? [] : scopes;
+
+  await prisma.membership.update({
+    where: { workspaceId_userId: { workspaceId, userId: memberUserId } },
+    data: { scopes: persist },
+  });
+  await writeAudit({
+    workspaceId,
+    actorId: user.id,
+    entity: "Membership",
+    entityId: target.id,
+    action: "update",
+    after: { scopes: persist } as unknown as Record<string, unknown>,
+  });
+
+  revalidatePath("/", "layout");
+  return { saved: true };
+}

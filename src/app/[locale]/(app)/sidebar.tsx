@@ -16,71 +16,76 @@ import {
   Settings as SettingsIcon,
   Megaphone,
   Sparkles,
+  Mic,
 } from "lucide-react";
 import { SidebarLink } from "./sidebar-link";
-import type { Workspace } from "@prisma/client";
-import { hasFeature } from "@/lib/features";
+import type { Workspace, Membership } from "@prisma/client";
+import { hasFeature, type FeatureKey } from "@/lib/features";
+
+type Item = { href: string; label: string; icon: React.ReactNode; key: FeatureKey };
 
 export async function Sidebar({
   workspaceEmail,
   workspace,
+  membership,
 }: {
   workspaceEmail: string;
   workspace: Workspace | null;
+  membership: Membership | null;
 }) {
   const t = await getTranslations();
 
-  const sections: {
-    label?: string;
-    items: { href: string; label: string; icon: React.ReactNode }[];
-  }[] = [
+  // Each item declares its feature key. Sections are dropped when empty so a
+  // workspace that disables a whole group (e.g. IE Public Speaking turning
+  // off Documents + Money) doesn't leave behind dangling section labels.
+  const sections: { label?: string; items: Item[] }[] = [
     {
-      items: [
-        { href: "/dashboard", label: t("Dashboard.title"), icon: <LayoutDashboard size={16} /> },
-      ],
+      // Dashboard is always visible — no feature key.
+      items: [],
+      // Special: handled separately below so we don't have to give it a key.
     },
     {
       label: "CRM",
       items: [
-        { href: "/clients", label: t("Clients.title"), icon: <Users size={16} /> },
-        { href: "/jobs", label: t("Jobs.title"), icon: <Briefcase size={16} /> },
-        { href: "/calendar", label: t("Calendar.title"), icon: <CalendarIcon size={16} /> },
+        { href: "/clients",  label: t("Clients.title"),  icon: <Users size={16} />,        key: "clients" },
+        { href: "/jobs",     label: t("Jobs.title"),     icon: <Briefcase size={16} />,    key: "jobs" },
+        { href: "/calendar", label: t("Calendar.title"), icon: <CalendarIcon size={16} />, key: "calendar" },
       ],
     },
     {
       label: "Documents",
       items: [
-        { href: "/quotes", label: t("Quotes.title"), icon: <FileText size={16} /> },
-        { href: "/advance-invoices", label: t("AdvanceInvoices.title"), icon: <FileCheck size={16} /> },
-        { href: "/final-invoices", label: t("FinalInvoices.title"), icon: <Receipt size={16} /> },
-        { href: "/credit-notes", label: t("CreditNotes.title"), icon: <FileX size={16} /> },
+        { href: "/quotes",            label: t("Quotes.title"),           icon: <FileText size={16} />,  key: "documents" },
+        { href: "/advance-invoices",  label: t("AdvanceInvoices.title"),  icon: <FileCheck size={16} />, key: "documents" },
+        { href: "/final-invoices",    label: t("FinalInvoices.title"),    icon: <Receipt size={16} />,   key: "documents" },
+        { href: "/credit-notes",      label: t("CreditNotes.title"),      icon: <FileX size={16} />,     key: "documents" },
       ],
     },
     {
       label: "Money",
       items: [
-        { href: "/payments", label: t("Payments.title"), icon: <Wallet size={16} /> },
-        { href: "/expenses", label: t("Expenses.title"), icon: <PiggyBank size={16} /> },
-        { href: "/accounting", label: t("Accounting.title"), icon: <TrendingUp size={16} /> },
-        { href: "/recurring", label: t("Recurring.title"), icon: <Repeat size={16} /> },
+        { href: "/payments",   label: t("Payments.title"),   icon: <Wallet size={16} />,     key: "money" },
+        { href: "/expenses",   label: t("Expenses.title"),   icon: <PiggyBank size={16} />,  key: "money" },
+        { href: "/accounting", label: t("Accounting.title"), icon: <TrendingUp size={16} />, key: "money" },
+        { href: "/recurring",  label: t("Recurring.title"),  icon: <Repeat size={16} />,     key: "recurring" },
+      ],
+    },
+    {
+      label: "Club",
+      items: [
+        { href: "/events",    label: "Events",    icon: <Megaphone size={16} />, key: "events" },
+        { href: "/scheduler", label: "Scheduler", icon: <Sparkles size={16} />,  key: "scheduler" },
+        { href: "/podcast",   label: "Podcast",   icon: <Mic size={16} />,       key: "podcast" },
       ],
     },
   ];
 
-  // Optional per-workspace tabs. Today the only consumer is the IE Public
-  // Speaking demo workspace (events + scheduler). Future workspace templates
-  // toggle the same flags from /settings/workspaces/[id].
-  const clubItems = [
-    hasFeature(workspace, "events")
-      ? { href: "/events", label: "Events", icon: <Megaphone size={16} /> }
-      : null,
-    hasFeature(workspace, "scheduler")
-      ? { href: "/scheduler", label: "Scheduler", icon: <Sparkles size={16} /> }
-      : null,
-  ].filter((x): x is NonNullable<typeof x> => x !== null);
-  if (clubItems.length > 0) {
-    sections.push({ label: "Club", items: clubItems });
-  }
+  const visibleSections = sections
+    .map((s) => ({
+      ...s,
+      items: s.items.filter((item) => hasFeature(workspace, item.key, membership)),
+    }))
+    .filter((s) => s.items.length > 0);
 
   return (
     <aside
@@ -109,7 +114,20 @@ export async function Sidebar({
 
       {/* Nav — scrollable via wheel, scrollbar itself hidden for a cleaner look */}
       <nav className="flex-1 overflow-y-auto px-3 pb-6 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-        {sections.map((section, idx) => (
+        {/* Dashboard always visible */}
+        <div className="mb-5">
+          <ul className="space-y-0.5">
+            <li>
+              <SidebarLink
+                href="/dashboard"
+                icon={<LayoutDashboard size={16} />}
+                label={t("Dashboard.title")}
+              />
+            </li>
+          </ul>
+        </div>
+
+        {visibleSections.map((section, idx) => (
           <div key={idx} className="mb-5">
             {section.label && (
               <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-widest opacity-50">

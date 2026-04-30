@@ -61,6 +61,7 @@ model Workspace {
   attachments       Attachment[]
   aiCalls           AiCall[]
   events            Event[]
+  podcastEpisodes   PodcastEpisode[]
 }
 
 model Membership {
@@ -70,6 +71,11 @@ model Membership {
   userId      String
   user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   role        WorkspaceRole @default(MEMBER)
+  // Optional per-member visibility scope. Empty array = sees every tab the
+  // workspace has on. Non-empty = restricted to those feature keys (e.g.
+  // ["events"] for an "Event Officer" who shouldn't see Scheduler / Podcast).
+  // OWNERs ignore this — they always see everything.
+  scopes      Json          @default("[]")
   joinedAt    DateTime      @default(now())
 
   @@unique([workspaceId, userId])
@@ -110,6 +116,7 @@ model User {
   eventsCreated            Event[]              @relation("EventCreator")
   eventTodosAssigned       EventTodo[]          @relation("EventTodoAssignee")
   eventAttachmentsUploaded EventAttachment[]    @relation("EventAttachmentUploader")
+  podcastEpisodesCreated   PodcastEpisode[]     @relation("PodcastEpisodeCreator")
 }
 
 model Invite {
@@ -1070,6 +1077,12 @@ enum EventTodoStatus {
   DONE
 }
 
+enum Campus {
+  MADRID
+  SEGOVIA
+  BOTH
+}
+
 model Event {
   id          String    @id @default(cuid())
   workspaceId String
@@ -1079,6 +1092,7 @@ model Event {
   startDate   DateTime
   endDate     DateTime?
   location    String?
+  campus      Campus    @default(BOTH)
   notes       String?
   archivedAt  DateTime?
   createdById String
@@ -1090,6 +1104,29 @@ model Event {
   attachments EventAttachment[]
 
   @@index([workspaceId, startDate])
+  @@index([workspaceId, campus])
+}
+
+// Podcast episode — minimal entity for clubs that publish a show. Distinct
+// from Event because the lifecycle is recording → editing → publishing.
+model PodcastEpisode {
+  id            String    @id @default(cuid())
+  workspaceId   String
+  workspace     Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  title         String
+  guestName     String?
+  recordingDate DateTime?
+  publishDate   DateTime?
+  audioUrl      String?
+  showNotes     String?
+  campus        Campus    @default(BOTH)
+  archivedAt    DateTime?
+  createdById   String
+  createdBy     User      @relation("PodcastEpisodeCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([workspaceId, recordingDate])
 }
 
 model EventTodo {

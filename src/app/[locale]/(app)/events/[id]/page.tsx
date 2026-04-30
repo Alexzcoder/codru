@@ -69,7 +69,12 @@ export default async function EventDetailPage({
       <BackLink href="/events" label="Events" />
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="text-2xl font-semibold tracking-tight">{event.name}</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-semibold tracking-tight">{event.name}</h1>
+            <span className="inline-flex rounded-full bg-secondary/60 px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+              {event.campus === "BOTH" ? "Both campuses" : event.campus === "MADRID" ? "Madrid" : "Segovia"}
+            </span>
+          </div>
           <p className="mt-1 text-xs text-muted-foreground tabular-nums">
             {event.startDate.toISOString().slice(0, 10)}
             {event.endDate ? ` → ${event.endDate.toISOString().slice(0, 10)}` : ""}

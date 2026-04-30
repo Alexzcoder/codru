@@ -14,7 +14,7 @@
 
 import { cookies } from "next/headers";
 import { prisma } from "./prisma";
-import type { Workspace } from "@prisma/client";
+import type { Workspace, Membership } from "@prisma/client";
 
 const COOKIE = "cw_active_workspace";
 const ONE_YEAR = 60 * 60 * 24 * 365;
@@ -22,6 +22,7 @@ const ONE_YEAR = 60 * 60 * 24 * 365;
 export type ActiveWorkspaceContext = {
   workspace: Workspace;
   role: "OWNER" | "MEMBER";
+  membership: Membership;
 };
 
 /**
@@ -36,8 +37,6 @@ export async function getActiveWorkspace(
   const jar = await cookies();
   const desiredId = jar.get(COOKIE)?.value;
 
-  // Pull all memberships in one query so we can both validate the cookie and
-  // pick a fallback in the same round-trip.
   const memberships = await prisma.membership.findMany({
     where: { userId, workspace: { deletedAt: null } },
     include: { workspace: true },
@@ -49,7 +48,11 @@ export async function getActiveWorkspace(
     ? memberships.find((m) => m.workspaceId === desiredId)
     : null;
   const picked = desired ?? memberships[0];
-  return { workspace: picked.workspace, role: picked.role };
+  return {
+    workspace: picked.workspace,
+    role: picked.role,
+    membership: picked,
+  };
 }
 
 export async function setActiveWorkspace(workspaceId: string): Promise<void> {
