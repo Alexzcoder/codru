@@ -7,10 +7,13 @@ import { headers } from "next/headers";
 import crypto from "node:crypto";
 import { redirect } from "next/navigation";
 
+// zod v4 changed semantics: `.optional()` now rejects `null`, only accepts
+// `undefined`. FormData.get() returns null for missing fields, so we use
+// `.nullish()` (= optional + nullable) for fields that might be absent.
 const schema = z.object({
   email: z.string().trim().toLowerCase().email(),
   password: z.string().min(1),
-  next: z.string().optional(),
+  next: z.string().nullish(),
 });
 
 export type LoginState = { error?: string };

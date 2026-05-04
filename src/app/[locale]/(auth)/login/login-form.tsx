@@ -4,8 +4,14 @@ import { useActionState, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Eye, EyeOff } from "lucide-react";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+
+// Plain native <input> here — base-ui's <Input> wrapper was eating the `name`
+// attribute on submit, so FormData arrived empty and zod kicked back loginError
+// before any DB call ran. Login is the one form that has to work even when
+// JS hydration is mid-flight, so a native input is the right call.
+const inputCls =
+  "h-9 w-full rounded-lg border border-input bg-transparent px-3 py-1 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
 import { login, type LoginState } from "./actions";
 import { Link } from "@/i18n/navigation";
 
@@ -22,24 +28,25 @@ export function LoginForm({ next }: { next?: string }) {
       {next && <input type="hidden" name="next" value={next} />}
       <div className="space-y-2">
         <Label htmlFor="email">{t("email")}</Label>
-        <Input
+        <input
           id="email"
           name="email"
           type="email"
           required
           autoComplete="email"
+          className={inputCls}
         />
       </div>
       <div className="space-y-2">
         <Label htmlFor="password">{t("password")}</Label>
         <div className="relative">
-          <Input
+          <input
             id="password"
             name="password"
             type={showPassword ? "text" : "password"}
             required
             autoComplete="current-password"
-            className="pr-10"
+            className={`${inputCls} pr-10`}
           />
           <button
             type="button"
