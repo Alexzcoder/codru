@@ -6,6 +6,7 @@ import { BackLink } from "@/components/back-link";
 import { FEATURES, readFeatureFlags, readMemberScopes } from "@/lib/features";
 import { FeatureToggles } from "./feature-toggles";
 import { MemberScopes } from "./member-scopes";
+import { AddExistingMember } from "./add-existing-member";
 
 export default async function WorkspaceDetailPage({
   params,
@@ -32,6 +33,47 @@ export default async function WorkspaceDetailPage({
         orderBy: { user: { email: "asc" } },
       })
     : [];
+
+  // Candidates for "add existing teammate" — users already in another
+  // workspace I OWN, but not in this one. Dedupe by userId; surface the
+  // first sibling workspace name purely as context.
+  type Candidate = {
+    id: string;
+    name: string | null;
+    email: string;
+    fromWorkspaceName: string;
+  };
+  let addCandidates: Candidate[] = [];
+  if (isOwner) {
+    const sibling = await prisma.membership.findMany({
+      where: {
+        workspaceId: { not: id },
+        workspace: {
+          deletedAt: null,
+          memberships: { some: { userId: user.id, role: "OWNER" } },
+        },
+        user: { deactivatedAt: null, id: { not: user.id } },
+      },
+      include: {
+        user: { select: { id: true, name: true, email: true } },
+        workspace: { select: { name: true } },
+      },
+    });
+    const alreadyHere = new Set(otherMembers.map((m) => m.user.id));
+    const seen = new Set<string>();
+    for (const m of sibling) {
+      if (alreadyHere.has(m.user.id)) continue;
+      if (seen.has(m.user.id)) continue;
+      seen.add(m.user.id);
+      addCandidates.push({
+        id: m.user.id,
+        name: m.user.name,
+        email: m.user.email,
+        fromWorkspaceName: m.workspace.name,
+      });
+    }
+    addCandidates.sort((a, b) => a.email.localeCompare(b.email));
+  }
 
   return (
     <div>
@@ -65,6 +107,19 @@ export default async function WorkspaceDetailPage({
           </ul>
         )}
       </section>
+
+      {isOwner && (
+        <section className="mt-10">
+          <h3 className="text-sm font-semibold">Add existing teammate</h3>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Grant access to someone who&apos;s already in another workspace you
+            own — no email invite needed.
+          </p>
+          <div className="mt-4">
+            <AddExistingMember workspaceId={ws.id} candidates={addCandidates} />
+          </div>
+        </section>
+      )}
 
       {isOwner && otherMembers.length > 0 && (
         <section className="mt-10">

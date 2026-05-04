@@ -120,6 +120,73 @@ export async function updateWorkspaceFeatures(
   return { saved: true };
 }
 
+export type AddExistingMemberState = { error?: string; added?: string };
+
+/**
+ * OWNER-only: add a user who already shares one of MY OWNED workspaces into
+ * this workspace as MEMBER. Skips the email invite flow entirely — useful
+ * when the user already has an account and the OWNER just wants to grant
+ * access to a second tenant they own.
+ *
+ * Guard: the candidate userId must currently be a member of at least one
+ * workspace where the requester is OWNER. Otherwise this becomes a
+ * directory-lookup primitive.
+ */
+export async function addExistingMemberToWorkspace(
+  targetWorkspaceId: string,
+  candidateUserId: string,
+): Promise<AddExistingMemberState> {
+  const requester = await requireUser();
+
+  const requesterMembership = await prisma.membership.findUnique({
+    where: { workspaceId_userId: { workspaceId: targetWorkspaceId, userId: requester.id } },
+  });
+  if (!requesterMembership || requesterMembership.role !== "OWNER") {
+    return { error: "notOwner" };
+  }
+
+  // Already a member? No-op.
+  const existing = await prisma.membership.findUnique({
+    where: { workspaceId_userId: { workspaceId: targetWorkspaceId, userId: candidateUserId } },
+  });
+  if (existing) return { error: "alreadyMember" };
+
+  // Eligibility: requester must own a workspace the candidate is in.
+  const overlap = await prisma.membership.findFirst({
+    where: {
+      userId: candidateUserId,
+      workspace: {
+        deletedAt: null,
+        memberships: { some: { userId: requester.id, role: "OWNER" } },
+      },
+    },
+    select: { id: true },
+  });
+  if (!overlap) return { error: "notEligible" };
+
+  const candidate = await prisma.user.findUnique({
+    where: { id: candidateUserId },
+    select: { id: true, email: true, deactivatedAt: true },
+  });
+  if (!candidate || candidate.deactivatedAt) return { error: "notEligible" };
+
+  await prisma.membership.create({
+    data: { workspaceId: targetWorkspaceId, userId: candidateUserId, role: "MEMBER" },
+  });
+  await writeAudit({
+    workspaceId: targetWorkspaceId,
+    actorId: requester.id,
+    entity: "Membership",
+    entityId: candidate.id,
+    action: "create",
+    after: { userId: candidate.id, role: "MEMBER", source: "addExistingMember" } as unknown as Record<string, unknown>,
+  });
+
+  revalidatePath(`/settings/workspaces/${targetWorkspaceId}`);
+  revalidatePath("/", "layout");
+  return { added: candidate.email };
+}
+
 export type UpdateMemberScopesState = { error?: string; saved?: boolean };
 
 /**
