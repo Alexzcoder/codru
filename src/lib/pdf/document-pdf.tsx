@@ -330,7 +330,11 @@ export function DocumentPdf({
             <Text style={styles.sectionMicro}>
               {data.locale === "cs" ? "Poznámka" : "Note"}
             </Text>
-            <Text>{data.notesToClient}</Text>
+            {/* react-pdf collapses literal "\n" in a single <Text>; render each
+                line as its own <Text> so paragraphs the user typed survive */}
+            {data.notesToClient.split(/\r?\n/).map((line, i) => (
+              <Text key={i}>{line || " "}</Text>
+            ))}
           </View>
         )}
 

@@ -8,6 +8,7 @@ import { clientDisplayName } from "@/lib/client-display";
 import { setJobStatus, deleteJob, deleteAttachment } from "../actions";
 import { AttachmentUploader } from "./attachment-uploader";
 import { ContactLogForm } from "../../clients/[id]/contact-log-form";
+import { ContactLogItem } from "../../clients/[id]/contact-log-item";
 import { computeJobProfitability } from "@/lib/job-profitability";
 import { BackLink } from "@/components/back-link";
 import { ConfirmButton } from "@/components/confirm-button";
@@ -340,15 +341,16 @@ export default async function JobDetailPage({
         ) : (
           <ul className="mt-4 divide-y divide-border rounded-xl border border-border bg-card shadow-sm">
             {logs.map((l) => (
-              <li key={l.id} className="px-4 py-3">
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>
-                    {t(`Clients.contactType.${l.type}`)} · {l.loggedBy.name}
-                  </span>
-                  <time>{l.date.toISOString().slice(0, 16).replace("T", " ")}</time>
-                </div>
-                <p className="mt-1 whitespace-pre-wrap text-sm">{l.notes}</p>
-              </li>
+              <ContactLogItem
+                key={l.id}
+                log={{
+                  id: l.id,
+                  type: l.type,
+                  date: l.date.toISOString(),
+                  notes: l.notes,
+                  loggedByName: l.loggedBy?.name ?? null,
+                }}
+              />
             ))}
           </ul>
         )}
