@@ -10,7 +10,20 @@ export type ImportClientsState = {
   ok?: boolean;
   inserted?: number;
   skipped?: number;
+  jobsInserted?: number;
   errors?: string[];
+  preview?: PreviewRow[];
+  dryRun?: boolean;
+};
+
+export type PreviewRow = {
+  rowNo: number;
+  status: "would_create" | "would_skip" | "error";
+  client: string;        // display name
+  ico: string | null;
+  email: string | null;
+  job: string | null;    // job title or null
+  reason: string | null; // why skipped / error
 };
 
 type Row = Record<string, string>;
@@ -111,6 +124,7 @@ export async function importClients(
 ): Promise<ImportClientsState> {
   const { user, workspace } = await requireWorkspace();
   const file = formData.get("file");
+  const dryRun = formData.get("dryRun") === "on";
   if (!(file instanceof File) || file.size === 0) {
     return { ok: false, errors: ["Pick a .csv or .xlsx file."] };
   }
@@ -135,37 +149,85 @@ export async function importClients(
   }
 
   const errors: string[] = [];
+  const preview: PreviewRow[] = [];
   let inserted = 0;
   let skipped = 0;
+  let jobsInserted = 0;
 
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
     const rowNo = i + 2; // +1 for 1-index, +1 for header
     const companyName = pickString(row, "companyName", "Company name", "company", "Firma");
     const fullName = pickString(row, "fullName", "Full name", "name", "Jméno");
+    const jobTitle = pickString(row, "jobTitle", "Job", "Zakázka", "Job title");
+
     if (!companyName && !fullName) {
       errors.push(`Row ${rowNo}: ${REQUIRED_FIELD_HINT}`);
+      preview.push({
+        rowNo,
+        status: "error",
+        client: "—",
+        ico: null,
+        email: null,
+        job: jobTitle,
+        reason: REQUIRED_FIELD_HINT,
+      });
       skipped++;
       continue;
     }
     const type = inferType(row);
     const ico = pickString(row, "ico", "IČO");
     const email = pickString(row, "email", "Email", "E-mail")?.toLowerCase();
+    const displayName = (companyName ?? fullName ?? "—") as string;
 
     // Dedup by IČO (companies) or email (individuals). Skip silently — caller
     // can re-export to verify.
     if (ico) {
       const dup = await prisma.client.findFirst({ where: { workspaceId: workspace.id, ico, deletedAt: null } });
       if (dup) {
+        preview.push({
+          rowNo,
+          status: "would_skip",
+          client: displayName,
+          ico,
+          email: email ?? null,
+          job: jobTitle,
+          reason: "Already exists (same IČO)",
+        });
         skipped++;
         continue;
       }
     } else if (email) {
       const dup = await prisma.client.findFirst({ where: { workspaceId: workspace.id, email, deletedAt: null } });
       if (dup) {
+        preview.push({
+          rowNo,
+          status: "would_skip",
+          client: displayName,
+          ico: null,
+          email,
+          job: jobTitle,
+          reason: "Already exists (same email)",
+        });
         skipped++;
         continue;
       }
+    }
+
+    // Dry-run path: record what we WOULD do and continue without writing.
+    if (dryRun) {
+      preview.push({
+        rowNo,
+        status: "would_create",
+        client: displayName,
+        ico,
+        email: email ?? null,
+        job: jobTitle,
+        reason: null,
+      });
+      inserted++;
+      if (jobTitle) jobsInserted++;
+      continue;
     }
 
     try {
@@ -200,12 +262,82 @@ export async function importClients(
         action: "create",
         after: { source: "import" } as unknown as Record<string, unknown>,
       });
+
+      // Optional job creation — only if a jobTitle column was filled. We
+      // copy the client's address as the site address by default; the user
+      // can override via siteStreet / siteCity / siteZip columns.
+      if (jobTitle) {
+        try {
+          const job = await prisma.job.create({
+            data: {
+              workspaceId: workspace.id,
+              clientId: created.id,
+              title: jobTitle,
+              status: jobStatusFrom(pickString(row, "jobStatus", "Job status", "Stav")),
+              siteStreet: pickString(row, "siteStreet", "Site street") ?? created.addressStreet,
+              siteCity: pickString(row, "siteCity", "Site city") ?? created.addressCity,
+              siteZip: pickString(row, "siteZip", "Site ZIP") ?? created.addressZip,
+              siteCountry: pickString(row, "siteCountry", "Site country") ?? created.addressCountry,
+              notes: pickString(row, "jobNotes", "Job notes"),
+            },
+          });
+          jobsInserted++;
+          await writeAudit({
+            workspaceId: workspace.id,
+            actorId: user.id,
+            entity: "Job",
+            entityId: job.id,
+            action: "create",
+            after: { source: "import" } as unknown as Record<string, unknown>,
+          });
+        } catch (e) {
+          errors.push(`Row ${rowNo} (job): ${e instanceof Error ? e.message : "create failed"}`);
+        }
+      }
+
+      preview.push({
+        rowNo,
+        status: "would_create",
+        client: displayName,
+        ico,
+        email: email ?? null,
+        job: jobTitle,
+        reason: null,
+      });
     } catch (e) {
       errors.push(`Row ${rowNo}: ${e instanceof Error ? e.message : "create failed"}`);
+      preview.push({
+        rowNo,
+        status: "error",
+        client: displayName,
+        ico,
+        email: email ?? null,
+        job: jobTitle,
+        reason: e instanceof Error ? e.message : "create failed",
+      });
       skipped++;
     }
   }
 
-  revalidatePath("/clients");
-  return { ok: true, inserted, skipped, errors: errors.slice(0, 10) };
+  if (!dryRun) revalidatePath("/clients");
+  return {
+    ok: true,
+    inserted,
+    skipped,
+    jobsInserted,
+    errors: errors.slice(0, 20),
+    preview: preview.slice(0, 200),
+    dryRun,
+  };
+}
+
+function jobStatusFrom(s: string | null) {
+  const allowed = ["SCHEDULED", "IN_PROGRESS", "COMPLETED", "CANCELLED"] as const;
+  if (!s) return "SCHEDULED" as const;
+  const normalized = s.toUpperCase().replace(/\s+/g, "_");
+  // Tolerate the user typing "DONE" — map to COMPLETED.
+  const mapped = normalized === "DONE" ? "COMPLETED" : normalized;
+  return (allowed as readonly string[]).includes(mapped)
+    ? (mapped as (typeof allowed)[number])
+    : ("SCHEDULED" as const);
 }
