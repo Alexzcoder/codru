@@ -281,6 +281,14 @@ export function AdvanceInvoiceForm({
               </option>
             ))}
           </select>
+          <a
+            href="/settings/company-profiles"
+            target="_blank"
+            rel="noreferrer"
+            className="text-[11px] text-muted-foreground hover:underline"
+          >
+            Manage company profiles →
+          </a>
         </div>
         <div className="space-y-2">
           <Label htmlFor="documentTemplateId">{tQ("fields.template")}</Label>
@@ -374,6 +382,10 @@ export function AdvanceInvoiceForm({
           documentDiscountPercent=""
           documentDiscountAmount=""
           reverseCharge={reverseCharge}
+          syncFirstLine={{
+            name: `${defaultLineName} — ${computedAmount} ${currency}`,
+            unitPrice: computedAmount,
+          }}
         />
       </div>
 

@@ -12,6 +12,7 @@ import { SortHeader } from "@/components/sort-header";
 import { Plus, Download } from "lucide-react";
 
 import { documentStatusClass } from "@/lib/status-style";
+import type { DocumentStatus } from "@prisma/client";
 
 const PAGE_SIZE = 50;
 
@@ -20,7 +21,7 @@ export default async function FinalInvoicesPage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ q?: string; sort?: string; dir?: string }>;
+  searchParams: Promise<{ q?: string; sort?: string; dir?: string; status?: string }>;
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
@@ -28,6 +29,11 @@ export default async function FinalInvoicesPage({
   const t = await getTranslations();
   const sp = await searchParams;
   const q = sp.q?.trim() ?? "";
+
+  const allowed = ["UNSENT", "SENT", "PAID", "OVERDUE", "CANCELLED"] as const;
+  const statusFilter = allowed.includes(sp.status as (typeof allowed)[number])
+    ? (sp.status as DocumentStatus)
+    : undefined;
 
   const SORT_FIELDS: Record<string, string> = {
     number: "number",
@@ -46,6 +52,7 @@ export default async function FinalInvoicesPage({
       workspaceId: workspace.id,
       type: "FINAL_INVOICE",
       deletedAt: null,
+      ...(statusFilter && { status: statusFilter }),
       ...(q && {
         OR: [
           { number: { contains: q, mode: "insensitive" as const } },
@@ -81,7 +88,31 @@ export default async function FinalInvoicesPage({
       />
 
       <div className="mb-4">
-        <SearchBar pathname="/final-invoices" initialQ={q} placeholder={t("Common.searchByNumberOrClient")} />
+        <SearchBar
+          pathname="/final-invoices"
+          initialQ={q}
+          preserveParams={{ status: statusFilter }}
+          placeholder={t("Common.searchByNumberOrClient")}
+        />
+      </div>
+
+      <div className="mb-6 flex flex-wrap gap-2 text-sm">
+        {(["ALL", ...allowed] as const).map((s) => {
+          const active = (s === "ALL" && !statusFilter) || s === statusFilter;
+          return (
+            <Link
+              key={s}
+              href={s === "ALL" ? "/final-invoices" : `/final-invoices?status=${s}`}
+              className={
+                active
+                  ? "rounded-full bg-primary px-3 py-1 text-white"
+                  : "rounded-full bg-secondary px-3 py-1 text-foreground hover:bg-neutral-200"
+              }
+            >
+              {s === "ALL" ? t("Common.all") : t(`FinalInvoices.status.${s}`)}
+            </Link>
+          );
+        })}
       </div>
 
       {docs.length === 0 ? (

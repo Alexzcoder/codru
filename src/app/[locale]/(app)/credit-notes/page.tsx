@@ -10,6 +10,7 @@ import { SearchBar } from "@/components/search-bar";
 import { SortHeader } from "@/components/sort-header";
 
 import { documentStatusClass } from "@/lib/status-style";
+import type { DocumentStatus } from "@prisma/client";
 
 const PAGE_SIZE = 50;
 
@@ -18,7 +19,7 @@ export default async function CreditNotesPage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ q?: string; sort?: string; dir?: string }>;
+  searchParams: Promise<{ q?: string; sort?: string; dir?: string; status?: string }>;
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
@@ -26,6 +27,11 @@ export default async function CreditNotesPage({
   const t = await getTranslations();
   const sp = await searchParams;
   const q = sp.q?.trim() ?? "";
+
+  const allowed = ["UNSENT", "SENT", "PAID", "CANCELLED"] as const;
+  const statusFilter = allowed.includes(sp.status as (typeof allowed)[number])
+    ? (sp.status as DocumentStatus)
+    : undefined;
 
   const SORT_FIELDS: Record<string, string> = {
     number: "number",
@@ -43,6 +49,7 @@ export default async function CreditNotesPage({
       workspaceId: workspace.id,
       type: "CREDIT_NOTE",
       deletedAt: null,
+      ...(statusFilter && { status: statusFilter }),
       ...(q && {
         OR: [
           { number: { contains: q, mode: "insensitive" as const } },
@@ -67,7 +74,35 @@ export default async function CreditNotesPage({
       </p>
 
       <div className="mb-4">
-        <SearchBar pathname="/credit-notes" initialQ={q} placeholder={t("Common.searchByNumberOrClient")} />
+        <SearchBar
+          pathname="/credit-notes"
+          initialQ={q}
+          preserveParams={{ status: statusFilter }}
+          placeholder={t("Common.searchByNumberOrClient")}
+        />
+      </div>
+
+      <div className="mb-6 flex flex-wrap gap-2 text-sm">
+        {(["ALL", ...allowed] as const).map((s) => {
+          const active = (s === "ALL" && !statusFilter) || s === statusFilter;
+          const label =
+            s === "ALL"
+              ? t("Common.all")
+              : t(`CreditNotes.status.${s === "PAID" ? "APPLIED" : s}`);
+          return (
+            <Link
+              key={s}
+              href={s === "ALL" ? "/credit-notes" : `/credit-notes?status=${s}`}
+              className={
+                active
+                  ? "rounded-full bg-primary px-3 py-1 text-white"
+                  : "rounded-full bg-secondary px-3 py-1 text-foreground hover:bg-neutral-200"
+              }
+            >
+              {label}
+            </Link>
+          );
+        })}
       </div>
 
       {docs.length === 0 ? (

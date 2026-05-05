@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -60,6 +60,7 @@ export function LineItemsEditor({
   documentDiscountPercent,
   documentDiscountAmount,
   reverseCharge,
+  syncFirstLine,
 }: {
   initialLines: EditorLine[];
   initialPhotos?: SitePhoto[];
@@ -69,12 +70,38 @@ export function LineItemsEditor({
   documentDiscountPercent: string;
   documentDiscountAmount: string;
   reverseCharge: boolean;
+  // For advance invoices: when the parent changes the percent / fixed amount,
+  // we force-update line 0 so the editor and PDF match the chosen amount.
+  syncFirstLine?: { name: string; unitPrice: string } | null;
 }) {
   const t = useTranslations("Quotes.lineItems");
   const tTotals = useTranslations("Quotes.totals");
   const [lines, setLines] = useState<EditorLine[]>(
     initialLines.length > 0 ? initialLines : [EMPTY_LINE],
   );
+  // Reflect parent-driven advance-invoice amount changes into line 0.
+  useEffect(() => {
+    if (!syncFirstLine) return;
+    setLines((prev) => {
+      if (prev.length === 0) {
+        return [
+          {
+            ...EMPTY_LINE,
+            name: syncFirstLine.name,
+            unitPrice: syncFirstLine.unitPrice,
+          },
+        ];
+      }
+      const next = [...prev];
+      next[0] = {
+        ...next[0],
+        name: syncFirstLine.name,
+        unitPrice: syncFirstLine.unitPrice,
+      };
+      return next;
+    });
+  }, [syncFirstLine?.name, syncFirstLine?.unitPrice]);
+
   const [templateId, setTemplateId] = useState<string>("");
   const [suggesterTarget, setSuggesterTarget] = useState<SuggesterTarget | null>(null);
   const [photos, setPhotos] = useState<SitePhoto[]>(initialPhotos ?? []);
