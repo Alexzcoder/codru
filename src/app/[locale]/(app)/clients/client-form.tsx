@@ -190,6 +190,32 @@ export function ClientForm({
       </div>
 
       <div className="space-y-2">
+        <Label htmlFor="contactSource">
+          Where did they contact us from?
+        </Label>
+        <input
+          id="contactSource"
+          name="contactSource"
+          defaultValue={initial?.contactSource ?? ""}
+          maxLength={120}
+          list="contact-source-suggestions"
+          placeholder="Instagram, Google, doporučení, billboard…"
+          className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+        />
+        <datalist id="contact-source-suggestions">
+          <option value="Instagram" />
+          <option value="Facebook" />
+          <option value="Google" />
+          <option value="Doporučení (referral)" />
+          <option value="Billboard / leták" />
+          <option value="Webové stránky" />
+          <option value="Telefon" />
+          <option value="Raynet CRM" />
+          <option value="Jiné" />
+        </datalist>
+      </div>
+
+      <div className="space-y-2">
         <Label htmlFor="notes">{t("form.notes")}</Label>
         <textarea
           id="notes"

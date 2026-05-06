@@ -296,6 +296,9 @@ model Client {
   addressCountry String  @default("CZ")
 
   notes             String?
+  // Free-form "where did this lead come from" — Instagram, referral, walk-in,
+  // Raynet import, billboard, etc. Free text so the operator isn't boxed in.
+  contactSource     String?
   defaultLanguage   UserLocale @default(cs)
   preferredCurrency String     @default("CZK")
 

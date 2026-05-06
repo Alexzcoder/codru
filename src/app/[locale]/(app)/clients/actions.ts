@@ -24,6 +24,7 @@ const clientSchema = z
     addressZip: z.string().trim().max(20).optional().or(z.literal("")),
     addressCountry: z.string().trim().max(2).default("CZ"),
     notes: z.string().trim().max(5000).optional().or(z.literal("")),
+    contactSource: z.string().trim().max(120).optional().or(z.literal("")),
     defaultLanguage: z.enum(["cs", "en"]).default("cs"),
     preferredCurrency: z.enum(["CZK", "EUR", "USD"]).default("CZK"),
     customFields: z.string().optional(),
@@ -83,6 +84,7 @@ function toPayload(d: z.infer<typeof clientSchema>) {
     addressZip: d.addressZip || null,
     addressCountry: d.addressCountry || "CZ",
     notes: d.notes || null,
+    contactSource: d.contactSource || null,
     defaultLanguage: d.defaultLanguage,
     preferredCurrency: d.preferredCurrency,
   };

@@ -331,10 +331,9 @@ export async function importClients(
       addressZip = addressZip ?? parsed.zip;
     }
 
-    // Notes: tag Raynet imports with the Czech label "Importováno z Raynet CRM"
-    // so the user can later filter / remove imported clients. Other sources
-    // (manual text-thread leads, etc.) are not tagged — their Source column
-    // is just metadata about where the lead came from, not provenance.
+    // Source column → goes into the dedicated `contactSource` field. For
+    // Raynet exports we additionally append a Czech provenance line to notes
+    // so it's visible at a glance even without opening the form.
     const sourceTag = pickString(row, "source", "Source", "Zdroj");
     const rawNotes = pickString(row, "notes", "Notes", "Poznámky");
     const isRaynet = sourceTag?.toLowerCase().includes("raynet");
@@ -344,6 +343,7 @@ export async function importClients(
     ]
       .filter(Boolean)
       .join("\n") || null;
+    const contactSource = sourceTag || null;
 
     // Default status for imports is PAST (these are migrated history, not
     // fresh leads). Per-row override via a `status` column is honored when
@@ -375,6 +375,7 @@ export async function importClients(
           preferredCurrency:
             pickString(row, "preferredCurrency", "currency") ?? "CZK",
           notes,
+          contactSource,
         },
       });
       createdClientIds.push(created.id);

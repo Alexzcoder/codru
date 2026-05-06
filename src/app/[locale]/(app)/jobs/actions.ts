@@ -215,7 +215,10 @@ export async function deleteJob(id: string) {
   redirect("/jobs");
 }
 
-export type AttachmentState = { error?: string };
+export type AttachmentState = {
+  error?: string;
+  uploadedCount?: number;
+};
 
 export async function uploadAttachment(
   jobId: string,
@@ -223,47 +226,76 @@ export async function uploadAttachment(
   formData: FormData,
 ): Promise<AttachmentState> {
   const { user, workspace } = await requireWorkspace();
-  const file = formData.get("file") as File | null;
+  // The form input has `multiple`, so getAll picks up every selected file.
+  // Stays compatible with single-file submits.
+  const rawFiles = formData.getAll("file");
+  const files = rawFiles.filter(
+    (f): f is File => f instanceof File && f.size > 0,
+  );
   const caption = (formData.get("caption") as string | null)?.trim() || null;
-  if (!file || file.size === 0) return { error: "noFile" };
+  if (files.length === 0) return { error: "noFile" };
 
   // Verify job belongs to active workspace
   const job = await prisma.job.findFirst({ where: { id: jobId, workspaceId: workspace.id }, select: { id: true } });
   if (!job) return { error: "notFound" };
 
-  const count = await prisma.attachment.count({ where: { jobId, workspaceId: workspace.id } });
-  if (count >= MAX_FILES_PER_JOB) return { error: "tooManyFiles" };
-
-  let saved;
-  try {
-    saved = await saveJobAttachment({ file, jobId });
-  } catch (e) {
-    return { error: e instanceof Error ? e.message : "uploadFailed" };
+  const existing = await prisma.attachment.count({ where: { jobId, workspaceId: workspace.id } });
+  if (existing + files.length > MAX_FILES_PER_JOB) {
+    const remaining = Math.max(0, MAX_FILES_PER_JOB - existing);
+    return {
+      error:
+        remaining === 0
+          ? "tooManyFiles"
+          : `Only ${remaining} more file${remaining === 1 ? "" : "s"} fits — picked ${files.length}.`,
+    };
   }
 
-  const att = await prisma.attachment.create({
-    data: {
-      workspaceId: workspace.id,
-      jobId,
-      filename: saved.filename,
-      mimeType: saved.mimeType,
-      sizeBytes: saved.sizeBytes,
-      kind: saved.kind,
-      path: saved.path,
-      caption,
-      uploadedById: user.id,
-    },
-  });
-  await writeAudit({
-    workspaceId: workspace.id,
-    actorId: user.id,
-    entity: "Attachment",
-    entityId: att.id,
-    action: "create",
-    after: { jobId, filename: att.filename } as unknown as Record<string, unknown>,
-  });
+  let uploaded = 0;
+  const failures: string[] = [];
+  for (const file of files) {
+    try {
+      const saved = await saveJobAttachment({ file, jobId });
+      const att = await prisma.attachment.create({
+        data: {
+          workspaceId: workspace.id,
+          jobId,
+          filename: saved.filename,
+          mimeType: saved.mimeType,
+          sizeBytes: saved.sizeBytes,
+          kind: saved.kind,
+          path: saved.path,
+          caption,
+          uploadedById: user.id,
+        },
+      });
+      await writeAudit({
+        workspaceId: workspace.id,
+        actorId: user.id,
+        entity: "Attachment",
+        entityId: att.id,
+        action: "create",
+        after: { jobId, filename: att.filename } as unknown as Record<string, unknown>,
+      });
+      uploaded++;
+    } catch (e) {
+      failures.push(
+        `${file.name}: ${e instanceof Error ? e.message : "uploadFailed"}`,
+      );
+    }
+  }
+
   revalidatePath(`/jobs/${jobId}`);
-  return {};
+
+  if (uploaded === 0) {
+    return { error: failures[0] ?? "uploadFailed" };
+  }
+  if (failures.length > 0) {
+    return {
+      uploadedCount: uploaded,
+      error: `${failures.length} file(s) failed: ${failures.slice(0, 3).join("; ")}`,
+    };
+  }
+  return { uploadedCount: uploaded };
 }
 
 export async function createDemoJob() {
