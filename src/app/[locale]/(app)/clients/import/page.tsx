@@ -97,6 +97,21 @@ export default async function ClientsImportPage({
       </div>
 
       <RecentImports batches={recent} />
+
+      <section className="mt-10 rounded-xl border border-border bg-card p-4 shadow-sm">
+        <p className="text-sm font-semibold">Importing historical PDFs?</p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Got past quotes/invoices as PDFs? Use the AI document importer —
+          Claude reads each PDF, extracts the fields, and matches each one to
+          an existing client for you to confirm.
+        </p>
+        <a
+          href="/imports/documents"
+          className="mt-2 inline-block text-xs font-medium text-primary hover:underline"
+        >
+          Open document import →
+        </a>
+      </section>
     </div>
   );
 }

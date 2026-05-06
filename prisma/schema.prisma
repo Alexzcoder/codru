@@ -63,6 +63,7 @@ model Workspace {
   events            Event[]
   podcastEpisodes   PodcastEpisode[]
   importBatches     ImportBatch[]
+  docImportSessions DocumentImportSession[]
 }
 
 model Membership {
@@ -100,25 +101,26 @@ model User {
   updatedAt          DateTime   @updatedAt
 
   memberships              Membership[]
-  invitesCreated           Invite[]             @relation("InviteCreator")
+  invitesCreated           Invite[]                @relation("InviteCreator")
   passwordResets           PasswordResetToken[]
   auditLogs                AuditLog[]
   contactLogs              ContactLog[]
   jobAssignments           JobAssignment[]
-  attachmentsUploaded      Attachment[]         @relation("AttachmentUploader")
-  calendarEventsCreated    CalendarEvent[]      @relation("CalendarEventCreator")
-  calendarEventsAssigned   CalendarEvent[]      @relation("CalendarEventAssignee")
-  documentsCreated         Document[]           @relation("DocumentCreator")
+  attachmentsUploaded      Attachment[]            @relation("AttachmentUploader")
+  calendarEventsCreated    CalendarEvent[]         @relation("CalendarEventCreator")
+  calendarEventsAssigned   CalendarEvent[]         @relation("CalendarEventAssignee")
+  documentsCreated         Document[]              @relation("DocumentCreator")
   paymentsLogged           Payment[]
-  expensesCreated          Expense[]            @relation("ExpenseCreator")
-  recurrencesCreated       RecurrenceRule[]     @relation("RecurrenceCreator")
+  expensesCreated          Expense[]               @relation("ExpenseCreator")
+  recurrencesCreated       RecurrenceRule[]        @relation("RecurrenceCreator")
   notifications            Notification[]
-  emailsSent               EmailLog[]           @relation("EmailLogSender")
-  eventsCreated            Event[]              @relation("EventCreator")
-  eventTodosAssigned       EventTodo[]          @relation("EventTodoAssignee")
-  eventAttachmentsUploaded EventAttachment[]    @relation("EventAttachmentUploader")
-  podcastEpisodesCreated   PodcastEpisode[]     @relation("PodcastEpisodeCreator")
-  importBatchesCreated     ImportBatch[]        @relation("ImportBatchCreator")
+  emailsSent               EmailLog[]              @relation("EmailLogSender")
+  eventsCreated            Event[]                 @relation("EventCreator")
+  eventTodosAssigned       EventTodo[]             @relation("EventTodoAssignee")
+  eventAttachmentsUploaded EventAttachment[]       @relation("EventAttachmentUploader")
+  podcastEpisodesCreated   PodcastEpisode[]        @relation("PodcastEpisodeCreator")
+  importBatchesCreated     ImportBatch[]           @relation("ImportBatchCreator")
+  docImportSessionsCreated DocumentImportSession[] @relation("DocImportSessionCreator")
 }
 
 model Invite {
@@ -315,6 +317,7 @@ model Client {
   calendarEvents    CalendarEvent[]
   documents         Document[]
   payments          Payment[]
+  docImportItems    DocumentImportItem[] @relation("DocImportItemMatchedClient")
 
   @@index([workspaceId])
   @@index([status])
@@ -723,6 +726,10 @@ model Document {
   // Outbound emails sent for this document (M15+)
   emailLogs EmailLog[]
 
+  // AI document-import provenance (set when the doc was created from a PDF
+  // via an import session).
+  docImportItems DocumentImportItem[] @relation("DocImportItemCreatedDoc")
+
   @@unique([workspaceId, type, yearSeries, numberSeq])
   @@index([workspaceId])
   @@index([clientId])
@@ -1091,6 +1098,53 @@ model AiCall {
   @@index([workspaceId, createdAt])
   @@index([userId, createdAt])
   @@index([feature, createdAt])
+}
+
+// ──────────────────────────────────────────────────────────
+// AI-driven document import (PDFs of historical quotes/invoices).
+// A session bundles N PDFs uploaded in one batch. Each item is parsed by
+// Claude, auto-matched to an existing client (by IČO/email), and either
+// approved (creating a real Document with the PDF attached) or skipped.
+// ──────────────────────────────────────────────────────────
+model DocumentImportSession {
+  id           String               @id @default(cuid())
+  workspaceId  String
+  workspace    Workspace            @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdById  String
+  createdBy    User                 @relation("DocImportSessionCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  status       String               @default("DRAFT") // DRAFT | PARSING | READY | FINALIZED
+  costCapUsd   Decimal              @default(5.00) @db.Decimal(8, 4)
+  totalCostUsd Decimal              @default(0) @db.Decimal(8, 4)
+  model        String               @default("claude-sonnet-4-6")
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+  finalizedAt  DateTime?
+  items        DocumentImportItem[]
+
+  @@index([workspaceId, createdAt])
+}
+
+model DocumentImportItem {
+  id                String                @id @default(cuid())
+  sessionId         String
+  session           DocumentImportSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  filename          String
+  storedPath        String // /uploads/import-sessions/<sessionId>/<itemId>.pdf
+  mimeType          String
+  sizeBytes         Int
+  status            String                @default("PENDING") // PENDING | PARSING | PARSED | FAILED | APPROVED | SKIPPED
+  parseError        String?
+  parsed            Json? // raw structured output from Claude
+  matchedClientId   String?
+  matchedClient     Client?               @relation("DocImportItemMatchedClient", fields: [matchedClientId], references: [id], onDelete: SetNull)
+  matchConfidence   Decimal?              @db.Decimal(4, 3) // 0..1 cosine-ish heuristic
+  createdDocumentId String?
+  createdDocument   Document?             @relation("DocImportItemCreatedDoc", fields: [createdDocumentId], references: [id], onDelete: SetNull)
+  costUsd           Decimal               @default(0) @db.Decimal(8, 4)
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+
+  @@index([sessionId])
 }
 
 // ──────────────────────────────────────────────────────────

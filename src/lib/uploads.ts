@@ -77,6 +77,31 @@ export async function saveReceiptUpload({ file }: { file: File }): Promise<strin
   return `/uploads/expenses/${name}`;
 }
 
+export async function saveImportSessionPdf({
+  file,
+  sessionId,
+  itemId,
+}: {
+  file: File;
+  sessionId: string;
+  itemId: string;
+}): Promise<{ path: string; mimeType: string; sizeBytes: number }> {
+  if (file.size === 0) throw new Error("Empty file");
+  if (file.size > 20 * 1024 * 1024) throw new Error("PDF too large (max 20 MB)");
+  if (file.type !== "application/pdf") throw new Error("Only PDF files are accepted");
+
+  const dir = path.join(UPLOADS_DIR, "import-sessions", sessionId);
+  await fs.mkdir(dir, { recursive: true });
+  const filepath = path.join(dir, `${itemId}.pdf`);
+  const buffer = Buffer.from(await file.arrayBuffer());
+  await fs.writeFile(filepath, buffer);
+  return {
+    path: `/uploads/import-sessions/${sessionId}/${itemId}.pdf`,
+    mimeType: file.type,
+    sizeBytes: file.size,
+  };
+}
+
 export async function saveJobAttachment({
   file,
   jobId,
