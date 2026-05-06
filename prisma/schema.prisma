@@ -62,6 +62,7 @@ model Workspace {
   aiCalls           AiCall[]
   events            Event[]
   podcastEpisodes   PodcastEpisode[]
+  importBatches     ImportBatch[]
 }
 
 model Membership {
@@ -117,6 +118,7 @@ model User {
   eventTodosAssigned       EventTodo[]          @relation("EventTodoAssignee")
   eventAttachmentsUploaded EventAttachment[]    @relation("EventAttachmentUploader")
   podcastEpisodesCreated   PodcastEpisode[]     @relation("PodcastEpisodeCreator")
+  importBatchesCreated     ImportBatch[]        @relation("ImportBatchCreator")
 }
 
 model Invite {
@@ -230,6 +232,27 @@ model AuditLog {
   @@index([workspaceId, createdAt])
   @@index([entity, entityId])
   @@index([actorId, createdAt])
+}
+
+// Records every bulk import so it can be undone in one click. We store the
+// created Client/Job IDs as JSON arrays rather than as relations because
+// these arrays are append-only once the import finishes — no FK to maintain.
+// Undo flips status to UNDONE and soft-deletes the linked records.
+model ImportBatch {
+  id          String    @id @default(cuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdById String
+  createdBy   User      @relation("ImportBatchCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  source      String // e.g. "clients_import_excel"
+  filename    String?
+  clientIds   Json      @default("[]")
+  jobIds      Json      @default("[]")
+  status      String    @default("ACTIVE") // ACTIVE | UNDONE
+  undoneAt    DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([workspaceId, createdAt])
 }
 
 // ──────────────────────────────────────────────────────────

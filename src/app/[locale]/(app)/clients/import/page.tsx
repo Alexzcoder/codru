@@ -1,8 +1,10 @@
 import { requireWorkspace } from "@/lib/session";
 import { setRequestLocale } from "next-intl/server";
 import { BackLink } from "@/components/back-link";
+import { prisma } from "@/lib/prisma";
 import { ImportForm } from "./form";
 import { importClients } from "./actions";
+import { RecentImports, type RecentBatch } from "./recent-imports";
 
 export default async function ClientsImportPage({
   params,
@@ -11,7 +13,22 @@ export default async function ClientsImportPage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  await requireWorkspace();
+  const { workspace } = await requireWorkspace();
+
+  const recentRows = await prisma.importBatch.findMany({
+    where: { workspaceId: workspace.id, source: "clients_import_excel" },
+    orderBy: { createdAt: "desc" },
+    take: 10,
+  });
+  const recent: RecentBatch[] = recentRows.map((b) => ({
+    id: b.id,
+    createdAt: b.createdAt.toISOString(),
+    filename: b.filename,
+    clients: Array.isArray(b.clientIds) ? (b.clientIds as unknown[]).length : 0,
+    jobs: Array.isArray(b.jobIds) ? (b.jobIds as unknown[]).length : 0,
+    status: b.status === "UNDONE" ? "UNDONE" : "ACTIVE",
+    undoneAt: b.undoneAt?.toISOString() ?? null,
+  }));
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-8">
@@ -21,6 +38,9 @@ export default async function ClientsImportPage({
         Upload a <code>.xlsx</code> or <code>.csv</code> with one row per
         client. Either <code>companyName</code> or <code>fullName</code> is
         required. Existing clients (matched by IČO or email) are skipped.
+        Imported clients default to <strong>PAST</strong> status (override
+        with a <code>status</code> column —{" "}
+        <code>POTENTIAL / ACTIVE / PAST / FAILED</code>).
       </p>
 
       <details className="mt-4 rounded-lg border border-border bg-card p-4 text-sm">
@@ -75,6 +95,8 @@ export default async function ClientsImportPage({
       <div className="mt-8">
         <ImportForm action={importClients} />
       </div>
+
+      <RecentImports batches={recent} />
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { requireWorkspace } from "@/lib/session";
 import { writeAudit } from "@/lib/audit";
 import { revalidatePath } from "next/cache";
+import type { ClientStatus } from "@prisma/client";
 
 export type ImportClientsState = {
   ok?: boolean;
@@ -14,6 +15,7 @@ export type ImportClientsState = {
   errors?: string[];
   preview?: PreviewRow[];
   dryRun?: boolean;
+  batchId?: string; // returned on a real (non-dry) import; powers the Undo button
 };
 
 export type PreviewRow = {
@@ -225,6 +227,8 @@ export async function importClients(
 
   const errors: string[] = [];
   const preview: PreviewRow[] = [];
+  const createdClientIds: string[] = [];
+  const createdJobIds: string[] = [];
   let inserted = 0;
   let skipped = 0;
   let jobsInserted = 0;
@@ -338,12 +342,21 @@ export async function importClients(
       .filter(Boolean)
       .join("\n") || null;
 
+    // Default status for imports is PAST (these are migrated history, not
+    // fresh leads). Per-row override via a `status` column is honored when
+    // it matches a known ClientStatus value.
+    const statusRaw = pickString(row, "status", "Status", "Stav klienta")?.toUpperCase();
+    const allowedStatus: ClientStatus[] = ["POTENTIAL", "ACTIVE", "PAST", "FAILED"];
+    const status: ClientStatus = (allowedStatus as string[]).includes(statusRaw ?? "")
+      ? (statusRaw as ClientStatus)
+      : "PAST";
+
     try {
       const created = await prisma.client.create({
         data: {
           workspaceId: workspace.id,
           type,
-          status: "POTENTIAL",
+          status,
           companyName: type === "COMPANY" ? companyName : null,
           fullName: type === "INDIVIDUAL" ? fullName ?? companyName! : null,
           ico,
@@ -361,6 +374,7 @@ export async function importClients(
           notes,
         },
       });
+      createdClientIds.push(created.id);
       inserted++;
       await writeAudit({
         workspaceId: workspace.id,
@@ -389,6 +403,7 @@ export async function importClients(
               notes: pickString(row, "jobNotes", "Job notes"),
             },
           });
+          createdJobIds.push(job.id);
           jobsInserted++;
           await writeAudit({
             workspaceId: workspace.id,
@@ -427,6 +442,23 @@ export async function importClients(
     }
   }
 
+  // Persist a batch row so the user can undo this whole import in one click.
+  // Only on real (non-dry) runs that actually created something.
+  let batchId: string | undefined;
+  if (!dryRun && (createdClientIds.length > 0 || createdJobIds.length > 0)) {
+    const batch = await prisma.importBatch.create({
+      data: {
+        workspaceId: workspace.id,
+        createdById: user.id,
+        source: "clients_import_excel",
+        filename: file.name,
+        clientIds: createdClientIds,
+        jobIds: createdJobIds,
+      },
+    });
+    batchId = batch.id;
+  }
+
   if (!dryRun) revalidatePath("/clients");
   return {
     ok: true,
@@ -436,6 +468,63 @@ export async function importClients(
     errors: errors.slice(0, 20),
     preview: preview.slice(0, 200),
     dryRun,
+    batchId,
+  };
+}
+
+export type UndoState = { ok?: boolean; reverted?: number; error?: string };
+
+/**
+ * Undo a bulk import: soft-deletes every Client and Job recorded in the
+ * batch row (matching workspaceId for safety). Idempotent — running twice
+ * is a no-op because the second pass finds the records already deleted.
+ */
+export async function undoImport(batchId: string): Promise<UndoState> {
+  const { user, workspace } = await requireWorkspace();
+  const batch = await prisma.importBatch.findFirst({
+    where: { id: batchId, workspaceId: workspace.id },
+  });
+  if (!batch) return { ok: false, error: "notFound" };
+  if (batch.status === "UNDONE") return { ok: false, error: "alreadyUndone" };
+
+  const clientIds = (batch.clientIds as string[]) ?? [];
+  const jobIds = (batch.jobIds as string[]) ?? [];
+  const now = new Date();
+
+  // Soft-delete jobs first (jobs reference clients; if we soft-delete clients
+  // first their jobs are still active and would orphan in the UI).
+  const jobsResult = await prisma.job.updateMany({
+    where: { id: { in: jobIds }, workspaceId: workspace.id },
+    data: { /* no soft-delete column; mark as CANCELLED to keep audit trail */ status: "CANCELLED" },
+  });
+  const clientsResult = await prisma.client.updateMany({
+    where: { id: { in: clientIds }, workspaceId: workspace.id, deletedAt: null },
+    data: { deletedAt: now },
+  });
+
+  await prisma.importBatch.update({
+    where: { id: batchId },
+    data: { status: "UNDONE", undoneAt: now },
+  });
+
+  await writeAudit({
+    workspaceId: workspace.id,
+    actorId: user.id,
+    entity: "ImportBatch",
+    entityId: batchId,
+    action: "delete",
+    after: {
+      undo: true,
+      revertedClients: clientsResult.count,
+      revertedJobs: jobsResult.count,
+    } as unknown as Record<string, unknown>,
+  });
+
+  revalidatePath("/clients");
+  revalidatePath("/clients/import");
+  return {
+    ok: true,
+    reverted: clientsResult.count + jobsResult.count,
   };
 }
 
