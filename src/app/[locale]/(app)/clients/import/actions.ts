@@ -331,13 +331,16 @@ export async function importClients(
       addressZip = addressZip ?? parsed.zip;
     }
 
-    // Notes: append "Source: Raynet CRM" / "Notes: ..." in a stable shape so
-    // re-imports don't duplicate.
+    // Notes: tag Raynet imports with the Czech label "Importováno z Raynet CRM"
+    // so the user can later filter / remove imported clients. Other sources
+    // (manual text-thread leads, etc.) are not tagged — their Source column
+    // is just metadata about where the lead came from, not provenance.
     const sourceTag = pickString(row, "source", "Source", "Zdroj");
     const rawNotes = pickString(row, "notes", "Notes", "Poznámky");
+    const isRaynet = sourceTag?.toLowerCase().includes("raynet");
     const notes = [
       rawNotes,
-      sourceTag ? `[Source: ${sourceTag}]` : null,
+      isRaynet ? "Importováno z Raynet CRM" : null,
     ]
       .filter(Boolean)
       .join("\n") || null;
