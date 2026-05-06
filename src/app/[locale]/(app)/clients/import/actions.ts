@@ -38,10 +38,85 @@ function pickString(row: Row, ...keys: string[]): string | null {
   return null;
 }
 
+// Czech business-form suffixes that flag a row as a company even when only
+// a generic "Name" column is provided. Match is case-insensitive and word-
+// bounded so "Spolanová" doesn't trip "spol".
+const COMPANY_SUFFIXES = [
+  "s.r.o.",
+  "sro",
+  "a.s.",
+  "as",
+  "spol.",
+  "k.s.",
+  "v.o.s.",
+  "z.s.",
+  "z.ú.",
+  "o.p.s.",
+  "s.e.",
+  "ltd",
+  "ltd.",
+  "llc",
+  "inc.",
+  "inc",
+  "gmbh",
+];
+
+function looksLikeCompany(name: string): boolean {
+  const lower = name.toLowerCase();
+  return COMPANY_SUFFIXES.some((s) =>
+    new RegExp(`(^|\\s|,)${s.replace(/\./g, "\\.")}(\\s|$|,)`).test(lower),
+  );
+}
+
 function inferType(row: Row): "INDIVIDUAL" | "COMPANY" {
   const explicit = pickString(row, "type", "Type")?.toUpperCase();
   if (explicit === "COMPANY" || explicit === "INDIVIDUAL") return explicit;
-  return pickString(row, "companyName", "company") ? "COMPANY" : "INDIVIDUAL";
+  if (pickString(row, "companyName", "company")) return "COMPANY";
+  // Combined "Name" column: detect company by suffix.
+  const name = pickString(row, "Name", "name");
+  if (name && looksLikeCompany(name)) return "COMPANY";
+  return "INDIVIDUAL";
+}
+
+// Parse Czech-style combined address "<street>, <zip> <city>" or
+// "<street>, <city>". ZIP is 5 digits, may include a space ("198 00").
+// Anything we can't confidently parse stays in `street` so it's not lost.
+type ParsedAddress = {
+  street: string | null;
+  city: string | null;
+  zip: string | null;
+};
+function parseCombinedAddress(input: string): ParsedAddress {
+  const trimmed = input.trim().replace(/\s+/g, " ");
+  if (!trimmed) return { street: null, city: null, zip: null };
+
+  // Split on the LAST comma so multi-comma streets ("Park, vchod 2, ...") work.
+  const lastComma = trimmed.lastIndexOf(",");
+  if (lastComma < 0) return { street: trimmed, city: null, zip: null };
+
+  const street = trimmed.slice(0, lastComma).trim();
+  const tail = trimmed.slice(lastComma + 1).trim();
+
+  // Try "<zip> <city>" with 5-digit zip (optional space at position 3).
+  const m = tail.match(/^(\d{3}\s?\d{2})\s+(.+)$/);
+  if (m) {
+    return {
+      street: street || null,
+      zip: m[1].replace(/\s+/g, ""),
+      city: m[2].trim() || null,
+    };
+  }
+  // Try "<city> <zip>" (zip at end).
+  const m2 = tail.match(/^(.+?)\s+(\d{3}\s?\d{2})$/);
+  if (m2) {
+    return {
+      street: street || null,
+      city: m2[1].trim() || null,
+      zip: m2[2].replace(/\s+/g, ""),
+    };
+  }
+  // No zip — tail is the city.
+  return { street: street || null, city: tail || null, zip: null };
 }
 
 async function parseCsv(text: string): Promise<Row[]> {
@@ -157,8 +232,17 @@ export async function importClients(
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
     const rowNo = i + 2; // +1 for 1-index, +1 for header
-    const companyName = pickString(row, "companyName", "Company name", "company", "Firma");
-    const fullName = pickString(row, "fullName", "Full name", "name", "Jméno");
+    // Combined "Name" column (Raynet-style export) routes to companyName or
+    // fullName based on suffix detection; explicit columns still win.
+    const explicitCompanyName = pickString(row, "companyName", "Company name", "company", "Firma");
+    const explicitFullName = pickString(row, "fullName", "Full name", "Jméno");
+    const combinedName = pickString(row, "Name", "name");
+    let companyName = explicitCompanyName;
+    let fullName = explicitFullName;
+    if (!companyName && !fullName && combinedName) {
+      if (looksLikeCompany(combinedName)) companyName = combinedName;
+      else fullName = combinedName;
+    }
     const jobTitle = pickString(row, "jobTitle", "Job", "Zakázka", "Job title");
 
     if (!companyName && !fullName) {
@@ -230,6 +314,30 @@ export async function importClients(
       continue;
     }
 
+    // Address: prefer explicit street/city/zip columns; fall back to parsing
+    // a combined "Address" column (typical Raynet export shape).
+    let addressStreet = pickString(row, "street", "addressStreet", "Ulice");
+    let addressCity = pickString(row, "city", "addressCity", "Město");
+    let addressZip = pickString(row, "zip", "addressZip", "PSČ");
+    const combinedAddress = pickString(row, "address", "Address", "Adresa");
+    if (combinedAddress && (!addressStreet || !addressCity)) {
+      const parsed = parseCombinedAddress(combinedAddress);
+      addressStreet = addressStreet ?? parsed.street;
+      addressCity = addressCity ?? parsed.city;
+      addressZip = addressZip ?? parsed.zip;
+    }
+
+    // Notes: append "Source: Raynet CRM" / "Notes: ..." in a stable shape so
+    // re-imports don't duplicate.
+    const sourceTag = pickString(row, "source", "Source", "Zdroj");
+    const rawNotes = pickString(row, "notes", "Notes", "Poznámky");
+    const notes = [
+      rawNotes,
+      sourceTag ? `[Source: ${sourceTag}]` : null,
+    ]
+      .filter(Boolean)
+      .join("\n") || null;
+
     try {
       const created = await prisma.client.create({
         data: {
@@ -242,15 +350,15 @@ export async function importClients(
           dic: pickString(row, "dic", "DIČ"),
           email: email ?? null,
           phone: pickString(row, "phone", "Phone", "Telefon"),
-          addressStreet: pickString(row, "street", "addressStreet", "Ulice"),
-          addressCity: pickString(row, "city", "addressCity", "Město"),
-          addressZip: pickString(row, "zip", "addressZip", "PSČ"),
+          addressStreet,
+          addressCity,
+          addressZip,
           addressCountry: pickString(row, "country", "addressCountry", "Země") ?? "CZ",
           defaultLanguage:
             (pickString(row, "defaultLanguage", "language") === "en" ? "en" : "cs"),
           preferredCurrency:
             pickString(row, "preferredCurrency", "currency") ?? "CZK",
-          notes: pickString(row, "notes", "Poznámky"),
+          notes,
         },
       });
       inserted++;

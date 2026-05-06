@@ -29,13 +29,29 @@ export default async function ClientsImportPage({
           <div>
             <p className="font-semibold">Client columns</p>
             <p className="text-muted-foreground">
-              <code>companyName</code> / <code>Firma</code> · <code>fullName</code> / <code>Jméno</code> ·
-              <code>ico</code> / <code>IČO</code> · <code>dic</code> / <code>DIČ</code> ·
-              <code>email</code> · <code>phone</code> / <code>Telefon</code> ·
-              <code>street</code> / <code>Ulice</code> · <code>city</code> / <code>Město</code> ·
-              <code>zip</code> / <code>PSČ</code> · <code>country</code> / <code>Země</code> ·
-              <code>defaultLanguage</code> (cs/en) · <code>preferredCurrency</code> (CZK/EUR/USD) ·
-              <code>notes</code> / <code>Poznámky</code>
+              <strong>Name</strong>: either separate <code>companyName</code> /
+              <code>Firma</code> + <code>fullName</code> / <code>Jméno</code>, OR a
+              single combined <code>Name</code> column (Raynet-style — we
+              auto-detect company by suffix like &ldquo;s.r.o.&rdquo;,
+              &ldquo;a.s.&rdquo;).
+              <br />
+              <strong>Address</strong>: either separate
+              <code>street</code> / <code>Ulice</code>, <code>city</code> /
+              <code>Město</code>, <code>zip</code> / <code>PSČ</code>, OR a
+              single combined <code>Address</code> /
+              <code>Adresa</code> column ("Krejnická 2021/1, 14800 Praha")
+              that we parse for you.
+              <br />
+              Other: <code>ico</code> / <code>IČO</code> ·
+              <code>dic</code> / <code>DIČ</code> · <code>email</code> ·
+              <code>phone</code> / <code>Telefon</code> ·
+              <code>country</code> / <code>Země</code> ·
+              <code>defaultLanguage</code> (cs/en) ·
+              <code>preferredCurrency</code> (CZK/EUR/USD) ·
+              <code>notes</code> / <code>Poznámky</code> ·
+              <code>source</code> / <code>Source</code> /
+              <code>Zdroj</code> (appended as &ldquo;[Source: …]&rdquo; to
+              notes).
             </p>
           </div>
           <div>
