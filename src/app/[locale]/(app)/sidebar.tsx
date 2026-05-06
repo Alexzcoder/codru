@@ -17,6 +17,7 @@ import {
   Megaphone,
   Sparkles,
   Mic,
+  Upload,
 } from "lucide-react";
 import { SidebarLink } from "./sidebar-link";
 import type { Workspace, Membership } from "@prisma/client";
@@ -55,10 +56,11 @@ export async function Sidebar({
     {
       label: "Documents",
       items: [
-        { href: "/quotes",            label: t("Quotes.title"),           icon: <FileText size={16} />,  key: "documents" },
-        { href: "/advance-invoices",  label: t("AdvanceInvoices.title"),  icon: <FileCheck size={16} />, key: "documents" },
-        { href: "/final-invoices",    label: t("FinalInvoices.title"),    icon: <Receipt size={16} />,   key: "documents" },
-        { href: "/credit-notes",      label: t("CreditNotes.title"),      icon: <FileX size={16} />,     key: "documents" },
+        { href: "/quotes",             label: t("Quotes.title"),           icon: <FileText size={16} />,  key: "documents" },
+        { href: "/advance-invoices",   label: t("AdvanceInvoices.title"),  icon: <FileCheck size={16} />, key: "documents" },
+        { href: "/final-invoices",     label: t("FinalInvoices.title"),    icon: <Receipt size={16} />,   key: "documents" },
+        { href: "/credit-notes",       label: t("CreditNotes.title"),      icon: <FileX size={16} />,     key: "documents" },
+        { href: "/imports/documents",  label: "Import PDFs",               icon: <Upload size={16} />,    key: "documents" },
       ],
     },
     {
