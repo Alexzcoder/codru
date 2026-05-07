@@ -51,7 +51,10 @@ export async function buildPdfDataForDocument(
     type: doc.type,
     locale: doc.locale,
     currency: doc.currency,
-    number: doc.number ?? `[${doc.id.slice(-6)}]`,
+    // Drafts haven't been allocated a real number yet — gapless numbering
+    // only fires on send. Show "KONCEPT" so the PDF clearly says "draft"
+    // instead of the random-looking cuid suffix we used to print.
+    number: doc.number ?? (doc.locale === "en" ? "DRAFT" : "KONCEPT"),
     issueDate: doc.issueDate,
     taxPointDate: doc.taxPointDate,
     dueDate: doc.dueDate,

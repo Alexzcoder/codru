@@ -39,10 +39,11 @@ export async function GET(
   }
 
   const buffer = await renderDocumentPdf(doc);
+  const fallback = `faktura-koncept-${doc.issueDate.toISOString().slice(0, 10)}`;
   return new Response(new Uint8Array(buffer), {
     headers: {
       "content-type": "application/pdf",
-      "content-disposition": `${disp}; filename="${doc.number ?? "invoice-draft"}.pdf"`,
+      "content-disposition": `${disp}; filename="${doc.number ?? fallback}.pdf"`,
       "cache-control": "no-store",
     },
   });

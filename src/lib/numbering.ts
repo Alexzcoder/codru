@@ -1,16 +1,20 @@
 import type { DocumentType, PrismaClient } from "@prisma/client";
 
 // Number formats per PRD §10.1/§11.1/§12.1/§13.2.
-// One series per type per year, resets annually.
+// One series per type per year, resets annually. Czech-style prefixes:
+//   NAB  = Nabídka (quote)
+//   ZF   = Zálohová faktura (advance invoice)
+//   FA   = Faktura (final invoice)
+//   OD   = Opravný daňový doklad (credit note)
 const PREFIX: Record<DocumentType, string> = {
-  QUOTE: "Q",
-  ADVANCE_INVOICE: "ADV",
-  FINAL_INVOICE: "INV",
-  CREDIT_NOTE: "CN",
+  QUOTE: "NAB",
+  ADVANCE_INVOICE: "ZF",
+  FINAL_INVOICE: "FA",
+  CREDIT_NOTE: "OD",
 };
 
 function format(type: DocumentType, year: number, seq: number): string {
-  return `${PREFIX[type]}-${year}-${String(seq).padStart(4, "0")}`;
+  return `${PREFIX[type]}-${year}-${String(seq).padStart(3, "0")}`;
 }
 
 // Atomically allocate the next number for (workspaceId, type, year).
