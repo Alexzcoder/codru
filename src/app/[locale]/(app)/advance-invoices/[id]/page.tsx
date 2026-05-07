@@ -128,6 +128,15 @@ export default async function AdvanceInvoiceDetailPage({
         </p>
       )}
 
+      {isDraft && (
+        <div className="mt-4 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+          <strong>Koncept</strong> — zálohová faktura zatím nemá přidělené číslo.
+          Klikněte níže na <em>&ldquo;{t("AdvanceInvoices.actions.markSent")}&rdquo;</em>, aby se
+          přidělilo číslo (např. <code>ZF2605070001</code>) a PDF se uložilo
+          s tímto názvem.
+        </div>
+      )}
+
       <div className="mt-4 flex flex-wrap gap-2">
         <Link href={`/advance-invoices/${id}/edit`}>
           <Button variant="outline" size="sm">

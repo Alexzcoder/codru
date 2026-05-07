@@ -115,6 +115,14 @@ export default async function QuoteDetailPage({
         </span>
       </div>
 
+      {isDraft && (
+        <div className="mt-4 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+          <strong>Koncept</strong> — dokument zatím nemá přidělené číslo. Klikněte
+          níže na <em>&ldquo;{t("Quotes.actions.markSent")}&rdquo;</em>, aby se přidělilo
+          číslo (např. <code>NA2605070001</code>) a PDF se uložilo s tímto názvem.
+        </div>
+      )}
+
       {/* Actions */}
       <div className="mt-4 flex flex-wrap gap-2">
         <Link href={`/quotes/${id}/edit`}>
