@@ -108,16 +108,21 @@ export function DocumentPdf({
               {formatDate(data.issueDate, data.locale)}
             </Text>
           </Text>
-          {data.taxPointDate &&
-            data.taxPointDate.getTime() !== data.issueDate.getTime() &&
-            data.type !== "QUOTE" && (
-              <Text>
-                <Text style={styles.dateLabel}>{L.taxPointDate}:</Text>
-                {" "}<Text style={{ fontWeight: "bold" }}>
-                  {formatDate(data.taxPointDate, data.locale)}
-                </Text>
+          {/* DUZP / tax-point date is legally required on every Czech tax
+              document (faktura, zálohová faktura, opravný daňový doklad)
+              even when it equals the issue date. Print it always except on
+              quotes, which aren't tax documents. */}
+          {data.type !== "QUOTE" && (
+            <Text>
+              <Text style={styles.dateLabel}>{L.taxPointDate}:</Text>
+              {" "}<Text style={{ fontWeight: "bold" }}>
+                {formatDate(
+                  data.taxPointDate ?? data.issueDate,
+                  data.locale,
+                )}
               </Text>
-            )}
+            </Text>
+          )}
           {data.type === "QUOTE" && data.validUntil && (
             <Text>
               <Text style={styles.dateLabel}>{L.validUntil}:</Text>

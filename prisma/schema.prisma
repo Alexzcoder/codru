@@ -769,11 +769,16 @@ model NumberSeries {
   workspaceId String
   workspace   Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   type        DocumentType
+  // dateKey = YYYYMMDD on docs issued under the per-day numbering scheme.
+  // Older annual rows were migrated by setting dateKey = year * 10000.
+  // Sequence resets per dateKey, scoped per (workspace, type).
+  dateKey     Int          @default(0)
+  // Legacy column retained for old rows; ignored by allocateNumber.
   year        Int
   nextSeq     Int          @default(1)
   updatedAt   DateTime     @updatedAt
 
-  @@id([workspaceId, type, year])
+  @@id([workspaceId, type, dateKey])
 }
 
 // M10 — PRD §12: advances deducted on a final invoice. Join table so one

@@ -187,7 +187,6 @@ export async function transitionToSent(
   actorId: string,
   documentId: string,
 ): Promise<void> {
-  const year = new Date().getFullYear();
   const { number, seq, workspaceId } = await prisma.$transaction(async (tx) => {
     const doc = await tx.document.findUnique({
       where: { id: documentId },
@@ -202,7 +201,9 @@ export async function transitionToSent(
         workspaceId: doc.workspaceId,
       };
     }
-    const allocated = await allocateNumber(tx, doc.workspaceId, doc.type, year);
+    // Per-day numbering uses the doc's issueDate so back-dated invoices
+    // get the right embedded date in their number.
+    const allocated = await allocateNumber(tx, doc.workspaceId, doc.type, doc.issueDate);
     await tx.document.update({
       where: { id: documentId },
       data: {
