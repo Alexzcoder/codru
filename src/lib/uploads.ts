@@ -178,6 +178,39 @@ export async function saveJobAttachment({
   };
 }
 
+export async function saveClientAttachment({
+  file,
+  clientId,
+}: {
+  file: File;
+  clientId: string;
+}): Promise<{
+  path: string;
+  filename: string;
+  mimeType: string;
+  sizeBytes: number;
+  kind: "IMAGE" | "PDF" | "OTHER";
+}> {
+  if (file.size === 0) throw new Error("Empty file");
+  if (file.size > JOB_FILE_MAX) throw new Error("File too large (max 25 MB)");
+  const meta = JOB_ALLOWED[file.type];
+  if (!meta) throw new Error(`Unsupported file type: ${file.type}`);
+
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const stored = await saveBytes({
+    key: `clients/${clientId}/${crypto.randomUUID()}.${meta.ext}`,
+    buffer,
+    contentType: file.type,
+  });
+  return {
+    path: stored,
+    filename: file.name,
+    mimeType: file.type,
+    sizeBytes: file.size,
+    kind: meta.kind,
+  };
+}
+
 export async function saveEventAttachment({
   file,
   eventId,

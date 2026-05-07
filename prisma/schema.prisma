@@ -317,6 +317,7 @@ model Client {
   calendarEvents    CalendarEvent[]
   documents         Document[]
   payments          Payment[]
+  attachments       Attachment[]
   docImportItems    DocumentImportItem[] @relation("DocImportItemMatchedClient")
 
   @@index([workspaceId])
@@ -457,13 +458,19 @@ model Attachment {
   id           String         @id @default(cuid())
   workspaceId  String
   workspace    Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  jobId        String
-  job          Job            @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  // An attachment is anchored to either a Job or a Client (or both — e.g.
+  // a quote PDF that lives on the client and one of their jobs). At least
+  // one must be set; enforced at the application layer because Postgres
+  // doesn't have a clean two-table FK constraint.
+  jobId        String?
+  job          Job?           @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  clientId     String?
+  client       Client?        @relation(fields: [clientId], references: [id], onDelete: Cascade)
   filename     String
   mimeType     String
   sizeBytes    Int
   kind         AttachmentKind
-  path         String // Relative /uploads/jobs/... path
+  path         String // Storage URL (Vercel Blob in prod, /uploads/... in dev)
   caption      String?
   uploadedById String
   uploadedBy   User           @relation("AttachmentUploader", fields: [uploadedById], references: [id], onDelete: Restrict)
@@ -471,6 +478,7 @@ model Attachment {
 
   @@index([workspaceId])
   @@index([jobId, createdAt])
+  @@index([clientId, createdAt])
 }
 
 // ──────────────────────────────────────────────────────────

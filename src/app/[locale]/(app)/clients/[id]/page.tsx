@@ -8,6 +8,7 @@ import { clientDisplayName } from "@/lib/client-display";
 import { calculateDocument } from "@/lib/line-items";
 import { ContactLogForm } from "./contact-log-form";
 import { ContactLogItem } from "./contact-log-item";
+import { ClientAttachments } from "./client-attachment-uploader";
 import { deleteClient, anonymizeClient } from "../actions";
 import { BackLink } from "@/components/back-link";
 import { ConfirmButton } from "@/components/confirm-button";
@@ -22,8 +23,17 @@ export default async function ClientDetailPage({
   const { workspace } = await requireWorkspace();
   const t = await getTranslations();
 
-  const [client, logs, customValues, customDefs, jobs, jobAttachments, docSnapshots, clientDocs] =
-    await Promise.all([
+  const [
+    client,
+    logs,
+    customValues,
+    customDefs,
+    jobs,
+    jobAttachments,
+    docSnapshots,
+    clientDocs,
+    clientAttachments,
+  ] = await Promise.all([
       prisma.client.findFirst({ where: { id, workspaceId: workspace.id } }),
       prisma.contactLog.findMany({
         where: { workspaceId: workspace.id, clientId: id },
@@ -62,6 +72,11 @@ export default async function ClientDetailPage({
           paymentAllocations: true,
         },
         orderBy: { issueDate: "desc" },
+        take: 200,
+      }),
+      prisma.attachment.findMany({
+        where: { workspaceId: workspace.id, clientId: id },
+        orderBy: { createdAt: "desc" },
         take: 200,
       }),
     ]);
@@ -390,8 +405,21 @@ export default async function ClientDetailPage({
         )}
       </section>
 
+      <ClientAttachments
+        clientId={id}
+        attachments={clientAttachments.map((a) => ({
+          id: a.id,
+          filename: a.filename,
+          path: a.path,
+          kind: a.kind as "IMAGE" | "PDF" | "OTHER",
+          caption: a.caption,
+          sizeBytes: a.sizeBytes,
+          createdAt: a.createdAt.toISOString(),
+        }))}
+      />
+
       <section className="mt-10">
-        <h2 className="text-lg font-medium">Files</h2>
+        <h2 className="text-lg font-medium">Files (from jobs &amp; documents)</h2>
         {jobAttachments.length === 0 && docSnapshots.length === 0 ? (
           <p className="mt-3 text-sm text-muted-foreground">No files yet — attach photos or PDFs to a job.</p>
         ) : (
@@ -409,12 +437,14 @@ export default async function ClientDetailPage({
                       <a href={a.path} target="_blank" rel="noreferrer" className="truncate hover:underline">
                         {a.filename}
                       </a>
-                      <Link
-                        href={`/jobs/${a.job.id}`}
-                        className="shrink-0 text-xs text-muted-foreground hover:underline"
-                      >
-                        {a.job.title}
-                      </Link>
+                      {a.job && (
+                        <Link
+                          href={`/jobs/${a.job.id}`}
+                          className="shrink-0 text-xs text-muted-foreground hover:underline"
+                        >
+                          {a.job.title}
+                        </Link>
+                      )}
                     </li>
                   ))}
                 </ul>
