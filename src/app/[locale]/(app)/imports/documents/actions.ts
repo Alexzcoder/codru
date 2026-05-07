@@ -1,11 +1,9 @@
 "use server";
 
-import fs from "node:fs/promises";
-import path from "node:path";
 import { prisma } from "@/lib/prisma";
 import { requireWorkspace } from "@/lib/session";
 import { writeAudit } from "@/lib/audit";
-import { saveImportSessionPdf } from "@/lib/uploads";
+import { saveImportSessionPdf, readUpload } from "@/lib/uploads";
 import { parseDocumentPdf, type ParsedDocument } from "@/lib/ai/document-parser";
 import { matchClient } from "@/lib/ai/client-matcher";
 import { revalidatePath } from "next/cache";
@@ -93,7 +91,7 @@ export async function createDocumentImportSession(
       where: { id: item.id },
       data: { status: "PARSING" },
     });
-    const buf = await fs.readFile(path.join(process.cwd(), "public", item.storedPath));
+    const buf = await readUpload(item.storedPath);
     const result = await parseDocumentPdf({
       pdfBase64: buf.toString("base64"),
       filename: item.filename,

@@ -2,12 +2,55 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import crypto from "node:crypto";
 
-// Local-disk upload helper for dev. Will swap to S3-compatible storage at deploy
-// time. Paths are stored relative to /public/uploads so the browser can fetch them
-// directly without a route handler.
+// Storage strategy:
+//   - In production (Vercel) the /public directory is read-only at runtime,
+//     so writes have to go to Vercel Blob (or any external object store).
+//   - In dev we keep writing to /public/uploads so files appear in /uploads
+//     URLs without round-tripping to the cloud.
+// We pick by env: BLOB_READ_WRITE_TOKEN present → Blob; otherwise → local fs.
+// Returned `path`/URL works both as an `<img src>` and `<a href>` in either
+// case (relative `/uploads/...` vs absolute `https://...vercel-storage.com/...`).
 
 const UPLOADS_DIR = path.join(process.cwd(), "public", "uploads");
 const MAX_BYTES = 5 * 1024 * 1024; // 5MB for logos/signatures; job attachments (§5.2) use a different ceiling
+const HAS_BLOB = !!process.env.BLOB_READ_WRITE_TOKEN;
+
+async function saveBytes({
+  key,
+  buffer,
+  contentType,
+}: {
+  key: string; // e.g. "jobs/<jobId>/<uuid>.jpg"
+  buffer: Buffer;
+  contentType: string;
+}): Promise<string> {
+  if (HAS_BLOB) {
+    const { put } = await import("@vercel/blob");
+    const result = await put(key, buffer, {
+      access: "public",
+      contentType,
+      addRandomSuffix: false,
+      allowOverwrite: false,
+    });
+    return result.url;
+  }
+  const filepath = path.join(UPLOADS_DIR, key);
+  await fs.mkdir(path.dirname(filepath), { recursive: true });
+  await fs.writeFile(filepath, buffer);
+  return `/uploads/${key}`;
+}
+
+/** Read an uploaded file's bytes. Works for both Blob URLs and local paths. */
+export async function readUpload(storedPath: string): Promise<Buffer> {
+  if (storedPath.startsWith("http://") || storedPath.startsWith("https://")) {
+    const res = await fetch(storedPath);
+    if (!res.ok) throw new Error(`Failed to fetch upload: ${res.status}`);
+    return Buffer.from(await res.arrayBuffer());
+  }
+  const cleaned = storedPath.startsWith("/uploads/") ? storedPath.slice(1) : storedPath;
+  const filepath = path.join(process.cwd(), "public", cleaned);
+  return fs.readFile(filepath);
+}
 
 const ALLOWED_TYPES: Record<string, string> = {
   "image/png": "png",
@@ -29,20 +72,25 @@ export async function saveImageUpload({
   const ext = ALLOWED_TYPES[file.type];
   if (!ext) throw new Error("Unsupported file type");
 
-  const dir = path.join(UPLOADS_DIR, subdir);
-  await fs.mkdir(dir, { recursive: true });
-
-  const name = `${crypto.randomUUID()}.${ext}`;
-  const filepath = path.join(dir, name);
   const buffer = Buffer.from(await file.arrayBuffer());
-  await fs.writeFile(filepath, buffer);
-
-  return `/uploads/${subdir}/${name}`;
+  return saveBytes({
+    key: `${subdir}/${crypto.randomUUID()}.${ext}`,
+    buffer,
+    contentType: file.type,
+  });
 }
 
-export async function deleteUpload(relPath: string | null | undefined) {
-  if (!relPath || !relPath.startsWith("/uploads/")) return;
-  const full = path.join(process.cwd(), "public", relPath);
+export async function deleteUpload(stored: string | null | undefined) {
+  if (!stored) return;
+  if (stored.startsWith("http://") || stored.startsWith("https://")) {
+    if (HAS_BLOB) {
+      const { del } = await import("@vercel/blob");
+      await del(stored).catch(() => {});
+    }
+    return;
+  }
+  if (!stored.startsWith("/uploads/")) return;
+  const full = path.join(process.cwd(), "public", stored);
   await fs.unlink(full).catch(() => {});
 }
 
@@ -66,15 +114,12 @@ export async function saveReceiptUpload({ file }: { file: File }): Promise<strin
   const meta = JOB_ALLOWED[file.type];
   if (!meta) throw new Error(`Unsupported file type: ${file.type}`);
 
-  const dir = path.join(UPLOADS_DIR, "expenses");
-  await fs.mkdir(dir, { recursive: true });
-
-  const name = `${crypto.randomUUID()}.${meta.ext}`;
-  const filepath = path.join(dir, name);
   const buffer = Buffer.from(await file.arrayBuffer());
-  await fs.writeFile(filepath, buffer);
-
-  return `/uploads/expenses/${name}`;
+  return saveBytes({
+    key: `expenses/${crypto.randomUUID()}.${meta.ext}`,
+    buffer,
+    contentType: file.type,
+  });
 }
 
 export async function saveImportSessionPdf({
@@ -90,16 +135,13 @@ export async function saveImportSessionPdf({
   if (file.size > 20 * 1024 * 1024) throw new Error("PDF too large (max 20 MB)");
   if (file.type !== "application/pdf") throw new Error("Only PDF files are accepted");
 
-  const dir = path.join(UPLOADS_DIR, "import-sessions", sessionId);
-  await fs.mkdir(dir, { recursive: true });
-  const filepath = path.join(dir, `${itemId}.pdf`);
   const buffer = Buffer.from(await file.arrayBuffer());
-  await fs.writeFile(filepath, buffer);
-  return {
-    path: `/uploads/import-sessions/${sessionId}/${itemId}.pdf`,
-    mimeType: file.type,
-    sizeBytes: file.size,
-  };
+  const stored = await saveBytes({
+    key: `import-sessions/${sessionId}/${itemId}.pdf`,
+    buffer,
+    contentType: file.type,
+  });
+  return { path: stored, mimeType: file.type, sizeBytes: file.size };
 }
 
 export async function saveJobAttachment({
@@ -121,16 +163,14 @@ export async function saveJobAttachment({
   const meta = JOB_ALLOWED[file.type];
   if (!meta) throw new Error(`Unsupported file type: ${file.type}`);
 
-  const dir = path.join(UPLOADS_DIR, "jobs", jobId);
-  await fs.mkdir(dir, { recursive: true });
-
-  const name = `${crypto.randomUUID()}.${meta.ext}`;
-  const filepath = path.join(dir, name);
   const buffer = Buffer.from(await file.arrayBuffer());
-  await fs.writeFile(filepath, buffer);
-
+  const stored = await saveBytes({
+    key: `jobs/${jobId}/${crypto.randomUUID()}.${meta.ext}`,
+    buffer,
+    contentType: file.type,
+  });
   return {
-    path: `/uploads/jobs/${jobId}/${name}`,
+    path: stored,
     filename: file.name,
     mimeType: file.type,
     sizeBytes: file.size,
@@ -157,16 +197,14 @@ export async function saveEventAttachment({
   const meta = JOB_ALLOWED[file.type];
   if (!meta) throw new Error(`Unsupported file type: ${file.type}`);
 
-  const dir = path.join(UPLOADS_DIR, "events", eventId);
-  await fs.mkdir(dir, { recursive: true });
-
-  const name = `${crypto.randomUUID()}.${meta.ext}`;
-  const filepath = path.join(dir, name);
   const buffer = Buffer.from(await file.arrayBuffer());
-  await fs.writeFile(filepath, buffer);
-
+  const stored = await saveBytes({
+    key: `events/${eventId}/${crypto.randomUUID()}.${meta.ext}`,
+    buffer,
+    contentType: file.type,
+  });
   return {
-    path: `/uploads/events/${eventId}/${name}`,
+    path: stored,
     filename: file.name,
     mimeType: file.type,
     sizeBytes: file.size,
