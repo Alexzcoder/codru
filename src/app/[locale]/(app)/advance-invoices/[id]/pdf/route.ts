@@ -25,14 +25,18 @@ export async function GET(
   if (doc.status !== "UNSENT") {
     const relPath = await latestSnapshotPath(doc.id);
     if (relPath) {
-      const buffer = await readUpload(relPath);
-      return new Response(new Uint8Array(buffer), {
-        headers: {
-          "content-type": "application/pdf",
-          "content-disposition": `${disp}; filename="${doc.number ?? "advance-invoice"}.pdf"`,
-          "cache-control": "no-store",
-        },
-      });
+      try {
+        const buffer = await readUpload(relPath);
+        return new Response(new Uint8Array(buffer), {
+          headers: {
+            "content-type": "application/pdf",
+            "content-disposition": `${disp}; filename="${doc.number ?? "advance-invoice"}.pdf"`,
+            "cache-control": "no-store",
+          },
+        });
+      } catch {
+        // fall through to on-demand render
+      }
     }
   }
 

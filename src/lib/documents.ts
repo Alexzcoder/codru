@@ -149,20 +149,38 @@ export async function renderDocumentPdf(doc: DocumentWithLines): Promise<Buffer>
 
 // Freeze a PDF snapshot (PRD §9.5). Called on UNSENT → SENT transition; the
 // snapshot is what we serve later for legal audit. Routes through saveBytes
-// so it lands in Vercel Blob on prod and local /public/uploads in dev —
-// previously hard-coded fs.writeFile, which failed on Vercel's read-only
-// runtime and made "Mark as sent" appear to do nothing.
+// so it lands in Vercel Blob on prod and local /public/uploads in dev.
+// If storage isn't configured yet (no BLOB_READ_WRITE_TOKEN on Vercel) we
+// skip the archive silently — the transition itself MUST still succeed,
+// and the PDF route falls back to on-demand rendering until storage exists.
 export async function createPdfSnapshot(doc: DocumentWithLines): Promise<void> {
-  const buffer = await renderDocumentPdf(doc);
+  const { saveBytes, StorageNotConfiguredError } = await import("./uploads");
+  let buffer: Buffer;
+  try {
+    buffer = await renderDocumentPdf(doc);
+  } catch (err) {
+    console.error("Snapshot render failed for", doc.id, err);
+    return;
+  }
   const hash = crypto.createHash("sha256").update(buffer).digest("hex");
   const filename = `${hash.slice(0, 16)}-${Date.now()}.pdf`;
 
-  const { saveBytes } = await import("./uploads");
-  const stored = await saveBytes({
-    key: `snapshots/${doc.id}/${filename}`,
-    buffer,
-    contentType: "application/pdf",
-  });
+  let stored: string;
+  try {
+    stored = await saveBytes({
+      key: `snapshots/${doc.id}/${filename}`,
+      buffer,
+      contentType: "application/pdf",
+    });
+  } catch (err) {
+    if (err instanceof StorageNotConfiguredError) {
+      console.warn(
+        `Skipping PDF snapshot for ${doc.id} — Vercel Blob not configured.`,
+      );
+      return;
+    }
+    throw err;
+  }
 
   await prisma.pdfSnapshot.create({
     data: {

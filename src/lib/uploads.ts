@@ -15,6 +15,19 @@ const UPLOADS_DIR = path.join(process.cwd(), "public", "uploads");
 const MAX_BYTES = 5 * 1024 * 1024; // 5MB for logos/signatures; job attachments (§5.2) use a different ceiling
 const HAS_BLOB = !!process.env.BLOB_READ_WRITE_TOKEN;
 
+// Marker thrown when we *can't* save bytes anywhere. Callers that treat
+// persistence as best-effort (e.g. createPdfSnapshot) can catch this and
+// continue — the rest of the user flow shouldn't be blocked just because
+// the blob store hasn't been provisioned yet.
+export class StorageNotConfiguredError extends Error {
+  constructor() {
+    super(
+      "BLOB_READ_WRITE_TOKEN not set; cannot persist uploads on Vercel runtime.",
+    );
+    this.name = "StorageNotConfiguredError";
+  }
+}
+
 // Exported so other libs (e.g. PDF snapshot writer) can persist bytes via
 // the same Blob-or-FS strategy without duplicating the routing logic.
 export async function saveBytes({
@@ -36,6 +49,9 @@ export async function saveBytes({
     });
     return result.url;
   }
+  // Detect Vercel's read-only runtime up front and refuse cleanly instead
+  // of trying fs.writeFile and getting a misleading ENOENT.
+  if (process.env.VERCEL) throw new StorageNotConfiguredError();
   const filepath = path.join(UPLOADS_DIR, key);
   await fs.mkdir(path.dirname(filepath), { recursive: true });
   await fs.writeFile(filepath, buffer);

@@ -22,18 +22,25 @@ export async function GET(
   });
   if (!doc || doc.type !== "QUOTE" || doc.deletedAt) notFound();
 
-  // If SENT, stream the archived snapshot (PRD §9.5). Otherwise render on demand.
+  // If SENT, try the archived snapshot first (PRD §9.5). If that file is
+  // missing (e.g. snapshot save failed because Blob wasn't configured at
+  // the time), fall through to on-demand render so the user still gets
+  // the PDF.
   if (doc.status !== "UNSENT") {
     const relPath = await latestSnapshotPath(doc.id);
     if (relPath) {
-      const buffer = await readUpload(relPath);
-      return new Response(new Uint8Array(buffer), {
-        headers: {
-          "content-type": "application/pdf",
-          "content-disposition": `${disp}; filename="${doc.number ?? "quote"}.pdf"`,
-          "cache-control": "no-store",
-        },
-      });
+      try {
+        const buffer = await readUpload(relPath);
+        return new Response(new Uint8Array(buffer), {
+          headers: {
+            "content-type": "application/pdf",
+            "content-disposition": `${disp}; filename="${doc.number ?? "quote"}.pdf"`,
+            "cache-control": "no-store",
+          },
+        });
+      } catch {
+        // fall through to on-demand
+      }
     }
   }
 
