@@ -46,7 +46,10 @@ const EMPTY_LINE: EditorLine = {
   unit: "ks",
   unitPrice: "0.00",
   taxRatePercent: "21",
-  taxMode: "NET",
+  // Czech tradesmen typically quote and bill end customers in gross prices
+  // ("cena s DPH"). Defaulting to GROSS means the unit price the user types
+  // is what the customer ends up paying — matches CELKEM at the bottom.
+  taxMode: "GROSS",
   lineDiscountPercent: "",
   lineDiscountAmount: "",
 };

@@ -147,23 +147,27 @@ export async function renderDocumentPdf(doc: DocumentWithLines): Promise<Buffer>
   );
 }
 
-// Freeze a PDF snapshot to disk (PRD §9.5). Called on UNSENT → SENT transition.
-// The snapshot preserves whatever was rendered at that moment for legal audit.
+// Freeze a PDF snapshot (PRD §9.5). Called on UNSENT → SENT transition; the
+// snapshot is what we serve later for legal audit. Routes through saveBytes
+// so it lands in Vercel Blob on prod and local /public/uploads in dev —
+// previously hard-coded fs.writeFile, which failed on Vercel's read-only
+// runtime and made "Mark as sent" appear to do nothing.
 export async function createPdfSnapshot(doc: DocumentWithLines): Promise<void> {
   const buffer = await renderDocumentPdf(doc);
   const hash = crypto.createHash("sha256").update(buffer).digest("hex");
-
-  const dir = path.join(process.cwd(), "public", "uploads", "snapshots", doc.id);
-  await fs.mkdir(dir, { recursive: true });
   const filename = `${hash.slice(0, 16)}-${Date.now()}.pdf`;
-  const fullPath = path.join(dir, filename);
-  await fs.writeFile(fullPath, buffer);
 
-  const relPath = `/uploads/snapshots/${doc.id}/${filename}`;
+  const { saveBytes } = await import("./uploads");
+  const stored = await saveBytes({
+    key: `snapshots/${doc.id}/${filename}`,
+    buffer,
+    contentType: "application/pdf",
+  });
+
   await prisma.pdfSnapshot.create({
     data: {
       documentId: doc.id,
-      filePath: relPath,
+      filePath: stored,
       contentHash: hash,
       sizeBytes: buffer.length,
     },

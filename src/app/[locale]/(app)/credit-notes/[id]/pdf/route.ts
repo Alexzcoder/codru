@@ -1,8 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { requireWorkspace } from "@/lib/session";
 import { renderDocumentPdf, latestSnapshotPath } from "@/lib/documents";
-import fs from "node:fs/promises";
-import path from "node:path";
+import { readUpload } from "@/lib/uploads";
 import { notFound } from "next/navigation";
 
 export const runtime = "nodejs";
@@ -26,8 +25,7 @@ export async function GET(
   if (doc.status !== "UNSENT") {
     const relPath = await latestSnapshotPath(doc.id);
     if (relPath) {
-      const absolute = path.join(process.cwd(), "public", relPath);
-      const buffer = await fs.readFile(absolute);
+      const buffer = await readUpload(relPath);
       return new Response(new Uint8Array(buffer), {
         headers: {
           "content-type": "application/pdf",

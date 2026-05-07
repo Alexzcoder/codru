@@ -15,7 +15,9 @@ const UPLOADS_DIR = path.join(process.cwd(), "public", "uploads");
 const MAX_BYTES = 5 * 1024 * 1024; // 5MB for logos/signatures; job attachments (§5.2) use a different ceiling
 const HAS_BLOB = !!process.env.BLOB_READ_WRITE_TOKEN;
 
-async function saveBytes({
+// Exported so other libs (e.g. PDF snapshot writer) can persist bytes via
+// the same Blob-or-FS strategy without duplicating the routing logic.
+export async function saveBytes({
   key,
   buffer,
   contentType,
