@@ -8,7 +8,7 @@ import { uploadAttachment, type AttachmentState } from "../actions";
 // the `name` attribute on submit, which is what broke "photos don't appear".
 // Also `multiple` so the user can pick a batch in one shot.
 const inputCls =
-  "h-9 w-full rounded-lg border border-input bg-transparent px-3 py-1 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
+  "h-9 w-full rounded-lg border border-input bg-transparent px-3 py-1 text-sm outline-none transition-colors cursor-pointer file:cursor-pointer focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
 
 export function AttachmentUploader({ jobId }: { jobId: string }) {
   const bound = uploadAttachment.bind(null, jobId);

@@ -296,6 +296,7 @@ export function ExpenseForm({
           name="receipt"
           type="file"
           accept="image/png,image/jpeg,image/webp,image/heic,image/heif,application/pdf"
+          className="cursor-pointer file:cursor-pointer"
         />
         {initial?.receiptPath && (
           <p className="text-xs text-muted-foreground">

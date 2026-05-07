@@ -108,7 +108,7 @@ export function DocumentTemplateForm({
           for a pre-printed header with your brand mark, address, or registration
           details. Max 5 MB.
         </p>
-        <Input id="letterhead" name="letterhead" type="file" accept="image/png,image/jpeg" />
+        <Input id="letterhead" name="letterhead" type="file" accept="image/png,image/jpeg" className="cursor-pointer file:cursor-pointer" />
         {initial?.letterheadImagePath && (
           <div className="flex items-center gap-3 rounded-md border border-input bg-secondary/40 p-2">
             {/* eslint-disable-next-line @next/next/no-img-element */}

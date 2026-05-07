@@ -56,7 +56,7 @@ export function ProfileForm({ initial }: { initial: Initial }) {
 
       <div className="space-y-2">
         <Label htmlFor="signature">{t("fields.signature")}</Label>
-        <Input id="signature" name="signature" type="file" accept="image/*" />
+        <Input id="signature" name="signature" type="file" accept="image/*" className="cursor-pointer file:cursor-pointer" />
         {initial.signatureImagePath && (
           <p className="text-xs text-muted-foreground">Current: {initial.signatureImagePath}</p>
         )}

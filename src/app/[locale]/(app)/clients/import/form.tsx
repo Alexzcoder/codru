@@ -26,6 +26,7 @@ export function ImportForm({
         name="file"
         accept=".csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv"
         required
+        className="cursor-pointer file:cursor-pointer"
       />
 
       <label className="flex items-center gap-2 text-sm">

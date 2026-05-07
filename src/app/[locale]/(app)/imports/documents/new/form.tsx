@@ -7,6 +7,7 @@ import type { CreateSessionState } from "../actions";
 
 const inputCls =
   "h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
+const fileInputCls = `${inputCls} cursor-pointer file:cursor-pointer`;
 
 export function NewSessionForm({
   action,
@@ -34,7 +35,7 @@ export function NewSessionForm({
           multiple
           required
           onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
-          className={inputCls}
+          className={fileInputCls}
         />
         {files.length > 0 && (
           <p className="text-xs text-muted-foreground">

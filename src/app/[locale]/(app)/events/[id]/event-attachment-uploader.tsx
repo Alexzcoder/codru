@@ -31,6 +31,7 @@ export function EventAttachmentUploader({ eventId }: { eventId: string }) {
           name="file"
           accept="image/png,image/jpeg,image/webp,application/pdf"
           required
+          className="cursor-pointer file:cursor-pointer"
         />
       </div>
       <div className="flex-1 min-w-[200px]">

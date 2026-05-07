@@ -70,7 +70,7 @@ export function CompanyProfileForm({
         </div>
         <div className="space-y-2">
           <Label htmlFor="logo">{t("logo")}</Label>
-          <Input id="logo" name="logo" type="file" accept="image/*" />
+          <Input id="logo" name="logo" type="file" accept="image/*" className="cursor-pointer file:cursor-pointer" />
           {initial?.logoPath && (
             <p className="text-xs text-muted-foreground">Current: {initial.logoPath}</p>
           )}
