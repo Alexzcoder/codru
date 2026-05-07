@@ -24,7 +24,7 @@ export default async function CalendarPage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ view?: string; date?: string; assignee?: string }>;
+  searchParams: Promise<{ view?: string; date?: string; assignee?: string; jobs?: string }>;
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
@@ -35,10 +35,13 @@ export default async function CalendarPage({
   const view: View = VIEWS.includes(sp.view as View) ? (sp.view as View) : "month";
   const date = parseDateParam(sp.date);
   const assigneeId = sp.assignee || undefined;
+  // Show jobs by default; opt-out via ?jobs=0 in the URL (the toggle below
+  // sets this).
+  const showJobs = sp.jobs !== "0";
 
   const { start, end } = rangeForView(view, date);
   const [items, users] = await Promise.all([
-    loadCalendarItems({ workspaceId: workspace.id, start, end, assigneeId }),
+    loadCalendarItems({ workspaceId: workspace.id, start, end, assigneeId, showJobs }),
     prisma.user.findMany({
       where: { deactivatedAt: null, memberships: { some: { workspaceId: workspace.id } } },
       select: { id: true, name: true, calendarColor: true },
@@ -70,16 +73,21 @@ export default async function CalendarPage({
     return date.toLocaleDateString(locale, { month: "long", year: "numeric" });
   })();
 
-  const buildHref = (overrides: Partial<{ view: View; date: Date; assignee: string | undefined }>) => ({
-    pathname: "/calendar",
-    query: {
-      view: overrides.view ?? view,
-      date: toDateParam(overrides.date ?? date),
-      ...((overrides.assignee !== undefined ? overrides.assignee : assigneeId) && {
-        assignee: overrides.assignee !== undefined ? overrides.assignee : assigneeId,
-      }),
-    },
-  });
+  const buildHref = (overrides: Partial<{ view: View; date: Date; assignee: string | undefined; jobs: boolean }>) => {
+    const nextShowJobs = overrides.jobs ?? showJobs;
+    return {
+      pathname: "/calendar",
+      query: {
+        view: overrides.view ?? view,
+        date: toDateParam(overrides.date ?? date),
+        ...((overrides.assignee !== undefined ? overrides.assignee : assigneeId) && {
+          assignee: overrides.assignee !== undefined ? overrides.assignee : assigneeId,
+        }),
+        // Only emit when off, since on is the default.
+        ...(!nextShowJobs && { jobs: "0" }),
+      },
+    };
+  };
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-8">
@@ -142,6 +150,18 @@ export default async function CalendarPage({
           assigneeId={assigneeId}
           users={users.map((u) => ({ id: u.id, name: u.name }))}
         />
+
+        <Link
+          href={buildHref({ jobs: !showJobs })}
+          className="inline-flex items-center gap-1.5 rounded-md border border-input bg-background px-3 py-1.5 text-sm text-foreground hover:bg-secondary"
+          title={showJobs ? "Hide scheduled jobs from the grid" : "Show scheduled jobs on the grid"}
+        >
+          <span
+            aria-hidden
+            className={`inline-block h-2.5 w-2.5 rounded-full ${showJobs ? "bg-emerald-600" : "bg-neutral-300"}`}
+          />
+          Jobs
+        </Link>
       </div>
 
       <div className="mt-6">

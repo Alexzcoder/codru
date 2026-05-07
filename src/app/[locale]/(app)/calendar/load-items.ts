@@ -5,32 +5,46 @@ import type { CalendarItem } from "./calendar-item";
 
 const FALLBACK_COLOR = "#6b7280";
 const RECURRENCE_COLOR = "#8b5cf6"; // soft violet — distinct from user colors
+// Distinct green for Jobs so they read as "actual work" vs blue/violet
+// CalendarEvents (meetings/reminders). Same color for everyone — assignee
+// shading would conflict with the job-vs-event signal.
+const JOB_COLOR = "#16a34a";
 
 export async function loadCalendarItems({
   workspaceId,
   start,
   end,
   assigneeId,
+  showJobs = true,
 }: {
   workspaceId: string;
   start: Date;
   end: Date;
   assigneeId?: string;
+  // false → skip the jobs query entirely; lets the calendar declutter without
+  // the operator having to delete or reschedule active jobs.
+  showJobs?: boolean;
 }): Promise<CalendarItem[]> {
   const [jobs, events, rules] = await Promise.all([
-    prisma.job.findMany({
-      where: {
-        workspaceId,
-        scheduledStart: { gte: start, lt: end },
-        ...(assigneeId && { assignments: { some: { userId: assigneeId } } }),
-      },
-      include: {
-        client: { select: { type: true, companyName: true, fullName: true, anonymizedAt: true } },
-        assignments: {
-          include: { user: { select: { id: true, calendarColor: true } } },
-        },
-      },
-    }),
+    showJobs
+      ? prisma.job.findMany({
+          where: {
+            workspaceId,
+            scheduledStart: { gte: start, lt: end },
+            // Hide finished work by default so the grid only shows what's
+            // still on the agenda. Operators can re-open completed jobs from
+            // the /jobs list if they need to review.
+            status: { in: ["SCHEDULED", "IN_PROGRESS"] },
+            ...(assigneeId && { assignments: { some: { userId: assigneeId } } }),
+          },
+          include: {
+            client: { select: { type: true, companyName: true, fullName: true, anonymizedAt: true } },
+            assignments: {
+              include: { user: { select: { id: true, calendarColor: true } } },
+            },
+          },
+        })
+      : Promise.resolve([] as never[]),
     prisma.calendarEvent.findMany({
       where: {
         workspaceId,
@@ -58,7 +72,13 @@ export async function loadCalendarItems({
 
   for (const j of jobs) {
     if (!j.scheduledStart) continue;
-    const first = j.assignments[0];
+    // Treat a job scheduled at exactly midnight (00:00) with no end as the
+    // user's "I just picked a date, no specific time" — render as all-day.
+    const startsAtMidnight =
+      j.scheduledStart.getHours() === 0 &&
+      j.scheduledStart.getMinutes() === 0 &&
+      j.scheduledStart.getSeconds() === 0;
+    const allDay = startsAtMidnight && !j.scheduledEnd;
     items.push({
       id: j.id,
       kind: "JOB",
@@ -66,8 +86,8 @@ export async function loadCalendarItems({
       subtitle: clientDisplayName(j.client),
       start: j.scheduledStart,
       end: j.scheduledEnd ?? null,
-      allDay: false,
-      color: first?.user.calendarColor ?? FALLBACK_COLOR,
+      allDay,
+      color: JOB_COLOR,
       href: `/jobs/${j.id}`,
       completedAt: j.status === "COMPLETED" ? j.updatedAt : null,
       assigneeIds: j.assignments.map((a) => a.user.id),
