@@ -6,6 +6,7 @@ import { clientDisplayName } from "@/lib/client-display";
 import { calculateDocument } from "@/lib/line-items";
 import { PageHeader } from "@/components/page-header";
 import { scanImplicitTriggers } from "@/lib/notifications";
+import { formatDateTimePrague } from "@/lib/format-datetime";
 import {
   Briefcase,
   Users,
@@ -252,7 +253,7 @@ export default async function DashboardPage({
                   </div>
                   <time className="shrink-0 text-xs tabular-nums text-muted-foreground">
                     {j.scheduledStart
-                      ? j.scheduledStart.toISOString().slice(0, 16).replace("T", " ")
+                      ? formatDateTimePrague(j.scheduledStart)
                       : ""}
                   </time>
                 </li>

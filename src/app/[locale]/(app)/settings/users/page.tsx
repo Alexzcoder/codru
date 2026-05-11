@@ -3,6 +3,7 @@ import { requireWorkspaceOwner } from "@/lib/session";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { InviteForm } from "./invite-form";
 import { UserRow } from "./user-row";
+import { formatDateTimePrague } from "@/lib/format-datetime";
 
 export default async function UsersPage({
   params,
@@ -57,7 +58,7 @@ export default async function UsersPage({
               <li key={i.id} className="flex justify-between px-4 py-2">
                 <span>{i.email}</span>
                 <span className="text-xs text-muted-foreground">
-                  expires {i.expiresAt.toISOString().slice(0, 16).replace("T", " ")}
+                  expires {formatDateTimePrague(i.expiresAt)}
                 </span>
               </li>
             ))}

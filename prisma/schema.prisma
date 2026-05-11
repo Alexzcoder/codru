@@ -738,7 +738,10 @@ model Document {
   // via an import session).
   docImportItems DocumentImportItem[] @relation("DocImportItemCreatedDoc")
 
-  @@unique([workspaceId, type, yearSeries, numberSeq])
+  // Uniqueness on the legal number string. Per-day numbering resets
+  // `numberSeq` daily, so the old (yearSeries, numberSeq) tuple collided
+  // across days. `number` embeds the date and is what auditors verify.
+  @@unique([workspaceId, type, number])
   @@index([workspaceId])
   @@index([clientId])
   @@index([jobId])

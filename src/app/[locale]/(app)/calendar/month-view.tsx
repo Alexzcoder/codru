@@ -1,6 +1,27 @@
 import { Link } from "@/i18n/navigation";
 import { addDays, monthGridRange, sameDay, startOfMonth, endOfMonth } from "@/lib/calendar-dates";
 import type { CalendarItem } from "./calendar-item";
+import { formatTimePrague } from "@/lib/format-datetime";
+
+// Prague-day key as YYYY-MM-DD. We can't use `sameDay` for placing items in
+// month cells because that compares server-local fields — on Vercel the
+// server runs UTC, so a 23:00 Prague job (= 21:00 UTC) and a 01:00 Prague
+// job (= 23:00 UTC prev day) both get placed on the wrong calendar cell.
+const DAY_KEY_FORMATTER = new Intl.DateTimeFormat("sv-SE", {
+  timeZone: "Europe/Prague",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+function pragueDayKey(d: Date): string {
+  return DAY_KEY_FORMATTER.format(d);
+}
+// The cell's `Date` is already at local-midnight (constructed from year,
+// month, day fields) — its Prague-projected day equals the calendar day
+// it represents, since Prague is always east of UTC.
+function cellDayKey(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
 
 const MAX_VISIBLE = 3;
 
@@ -17,9 +38,10 @@ export function MonthView({
   const cells: { date: Date; items: CalendarItem[] }[] = [];
   for (let i = 0; i < 42; i++) {
     const d = addDays(start, i);
+    const key = cellDayKey(d);
     cells.push({
       date: d,
-      items: items.filter((it) => sameDay(it.start, d)),
+      items: items.filter((it) => pragueDayKey(it.start) === key),
     });
   }
 
@@ -88,5 +110,5 @@ function EventPill({ item }: { item: CalendarItem }) {
 }
 
 function formatTime(d: Date) {
-  return `${d.getHours().toString().padStart(2, "0")}:${d.getMinutes().toString().padStart(2, "0")}`;
+  return formatTimePrague(d);
 }

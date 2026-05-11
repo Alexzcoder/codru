@@ -12,6 +12,7 @@ import { ContactLogItem } from "../../clients/[id]/contact-log-item";
 import { computeJobProfitability } from "@/lib/job-profitability";
 import { BackLink } from "@/components/back-link";
 import { ConfirmButton } from "@/components/confirm-button";
+import { formatDateTimePrague } from "@/lib/format-datetime";
 
 export default async function JobDetailPage({
   params,
@@ -130,13 +131,13 @@ export default async function JobDetailPage({
             <dt className="text-muted-foreground">{t("Jobs.form.start")}</dt>
             <dd>
               {job.scheduledStart
-                ? job.scheduledStart.toISOString().slice(0, 16).replace("T", " ")
+                ? formatDateTimePrague(job.scheduledStart)
                 : "—"}
             </dd>
             <dt className="text-muted-foreground">{t("Jobs.form.end")}</dt>
             <dd>
               {job.scheduledEnd
-                ? job.scheduledEnd.toISOString().slice(0, 16).replace("T", " ")
+                ? formatDateTimePrague(job.scheduledEnd)
                 : "—"}
             </dd>
             <dt className="text-muted-foreground">{t("Jobs.detail.siteAddress")}</dt>

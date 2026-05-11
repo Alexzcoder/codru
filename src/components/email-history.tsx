@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { Mail } from "lucide-react";
+import { formatDateTimePrague } from "@/lib/format-datetime";
 
 export async function EmailHistory({ documentId }: { documentId: string }) {
   const logs = await prisma.emailLog.findMany({
@@ -30,7 +31,7 @@ export async function EmailHistory({ documentId }: { documentId: string }) {
               </div>
               <div className="shrink-0 text-right text-xs text-muted-foreground">
                 <div className="tabular-nums">
-                  {l.createdAt.toISOString().slice(0, 16).replace("T", " ")}
+                  {formatDateTimePrague(l.createdAt)}
                 </div>
                 <div>
                   <span

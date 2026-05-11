@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/page-header";
 import { ClickableRow } from "@/components/clickable-row";
 import { Plus, FileText } from "lucide-react";
+import { formatDateTimePrague } from "@/lib/format-datetime";
 
 export default async function DocImportsListPage({
   params,
@@ -69,7 +70,7 @@ export default async function DocImportsListPage({
                 return (
                   <ClickableRow key={s.id} href={`/imports/documents/${s.id}`}>
                     <td className="px-4 py-3 text-muted-foreground tabular-nums">
-                      {s.createdAt.toISOString().slice(0, 16).replace("T", " ")}
+                      {formatDateTimePrague(s.createdAt)}
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">
                       {s.createdBy?.name ?? "—"}

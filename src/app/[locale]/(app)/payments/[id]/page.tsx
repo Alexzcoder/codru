@@ -8,6 +8,7 @@ import { clientDisplayName } from "@/lib/client-display";
 import { deletePayment } from "../actions";
 import { BackLink } from "@/components/back-link";
 import { ConfirmButton } from "@/components/confirm-button";
+import { formatDateTimePrague } from "@/lib/format-datetime";
 
 export default async function PaymentDetailPage({
   params,
@@ -79,7 +80,7 @@ export default async function PaymentDetailPage({
       <div className="mt-6 grid gap-4 md:grid-cols-4">
         <Info label={t("Payments.fields.date")}>{payment.date.toISOString().slice(0, 10)}</Info>
         <Info label="Logged at">
-          {payment.createdAt.toISOString().slice(0, 16).replace("T", " ")}
+          {formatDateTimePrague(payment.createdAt)}
         </Info>
         <Info label={t("Payments.fields.currency")}>{payment.currency}</Info>
         <Info label={t("Payments.fields.reference")}>{payment.reference ?? "—"}</Info>

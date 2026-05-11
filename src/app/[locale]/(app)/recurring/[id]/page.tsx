@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { pauseRule, resumeRule, endRule, deleteRule, runNow } from "../actions";
 import { upcomingRuns } from "@/lib/recurrence";
 import { BackLink } from "@/components/back-link";
+import { formatDateTimePrague } from "@/lib/format-datetime";
 
 export default async function RecurrenceRuleDetailPage({
   params,
@@ -112,7 +113,7 @@ export default async function RecurrenceRuleDetailPage({
           {rule.autoGenerate ? "yes" : "no"}
         </Info>
         <Info label={t("Recurring.fields.lastRunAt")}>
-          {rule.lastRunAt ? rule.lastRunAt.toISOString().slice(0, 16).replace("T", " ") : "—"}
+          {rule.lastRunAt ? formatDateTimePrague(rule.lastRunAt) : "—"}
         </Info>
         {rule.lastError && (
           <Info label={t("Recurring.fields.lastError")}>

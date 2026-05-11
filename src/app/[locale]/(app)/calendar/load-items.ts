@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { clientDisplayName } from "@/lib/client-display";
 import { upcomingRuns } from "@/lib/recurrence";
 import type { CalendarItem } from "./calendar-item";
+import { pragueParts } from "@/lib/format-datetime";
 
 const FALLBACK_COLOR = "#6b7280";
 const RECURRENCE_COLOR = "#8b5cf6"; // soft violet — distinct from user colors
@@ -74,10 +75,10 @@ export async function loadCalendarItems({
     if (!j.scheduledStart) continue;
     // Treat a job scheduled at exactly midnight (00:00) with no end as the
     // user's "I just picked a date, no specific time" — render as all-day.
+    // Server runs UTC on Vercel, so check Prague-local clock, not `getHours()`.
+    const startParts = pragueParts(j.scheduledStart);
     const startsAtMidnight =
-      j.scheduledStart.getHours() === 0 &&
-      j.scheduledStart.getMinutes() === 0 &&
-      j.scheduledStart.getSeconds() === 0;
+      startParts.hour === 0 && startParts.minute === 0 && startParts.second === 0;
     const allDay = startsAtMidnight && !j.scheduledEnd;
     items.push({
       id: j.id,

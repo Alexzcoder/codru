@@ -15,6 +15,7 @@ import { EmailComposerButton } from "@/components/email-composer";
 import { EmailHistory } from "@/components/email-history";
 import { ConfirmButton } from "@/components/confirm-button";
 import { documentStatusClass } from "@/lib/status-style";
+import { formatDateTimePragueWithSeconds } from "@/lib/format-datetime";
 
 export default async function CreditNoteDetailPage({
   params,
@@ -199,7 +200,7 @@ export default async function CreditNoteDetailPage({
             Archived PDF
           </p>
           <p className="mt-1 text-muted-foreground">
-            Created {snapshot.createdAt.toISOString().slice(0, 19).replace("T", " ")} ·{" "}
+            Created {formatDateTimePragueWithSeconds(snapshot.createdAt)} ·{" "}
             <a href={snapshot.filePath} target="_blank" rel="noreferrer" className="underline">
               Download
             </a>

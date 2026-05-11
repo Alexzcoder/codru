@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { markAllNotificationsRead, markNotificationRead } from "./actions";
 import { PageHeader } from "@/components/page-header";
 import { scanImplicitTriggers } from "@/lib/notifications";
+import { formatDateTimePrague } from "@/lib/format-datetime";
 
 export default async function NotificationsPage({
   params,
@@ -84,7 +85,7 @@ export default async function NotificationsPage({
                       )}
                     </p>
                     <p className="mt-0.5 text-xs text-muted-foreground">
-                      {n.createdAt.toISOString().slice(0, 16).replace("T", " ")}
+                      {formatDateTimePrague(n.createdAt)}
                     </p>
                   </div>
                   {isUnread && (
