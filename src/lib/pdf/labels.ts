@@ -35,6 +35,8 @@ export const labels = {
     quantity: "Množství",
     unit: "MJ",
     unitPrice: "Cena/MJ",
+    unitPriceGross: "Cena/MJ s DPH",
+    unitPriceNet: "Cena/MJ bez DPH",
     taxRate: "DPH",
     lineTotal: "Celkem",
 
@@ -90,6 +92,8 @@ export const labels = {
     quantity: "Qty",
     unit: "Unit",
     unitPrice: "Unit price",
+    unitPriceGross: "Unit price incl. VAT",
+    unitPriceNet: "Unit price excl. VAT",
     taxRate: "VAT",
     lineTotal: "Total",
 

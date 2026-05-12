@@ -27,6 +27,24 @@ function titleFor(type: PdfDocumentData["type"], locale: "cs" | "en"): string {
   }
 }
 
+// The line editor lets each row pick its own taxMode (NET or GROSS). The
+// printed "Cena/MJ" column shows whichever number the user typed, so the
+// header needs to say which one — otherwise gross figures look like
+// pre-tax and the customer thinks the invoice is wrong. If lines disagree,
+// fall back to the neutral label; in practice every line in a doc uses
+// the same mode (defaultTaxMode comes from the workspace setting).
+function unitPriceHeader(
+  lines: PdfDocumentData["lines"],
+  L: (typeof labels)["cs"] | (typeof labels)["en"],
+): string {
+  if (lines.length === 0) return L.unitPrice;
+  const allGross = lines.every((l) => l.taxMode === "GROSS");
+  if (allGross) return L.unitPriceGross;
+  const allNet = lines.every((l) => l.taxMode === "NET");
+  if (allNet) return L.unitPriceNet;
+  return L.unitPrice;
+}
+
 export function DocumentPdf({
   data,
   options,
@@ -209,7 +227,7 @@ export function DocumentPdf({
             <Text style={styles.colDesc}>{L.description}</Text>
             <Text style={styles.colQty}>{L.quantity}</Text>
             <Text style={styles.colUnit}>{L.unit}</Text>
-            <Text style={styles.colPrice}>{L.unitPrice}</Text>
+            <Text style={styles.colPrice}>{unitPriceHeader(data.lines, L)}</Text>
             <Text style={styles.colRate}>{L.taxRate}</Text>
             <Text style={styles.colNet}>{data.locale === "cs" ? "Bez DPH" : "Net"}</Text>
             <Text style={styles.colVat}>{data.locale === "cs" ? "DPH" : "VAT"}</Text>
