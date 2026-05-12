@@ -15,6 +15,9 @@ export async function GET(
   const { id } = await params;
   const url = new URL(req.url);
   const disp = url.searchParams.get("download") === "1" ? "attachment" : "inline";
+  // ?live=1 forces a fresh render so the user can see the effect of edits
+  // made after the doc was sent. Default still serves the archived snapshot.
+  const live = url.searchParams.get("live") === "1";
 
   const doc = await prisma.document.findFirst({
     where: { id, workspaceId: workspace.id },
@@ -26,7 +29,7 @@ export async function GET(
   // missing (e.g. snapshot save failed because Blob wasn't configured at
   // the time), fall through to on-demand render so the user still gets
   // the PDF.
-  if (doc.status !== "UNSENT") {
+  if (!live && doc.status !== "UNSENT") {
     const relPath = await latestSnapshotPath(doc.id);
     if (relPath) {
       try {

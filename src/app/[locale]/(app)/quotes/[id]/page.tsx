@@ -133,9 +133,27 @@ export default async function QuoteDetailPage({
         </Link>
         <a href={`/quotes/${id}/pdf`} target="_blank" rel="noreferrer">
           <Button variant="outline" size="sm">
-            {t("Quotes.actions.previewPdf")} ↗
+            {isDraft
+              ? `${t("Quotes.actions.previewPdf")} ↗`
+              : (locale === "cs" ? "Archivovaná verze ↗" : "Archived version ↗")}
           </Button>
         </a>
+        {!isDraft && (
+          <a
+            href={`/quotes/${id}/pdf?live=1`}
+            target="_blank"
+            rel="noreferrer"
+            title={
+              locale === "cs"
+                ? "Náhled s aktuálními úpravami (původní odeslaná verze zůstává v archivu)."
+                : "Preview with current edits (the originally sent version stays in the archive)."
+            }
+          >
+            <Button variant="outline" size="sm">
+              {locale === "cs" ? "Aktuální verze ↗" : "Current version ↗"}
+            </Button>
+          </a>
+        )}
         <a href={`/quotes/${id}/pdf?download=1`} download>
           <Button variant="outline" size="sm">
             Download PDF ↓
