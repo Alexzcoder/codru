@@ -12,6 +12,7 @@ import { ClientAttachments } from "./client-attachment-uploader";
 import { deleteClient, anonymizeClient } from "../actions";
 import { BackLink } from "@/components/back-link";
 import { ConfirmButton } from "@/components/confirm-button";
+import { splitDateTimeForFormPrague } from "@/lib/format-datetime";
 
 export default async function ClientDetailPage({
   params,
@@ -492,7 +493,10 @@ export default async function ClientDetailPage({
                 log={{
                   id: l.id,
                   type: l.type,
-                  date: l.date.toISOString(),
+                  date: (() => {
+                    const { date, time } = splitDateTimeForFormPrague(l.date);
+                    return `${date}T${time}`;
+                  })(),
                   notes: l.notes,
                   loggedByName: l.loggedBy?.name ?? null,
                 }}

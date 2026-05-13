@@ -8,7 +8,9 @@ import { updateContactLog, deleteContactLog } from "./contact-actions";
 type Log = {
   id: string;
   type: "PHONE" | "EMAIL" | "MEETING" | "SITE_VISIT" | "OTHER";
-  date: string; // ISO
+  // "YYYY-MM-DDTHH:MM" wall-clock in Europe/Prague (server pre-formats it
+  // so the client never has to think about TZ).
+  date: string;
   notes: string;
   loggedByName: string | null;
 };

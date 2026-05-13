@@ -4,6 +4,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireWorkspace } from "@/lib/session";
 import { writeAudit } from "@/lib/audit";
+import { parsePragueDateTimeLocal } from "@/lib/format-datetime";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -22,12 +23,23 @@ const schema = z.object({
 export type CalendarEventState = { error?: string };
 
 function toPayload(d: z.infer<typeof schema>) {
+  const allDay = d.allDay ?? false;
+  // Form posts naive wall-clock; on Vercel (UTC) new Date() misreads as UTC.
+  // For all-day events the form posts a bare "YYYY-MM-DD" (no time) — leave
+  // that as-is so it lands at UTC midnight, matching how calendar code
+  // already reasons about all-day rows.
+  const parseStart = allDay ? new Date(d.startsAt) : parsePragueDateTimeLocal(d.startsAt);
+  const parseEnd = !d.endsAt
+    ? null
+    : allDay
+      ? new Date(d.endsAt)
+      : parsePragueDateTimeLocal(d.endsAt);
   return {
     title: d.title,
     type: d.type,
-    startsAt: new Date(d.startsAt),
-    endsAt: d.endsAt ? new Date(d.endsAt) : null,
-    allDay: d.allDay ?? false,
+    startsAt: parseStart,
+    endsAt: parseEnd,
+    allDay,
     assigneeId: d.assigneeId || null,
     clientId: d.clientId || null,
     jobId: d.jobId || null,

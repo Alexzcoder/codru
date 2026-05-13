@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { requireWorkspace } from "@/lib/session";
 import { writeAudit } from "@/lib/audit";
 import { saveJobAttachment, deleteUpload } from "@/lib/uploads";
+import { parsePragueDateTimeLocal } from "@/lib/format-datetime";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -35,8 +36,10 @@ function toPayload(d: z.infer<typeof jobSchema>) {
     siteCity: d.siteCity || null,
     siteZip: d.siteZip || null,
     siteCountry: d.siteCountry || null,
-    scheduledStart: d.scheduledStart ? new Date(d.scheduledStart) : null,
-    scheduledEnd: d.scheduledEnd ? new Date(d.scheduledEnd) : null,
+    // Form posts naive wall-clock ("YYYY-MM-DDTHH:MM"); on Vercel (UTC),
+    // new Date(s) misreads that as UTC. Parse as Europe/Prague instead.
+    scheduledStart: d.scheduledStart ? parsePragueDateTimeLocal(d.scheduledStart) : null,
+    scheduledEnd: d.scheduledEnd ? parsePragueDateTimeLocal(d.scheduledEnd) : null,
     notes: d.notes || null,
   };
 }

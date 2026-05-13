@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
+import { splitDateTimeForFormPrague } from "@/lib/format-datetime";
 import type { CalendarEventState } from "./actions";
 
 type Initial = Partial<CalendarEvent>;
@@ -178,9 +179,7 @@ export function EventForm({
 
 function toInput(d: Date | null | undefined, allDay: boolean): string {
   if (!d) return "";
-  const dt = new Date(d);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  const ymd = `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}`;
-  if (allDay) return ymd;
-  return `${ymd}T${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
+  // Prague TZ — Vercel runs UTC, so getHours() would shift CEST users by 2h.
+  const { date, time } = splitDateTimeForFormPrague(d);
+  return allDay ? date : `${date}T${time}`;
 }

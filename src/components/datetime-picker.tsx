@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { splitDateTimeForFormPrague } from "@/lib/format-datetime";
 
 // Date + time inputs that post a single hidden datetime-local-formatted value
 // (YYYY-MM-DDTHH:MM in 24h) under `name`, so the existing zod parser keeps
@@ -51,11 +52,7 @@ export function DateTimePicker({
 }
 
 function splitInitial(d: Date | null) {
-  if (!d) return { date: "", time: "" };
-  const dt = new Date(d);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return {
-    date: `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}`,
-    time: `${pad(dt.getHours())}:${pad(dt.getMinutes())}`,
-  };
+  // Server runs UTC on Vercel; getHours() would shift CEST users by 2h.
+  // splitDateTimeForFormPrague reads Date in Europe/Prague.
+  return splitDateTimeForFormPrague(d);
 }

@@ -65,3 +65,72 @@ export function pragueParts(d: Date): { hour: number; minute: number; second: nu
     Number(parts.find((p) => p.type === type)?.value ?? "0");
   return { hour: pick("hour"), minute: pick("minute"), second: pick("second") };
 }
+
+// "YYYY-MM-DD" + "HH:MM" pair, Prague TZ. Used to prefill <input type="date">
+// and <input type="time"> from a stored UTC Date.
+const FORM_PARTS = new Intl.DateTimeFormat("sv-SE", {
+  timeZone: "Europe/Prague",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: false,
+});
+
+export function splitDateTimeForFormPrague(
+  d: Date | null | undefined,
+): { date: string; time: string } {
+  if (!d) return { date: "", time: "" };
+  const parts = FORM_PARTS.formatToParts(d);
+  const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "";
+  return {
+    date: `${get("year")}-${get("month")}-${get("day")}`,
+    time: `${get("hour")}:${get("minute")}`,
+  };
+}
+
+// "YYYY-MM-DD" Prague-local part of a Date.
+export function pragueDateString(d: Date): string {
+  return splitDateTimeForFormPrague(d).date;
+}
+
+// Parse a wall-clock string ("YYYY-MM-DDTHH:MM" or "YYYY-MM-DDTHH:MM:SS")
+// as Europe/Prague local time and return the equivalent UTC Date.
+//
+// Why: <input type="datetime-local"> posts naive wall-clock text, and on
+// Vercel `new Date(s)` interprets that as UTC. Users mean Prague.
+//
+// Algorithm: build a UTC Date from the typed fields, ask Intl what Prague
+// thinks that UTC moment is, then subtract the difference. DST edges are
+// stable (no infinite loop) and pick a reasonable side of the gap/repeat.
+export function parsePragueDateTimeLocal(s: string): Date {
+  const [datePart, timePartRaw] = s.split("T");
+  if (!datePart || !timePartRaw) return new Date(s);
+  const [Y, M, D] = datePart.split("-").map(Number);
+  const [h = 0, m = 0, sec = 0] = timePartRaw.split(":").map(Number);
+  const asUtc = Date.UTC(Y, M - 1, D, h, m, sec);
+  const parts = FORM_PARTS_WITH_SECONDS.formatToParts(new Date(asUtc));
+  const pick = (t: string) => Number(parts.find((p) => p.type === t)?.value ?? "0");
+  const pragueAsUtc = Date.UTC(
+    pick("year"),
+    pick("month") - 1,
+    pick("day"),
+    pick("hour"),
+    pick("minute"),
+    pick("second"),
+  );
+  const offsetMs = pragueAsUtc - asUtc;
+  return new Date(asUtc - offsetMs);
+}
+
+const FORM_PARTS_WITH_SECONDS = new Intl.DateTimeFormat("sv-SE", {
+  timeZone: "Europe/Prague",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+  hour12: false,
+});

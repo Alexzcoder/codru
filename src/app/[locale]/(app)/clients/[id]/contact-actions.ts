@@ -4,6 +4,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireWorkspace } from "@/lib/session";
 import { writeAudit } from "@/lib/audit";
+import { parsePragueDateTimeLocal } from "@/lib/format-datetime";
 import { revalidatePath } from "next/cache";
 
 const schema = z.object({
@@ -31,7 +32,7 @@ export async function addContactLog(
       jobId: parsed.data.jobId || null,
       type: parsed.data.type,
       notes: parsed.data.notes,
-      date: parsed.data.date ? new Date(parsed.data.date) : new Date(),
+      date: parsed.data.date ? parsePragueDateTimeLocal(parsed.data.date) : new Date(),
       loggedById: user.id,
     },
   });
@@ -75,7 +76,7 @@ export async function updateContactLog(
     data: {
       type: parsed.data.type,
       notes: parsed.data.notes,
-      date: parsed.data.date ? new Date(parsed.data.date) : before.date,
+      date: parsed.data.date ? parsePragueDateTimeLocal(parsed.data.date) : before.date,
     },
   });
 
