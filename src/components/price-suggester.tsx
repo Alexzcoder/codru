@@ -62,13 +62,26 @@ export function PriceSuggesterButton({
 
 export function PriceSuggesterModal({
   target,
+  priceAdjustmentPercent,
   onClose,
   onApply,
 }: {
   target: SuggesterTarget | null;
+  // Per-brand multiplier from the active CompanyProfile. Applied to all
+  // generated prices (history median/P25/P75, individual matches, and AI
+  // estimate) so the user sees the same number that lands on the line.
+  // "0" or undefined = pass-through.
+  priceAdjustmentPercent?: string;
   onClose: () => void;
   onApply: (rowIndex: number, unitPrice: string, unit: string | null) => void;
 }) {
+  const adjPct = Number.parseFloat(priceAdjustmentPercent ?? "0");
+  const adjActive = Number.isFinite(adjPct) && adjPct !== 0;
+  const adjFactor = adjActive ? 1 + adjPct / 100 : 1;
+  const adjustPrice = (n: number | null): number | null => {
+    if (n == null || !Number.isFinite(n)) return n;
+    return adjActive ? n * adjFactor : n;
+  };
   const [data, setData] = useState<Suggestion | null>(null);
   const [ai, setAi] = useState<AiEstimate | null>(null);
   const [aiError, setAiError] = useState<string | null>(null);
@@ -132,13 +145,17 @@ export function PriceSuggesterModal({
   };
 
   const stats = data?.stats ?? null;
-  const selectedPrice = stats
+  const rawSelectedPrice = stats
     ? selected === "median"
       ? stats.medianUnitPrice
       : selected === "low"
       ? stats.p25UnitPrice
       : stats.p75UnitPrice
     : null;
+  const selectedPrice = adjustPrice(rawSelectedPrice);
+  const adjustedP25 = adjustPrice(stats?.p25UnitPrice ?? null);
+  const adjustedP75 = adjustPrice(stats?.p75UnitPrice ?? null);
+  const adjustedAiPrice = ai ? adjustPrice(ai.unitPrice) : null;
 
   return (
     <div
@@ -214,7 +231,7 @@ export function PriceSuggesterModal({
                   <div className="mt-0.5 flex items-baseline justify-between text-xs text-muted-foreground tabular-nums">
                     <span>Range (P25–P75)</span>
                     <span>
-                      {stats.p25UnitPrice?.toFixed(0)} – {stats.p75UnitPrice?.toFixed(0)} Kč
+                      {adjustedP25?.toFixed(0)} – {adjustedP75?.toFixed(0)} Kč
                     </span>
                   </div>
                   <div className="mt-3 flex flex-wrap gap-1.5">
@@ -248,21 +265,24 @@ export function PriceSuggesterModal({
                   Similar lines ({data!.matches.length})
                 </p>
                 <ul className="mt-1 space-y-0.5 text-xs">
-                  {data!.matches.slice(0, 6).map((m, i) => (
-                    <li key={i}>
-                      <button
-                        type="button"
-                        onClick={() => apply(m.unitPrice, m.unit || null)}
-                        className="flex w-full items-start justify-between gap-2 rounded px-1.5 py-1 text-left hover:bg-secondary/40"
-                      >
-                        <span className="flex-1 truncate">{m.description}</span>
-                        <span className="shrink-0 tabular-nums font-medium">
-                          {m.unitPrice.toLocaleString("cs-CZ")} Kč
-                          {m.unit ? `/${m.unit}` : ""}
-                        </span>
-                      </button>
-                    </li>
-                  ))}
+                  {data!.matches.slice(0, 6).map((m, i) => {
+                    const matchPrice = adjustPrice(m.unitPrice) ?? m.unitPrice;
+                    return (
+                      <li key={i}>
+                        <button
+                          type="button"
+                          onClick={() => apply(matchPrice, m.unit || null)}
+                          className="flex w-full items-start justify-between gap-2 rounded px-1.5 py-1 text-left hover:bg-secondary/40"
+                        >
+                          <span className="flex-1 truncate">{m.description}</span>
+                          <span className="shrink-0 tabular-nums font-medium">
+                            {matchPrice.toLocaleString("cs-CZ")} Kč
+                            {m.unit ? `/${m.unit}` : ""}
+                          </span>
+                        </button>
+                      </li>
+                    );
+                  })}
                 </ul>
               </>
             )}
@@ -314,7 +334,7 @@ export function PriceSuggesterModal({
                     {ai.confidence} confidence
                   </span>
                   <span className="text-lg font-semibold tabular-nums text-emerald-900">
-                    {ai.unitPrice.toLocaleString("cs-CZ", {
+                    {(adjustedAiPrice ?? ai.unitPrice).toLocaleString("cs-CZ", {
                       minimumFractionDigits: 2,
                     })}{" "}
                     Kč{ai.unit ? `/${ai.unit}` : ""}
@@ -355,7 +375,7 @@ export function PriceSuggesterModal({
                       type="button"
                       size="sm"
                       className="h-7 bg-emerald-600 text-xs text-white hover:bg-emerald-700"
-                      onClick={() => apply(ai.unitPrice, ai.unit || null)}
+                      onClick={() => apply(adjustedAiPrice ?? ai.unitPrice, ai.unit || null)}
                     >
                       Apply estimate
                     </Button>

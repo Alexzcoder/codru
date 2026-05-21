@@ -57,6 +57,7 @@ export async function loadQuoteFormData(workspaceId: string) {
   const companyOptions: CompanyOption[] = companyProfiles.map((c) => ({
     id: c.id,
     name: c.name,
+    priceAdjustmentPercent: c.priceAdjustmentPercent.toString(),
   }));
 
   const templateChoices: TemplateChoice[] = documentTemplates.map((t) => ({

@@ -45,6 +45,9 @@ export function InvoiceRuleForm({
   const [currency, setCurrency] = useState("CZK");
   const [locale, setLocale] = useState<"cs" | "en">("cs");
   const [reverseCharge, setReverseCharge] = useState(false);
+  const [companyProfileId, setCompanyProfileId] = useState(companyProfiles[0]?.id ?? "");
+  const selectedCompany = companyProfiles.find((c) => c.id === companyProfileId);
+  const priceAdjustmentPercent = selectedCompany?.priceAdjustmentPercent ?? "0";
   const jobsForClient = jobs.filter((j) => j.clientId === clientId);
 
   const emptyLine: EditorLine = {
@@ -150,7 +153,8 @@ export function InvoiceRuleForm({
           <select
             id="companyProfileId"
             name="companyProfileId"
-            defaultValue={companyProfiles[0]?.id ?? ""}
+            value={companyProfileId}
+            onChange={(e) => setCompanyProfileId(e.target.value)}
             className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
             required
           >
@@ -199,6 +203,7 @@ export function InvoiceRuleForm({
           documentDiscountPercent=""
           documentDiscountAmount=""
           reverseCharge={reverseCharge}
+          priceAdjustmentPercent={priceAdjustmentPercent}
         />
       </div>
 

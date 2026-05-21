@@ -72,6 +72,11 @@ export function CreditNoteForm({
   );
 
   const today = initial?.issueDate ?? new Date();
+  const [companyProfileId, setCompanyProfileId] = useState(
+    initial?.companyProfileId ?? companyProfiles[0]?.id ?? "",
+  );
+  const selectedCompany = companyProfiles.find((c) => c.id === companyProfileId);
+  const priceAdjustmentPercent = selectedCompany?.priceAdjustmentPercent ?? "0";
 
   return (
     <form action={formAction} className="space-y-8">
@@ -169,7 +174,8 @@ export function CreditNoteForm({
           <select
             id="companyProfileId"
             name="companyProfileId"
-            defaultValue={initial?.companyProfileId ?? companyProfiles[0]?.id ?? ""}
+            value={companyProfileId}
+            onChange={(e) => setCompanyProfileId(e.target.value)}
             className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
             required
           >
@@ -226,6 +232,7 @@ export function CreditNoteForm({
           documentDiscountPercent=""
           documentDiscountAmount=""
           reverseCharge={initial?.reverseCharge ?? original.reverseCharge}
+          priceAdjustmentPercent={priceAdjustmentPercent}
         />
       </div>
 

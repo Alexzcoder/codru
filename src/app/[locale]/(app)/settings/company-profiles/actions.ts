@@ -24,6 +24,7 @@ const schema = z.object({
   defaultFooterText: z.string().trim().max(500).optional().or(z.literal("")),
   defaultPaymentTermsDays: z.coerce.number().int().min(0).max(365).default(14),
   defaultWarrantyText: z.string().trim().max(1000).optional().or(z.literal("")),
+  priceAdjustmentPercent: z.coerce.number().min(-50).max(50).default(0),
   isDefault: z.coerce.boolean().optional(),
 });
 
@@ -46,6 +47,7 @@ function toPayload(d: z.infer<typeof schema>) {
     defaultFooterText: d.defaultFooterText || null,
     defaultPaymentTermsDays: d.defaultPaymentTermsDays,
     defaultWarrantyText: d.defaultWarrantyText || null,
+    priceAdjustmentPercent: d.priceAdjustmentPercent.toFixed(2),
   };
 }
 

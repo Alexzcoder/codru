@@ -102,6 +102,21 @@ export function CompanyProfileForm({
         />
       </div>
 
+      <div className="space-y-2 rounded-md border border-border bg-secondary/30 p-3">
+        <Label htmlFor="priceAdjustmentPercent">{t("priceAdjustmentPercent")}</Label>
+        <Input
+          id="priceAdjustmentPercent"
+          name="priceAdjustmentPercent"
+          type="number"
+          step="0.5"
+          min="-50"
+          max="50"
+          defaultValue={Number(initial?.priceAdjustmentPercent ?? 0).toString()}
+          className="max-w-[180px]"
+        />
+        <p className="text-xs text-muted-foreground">{t("priceAdjustmentPercentHint")}</p>
+      </div>
+
       <label className="flex items-center gap-2 text-sm">
         <input
           type="checkbox"

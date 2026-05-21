@@ -91,7 +91,11 @@ export async function loadAdvanceFormData(workspaceId: string) {
     };
   });
 
-  const companyOptions: CompanyOption[] = companyProfiles.map((c) => ({ id: c.id, name: c.name }));
+  const companyOptions: CompanyOption[] = companyProfiles.map((c) => ({
+    id: c.id,
+    name: c.name,
+    priceAdjustmentPercent: c.priceAdjustmentPercent.toString(),
+  }));
   const templateChoices: TemplateChoice[] = templates.map((t) => ({ id: t.id, name: t.name }));
 
   const templateOptions: TemplateOption[] = itemTemplates.map((t) => ({

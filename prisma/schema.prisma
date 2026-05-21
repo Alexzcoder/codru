@@ -172,6 +172,10 @@ model CompanyProfile {
   defaultFooterText       String?
   defaultPaymentTermsDays Int       @default(14)
   defaultWarrantyText     String?
+  // Per-brand multiplier applied to prices coming from item templates,
+  // history suggestions, and AI estimates. Manual entry is not adjusted.
+  // Use a negative value to run a discount (e.g. -10 for 10% off).
+  priceAdjustmentPercent  Decimal   @default(0) @db.Decimal(5, 2)
   isDefault               Boolean   @default(false)
   archivedAt              DateTime?
   createdAt               DateTime  @default(now())
