@@ -8,7 +8,7 @@ import { JobListFilters } from "./list-filters";
 import { BulkActions } from "./bulk-actions";
 import { createDemoJob } from "./actions";
 import { PageHeader } from "@/components/page-header";
-import { Plus, Sparkles } from "lucide-react";
+import { Plus, Sparkles, Download } from "lucide-react";
 import type { JobStatus } from "@prisma/client";
 
 const PAGE_SIZE = 50;
@@ -106,6 +106,21 @@ export default async function JobsPage({
         description={`${total} ${total === 1 ? "job" : "jobs"}`}
         actions={
           <>
+            <a
+              href={`/jobs/export.xlsx?${new URLSearchParams({
+                ...(q && { q }),
+                ...(sp.status && { status: sp.status }),
+                ...(sp.clientId && { clientId: sp.clientId }),
+                ...(sp.assigneeId && { assigneeId: sp.assigneeId }),
+                ...(sp.from && { from: sp.from }),
+                ...(sp.to && { to: sp.to }),
+              }).toString()}`}
+              download
+            >
+              <Button variant="outline" size="sm" className="gap-1.5">
+                <Download size={14} /> Excel
+              </Button>
+            </a>
             <form action={createDemoJob}>
               <Button type="submit" variant="ghost" size="sm" className="gap-1.5">
                 <Sparkles size={14} /> Demo

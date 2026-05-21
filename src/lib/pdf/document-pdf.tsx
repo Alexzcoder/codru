@@ -281,6 +281,31 @@ export function DocumentPdf({
                 {data.locale === "cs" ? "Celkem" : "Total"}
               </Text>
             </View>
+            {Number(totals.documentDiscount) > 0 && (
+              <>
+                <View style={styles.recapRow}>
+                  <Text style={styles.recapColLabel}>{L.subtotal}</Text>
+                  <Text style={styles.recapColBase}>
+                    {formatMoney(totals.subtotalNet, data.currency, data.locale)}
+                  </Text>
+                  <Text style={styles.recapColVat}>—</Text>
+                  <Text style={styles.recapColTotal}>—</Text>
+                </View>
+                <View style={styles.recapRow}>
+                  <Text style={styles.recapColLabel}>
+                    {L.documentDiscount}
+                    {data.documentDiscountPercent
+                      ? ` ${formatPercent(data.documentDiscountPercent)}`
+                      : ""}
+                  </Text>
+                  <Text style={styles.recapColBase}>
+                    −{formatMoney(totals.documentDiscount, data.currency, data.locale)}
+                  </Text>
+                  <Text style={styles.recapColVat}>—</Text>
+                  <Text style={styles.recapColTotal}>—</Text>
+                </View>
+              </>
+            )}
             {!data.reverseCharge && totals.taxBands.length > 0 ? (
               totals.taxBands.map((b) => {
                 const bandGross = (Number(b.net) + Number(b.tax)).toFixed(2);
@@ -303,7 +328,7 @@ export function DocumentPdf({
               <View style={styles.recapRow}>
                 <Text style={styles.recapColLabel}>—</Text>
                 <Text style={styles.recapColBase}>
-                  {formatMoney(totals.subtotalNet, data.currency, data.locale)}
+                  {formatMoney(totals.totalNet, data.currency, data.locale)}
                 </Text>
                 <Text style={styles.recapColVat}>—</Text>
                 <Text style={styles.recapColTotal}>
@@ -316,14 +341,10 @@ export function DocumentPdf({
                 {data.locale === "cs" ? "Celkem" : "Total"}
               </Text>
               <Text style={styles.recapColBase}>
-                {formatMoney(totals.subtotalNet, data.currency, data.locale)}
+                {formatMoney(totals.totalNet, data.currency, data.locale)}
               </Text>
               <Text style={styles.recapColVat}>
-                {formatMoney(
-                  (Number(totals.totalGross) - Number(totals.subtotalNet)).toFixed(2),
-                  data.currency,
-                  data.locale,
-                )}
+                {formatMoney(totals.totalTax, data.currency, data.locale)}
               </Text>
               <Text style={styles.recapColTotal}>
                 {formatMoney(totals.totalGross, data.currency, data.locale)}

@@ -8,6 +8,8 @@ import { PageHeader } from "@/components/page-header";
 import { ClickableRow } from "@/components/clickable-row";
 import { SearchBar } from "@/components/search-bar";
 import { SortHeader } from "@/components/sort-header";
+import { Button } from "@/components/ui/button";
+import { Download } from "lucide-react";
 
 import { documentStatusClass } from "@/lib/status-style";
 import type { DocumentStatus } from "@prisma/client";
@@ -68,6 +70,16 @@ export default async function CreditNotesPage({
       <PageHeader
         title={t("CreditNotes.title")}
         description="Opravný daňový doklad — issued from an invoice detail page."
+        actions={
+          <a
+            href={`/credit-notes/export.xlsx${q ? `?q=${encodeURIComponent(q)}` : ""}`}
+            download
+          >
+            <Button variant="outline" size="sm" className="gap-1.5">
+              <Download size={14} /> Excel
+            </Button>
+          </a>
+        }
       />
       <p className="hidden">
         Opravný daňový doklad — issued from an invoice's detail page.

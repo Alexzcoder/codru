@@ -158,6 +158,23 @@ function Composer({
           </div>
         ) : (
           <div className="space-y-3 p-5">
+            {data.identities.length === 0 && (
+              <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+                <p className="font-medium">Není nastaven žádný odesílatel.</p>
+                <p className="mt-1 text-xs">
+                  Než pošlete první e-mail, je třeba v{" "}
+                  <a
+                    href="/settings/email-senders"
+                    className="underline font-medium"
+                  >
+                    Nastavení → Odesílatelé e-mailů
+                  </a>{" "}
+                  přidat alespoň jednu schválenou adresu (např.{" "}
+                  <code>info@firma.cz</code>). Doménu schvaluje Resend — bez
+                  toho nelze přes Codru posílat.
+                </p>
+              </div>
+            )}
             <div className="grid gap-3 md:grid-cols-2">
               <div>
                 <Label htmlFor="from-id" className="text-xs">From</Label>

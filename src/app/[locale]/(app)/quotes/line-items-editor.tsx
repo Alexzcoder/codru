@@ -63,6 +63,7 @@ export function LineItemsEditor({
   documentDiscountPercent,
   documentDiscountAmount,
   reverseCharge,
+  priceAdjustmentPercent,
   syncFirstLine,
 }: {
   initialLines: EditorLine[];
@@ -73,12 +74,26 @@ export function LineItemsEditor({
   documentDiscountPercent: string;
   documentDiscountAmount: string;
   reverseCharge: boolean;
+  // Per-brand multiplier for prices coming from templates, history suggestions,
+  // and AI estimates. Manual unit-price input is not adjusted. "0" or undefined
+  // = pass-through; "-10" = 10% off generated prices.
+  priceAdjustmentPercent?: string;
   // For advance invoices: when the parent changes the percent / fixed amount,
   // we force-update line 0 so the editor and PDF match the chosen amount.
   syncFirstLine?: { name: string; unitPrice: string } | null;
 }) {
   const t = useTranslations("Quotes.lineItems");
   const tTotals = useTranslations("Quotes.totals");
+  const tFields = useTranslations("Settings.fields");
+  const adjPct = Number.parseFloat(priceAdjustmentPercent ?? "0");
+  const adjActive = Number.isFinite(adjPct) && adjPct !== 0;
+  const adjFactor = adjActive ? 1 + adjPct / 100 : 1;
+  const applyAdjustment = (unitPrice: string): string => {
+    if (!adjActive) return unitPrice;
+    const n = Number.parseFloat(unitPrice);
+    if (!Number.isFinite(n)) return unitPrice;
+    return (n * adjFactor).toFixed(2);
+  };
   const [lines, setLines] = useState<EditorLine[]>(
     initialLines.length > 0 ? initialLines : [EMPTY_LINE],
   );
@@ -139,7 +154,7 @@ export function LineItemsEditor({
         description: tmpl.description ?? "",
         quantity: tmpl.defaultQuantity,
         unit: tmpl.unitName,
-        unitPrice: tmpl.defaultUnitPrice,
+        unitPrice: applyAdjustment(tmpl.defaultUnitPrice),
         taxRatePercent: tmpl.defaultTaxRatePercent,
         taxMode: tmpl.defaultTaxMode,
         lineDiscountPercent: "",
@@ -190,6 +205,12 @@ export function LineItemsEditor({
     <div className="space-y-4">
       {/* Hidden input that submits the full line array to the server action */}
       <input type="hidden" name="linesJson" value={JSON.stringify(lines)} />
+
+      {adjActive && (
+        <div className="rounded-md border border-emerald-300 bg-emerald-50 px-3 py-2 text-xs text-emerald-900">
+          {tFields("priceAdjustmentBanner", { percent: adjPct.toString() })}
+        </div>
+      )}
 
       {/* Site photos — used by the AI price suggester. Not persisted with the
           document; they live only in the browser session. */}
@@ -310,11 +331,12 @@ export function LineItemsEditor({
                     className="h-8"
                     required
                   />
-                  <Input
+                  <textarea
                     value={l.description}
                     onChange={(e) => update(i, { description: e.target.value })}
                     placeholder={t("description")}
-                    className="mt-1 h-7 text-xs"
+                    rows={2}
+                    className="mt-1 w-full rounded-md border border-input bg-transparent px-3 py-1.5 text-xs leading-relaxed outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
                   />
                 </td>
                 <td className="px-2 py-1">
@@ -439,6 +461,7 @@ export function LineItemsEditor({
 
       <PriceSuggesterModal
         target={suggesterTarget}
+        priceAdjustmentPercent={priceAdjustmentPercent ?? "0"}
         onClose={() => setSuggesterTarget(null)}
         onApply={(rowIndex, unitPrice, unit) =>
           setLines((ls) =>
