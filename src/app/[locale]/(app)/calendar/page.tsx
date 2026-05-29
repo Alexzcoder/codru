@@ -16,6 +16,7 @@ import { MonthView } from "./month-view";
 import { WeekView } from "./week-view";
 import { DayView } from "./day-view";
 import { AssigneeFilter } from "./assignee-filter";
+import { CalendarSubscribe } from "./calendar-subscribe";
 
 const VIEWS: View[] = ["month", "week", "day"];
 
@@ -96,6 +97,7 @@ export default async function CalendarPage({
           {t("Calendar.title")}
         </h1>
         <div className="flex gap-2">
+          <CalendarSubscribe />
           <Link href={`/calendar/export.ics?view=${view}&date=${toDateParam(date)}`} prefetch={false}>
             <Button variant="outline" size="sm">
               {t("Calendar.exportIcs")}

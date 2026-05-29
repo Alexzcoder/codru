@@ -520,6 +520,12 @@
     "searchPlaceholder": "Hledat podle jména, IČO, e-mailu…",
     "filterStatus": "Stav",
     "filterAll": "Vše",
+    "docsFilter": {
+      "ALL": "Všechny dokumenty",
+      "invoiced": "Má faktury",
+      "quotes": "Jen nabídky",
+      "none": "Bez dokumentů"
+    },
     "type": {
       "INDIVIDUAL": "Fyzická osoba",
       "COMPANY": "Firma"

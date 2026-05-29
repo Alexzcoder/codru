@@ -10,6 +10,9 @@ import { Link } from "@/i18n/navigation";
 import { Sparkles } from "lucide-react";
 import type { ExpenseState } from "./actions";
 import { scanReceipt } from "./scan-actions";
+import { CompressingFileInput } from "@/components/compressing-file-input";
+import { compressImage } from "@/lib/image-compress";
+import { JobCombobox } from "@/components/job-combobox";
 
 type Initial = Partial<Expense>;
 
@@ -43,16 +46,18 @@ export function ExpenseForm({
   const [scanInfo, setScanInfo] = useState<string | null>(null);
   const [scanError, setScanError] = useState<string | null>(null);
 
-  const onScanFile = async (file: File | null) => {
-    if (!file) return;
+  const onScanFile = async (original: File | null) => {
+    if (!original) return;
     setScanError(null);
     setScanInfo(null);
-    if (file.size > 5 * 1024 * 1024) {
-      setScanError("Receipt photo too large (max 5 MB).");
+    if (!/^image\/(jpeg|png|webp|gif)$/.test(original.type)) {
+      setScanError("Use a JPEG / PNG / WebP / GIF photo.");
       return;
     }
-    if (!/^image\/(jpeg|png|webp|gif)$/.test(file.type)) {
-      setScanError("Use a JPEG / PNG / WebP / GIF photo.");
+    // Downscale first so big phone photos fit comfortably under the scan cap.
+    const file = await compressImage(original, { maxEdge: 2200, minBytes: 300 * 1024 });
+    if (file.size > 5 * 1024 * 1024) {
+      setScanError("Receipt photo too large (max 5 MB).");
       return;
     }
     const dataUrl = await new Promise<string>((resolve, reject) => {
@@ -189,19 +194,12 @@ export function ExpenseForm({
         </div>
         <div className="space-y-2">
           <Label htmlFor="jobId">{t("fields.job")}</Label>
-          <select
+          <JobCombobox
             id="jobId"
             name="jobId"
+            jobs={jobs}
             defaultValue={initial?.jobId ?? ""}
-            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
-          >
-            <option value="">—</option>
-            {jobs.map((j) => (
-              <option key={j.id} value={j.id}>
-                {j.title}
-              </option>
-            ))}
-          </select>
+          />
         </div>
       </div>
 
@@ -291,12 +289,11 @@ export function ExpenseForm({
 
       <div className="space-y-2">
         <Label htmlFor="receipt">{t("fields.receipt")}</Label>
-        <Input
+        <CompressingFileInput
           id="receipt"
           name="receipt"
-          type="file"
           accept="image/png,image/jpeg,image/webp,image/heic,image/heif,application/pdf"
-          className="cursor-pointer file:cursor-pointer"
+          className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none cursor-pointer file:cursor-pointer focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
         />
         {initial?.receiptPath && (
           <p className="text-xs text-muted-foreground">

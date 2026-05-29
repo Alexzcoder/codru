@@ -9,6 +9,7 @@ import { Link } from "@/i18n/navigation";
 import { LineItemsEditor, type EditorLine, type TemplateOption, type TaxRateOption } from "./line-items-editor";
 import type { QuoteState } from "./actions";
 import type { SitePhoto } from "@/components/price-suggester";
+import { JobCombobox } from "@/components/job-combobox";
 
 export type ClientOption = {
   id: string;
@@ -151,26 +152,18 @@ export function QuoteForm({
         </div>
         <div className="space-y-2">
           <Label htmlFor="jobId">{t("fields.job")}</Label>
-          <select
+          <JobCombobox
             id="jobId"
             name="jobId"
+            jobs={availableJobs}
             value={jobId}
-            onChange={(e) => {
-              const id = e.target.value;
+            onValueChange={(id) => {
               setJobId(id);
               const j = jobs.find((x) => x.id === id);
               // Only autofill the title if it's empty (don't clobber user edits).
               if (j && title.trim().length === 0) setTitle(j.title);
             }}
-            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
-          >
-            <option value="">—</option>
-            {availableJobs.map((j) => (
-              <option key={j.id} value={j.id}>
-                {j.title}
-              </option>
-            ))}
-          </select>
+          />
         </div>
       </div>
 

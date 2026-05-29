@@ -33,6 +33,10 @@ model Workspace {
   id           String    @id @default(cuid())
   name         String
   slug         String    @unique
+  // Secret token for the public (unauthenticated) ICS calendar feed that
+  // Google Calendar / Apple Calendar subscribe to. Null until the owner
+  // generates one; rotating it invalidates old subscriptions.
+  icsToken     String?   @unique
   // Per-workspace optional features. Shape: { events?: bool, scheduler?: bool, ... }
   // Future workspace templates (business / club / agency) write the same shape
   // at create time; the OWNER can flip individual flags from settings.

@@ -4,6 +4,7 @@ import { useActionState, useRef, useEffect, useState } from "react";
 import { useLocale } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Upload } from "lucide-react";
+import { compressImages, filesToFileList } from "@/lib/image-compress";
 import { uploadAttachment, type AttachmentState } from "../actions";
 
 const inputCls =
@@ -22,6 +23,7 @@ export function AttachmentUploader({ jobId }: { jobId: string }) {
   const ref = useRef<HTMLFormElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const [picked, setPicked] = useState<number>(0);
+  const [compressing, setCompressing] = useState(false);
 
   useEffect(() => {
     if (!state.error && !pending) {
@@ -30,12 +32,19 @@ export function AttachmentUploader({ jobId }: { jobId: string }) {
     }
   }, [state, pending]);
 
-  const onFiles = (files: FileList | null) => {
-    if (!files || !fileRef.current) return;
-    const dt = new DataTransfer();
-    for (const f of Array.from(files)) dt.items.add(f);
-    fileRef.current.files = dt.files;
-    setPicked(dt.files.length);
+  // Downscale large photos in the browser before the form is submitted, then
+  // write the smaller files back onto the input so the Server Action receives
+  // them. Keeps phone photos under the upload ceiling.
+  const onFiles = async (files: FileList | null) => {
+    if (!files || !fileRef.current || files.length === 0) return;
+    setCompressing(true);
+    try {
+      const compressed = await compressImages(Array.from(files));
+      fileRef.current.files = filesToFileList(compressed);
+      setPicked(compressed.length);
+    } finally {
+      setCompressing(false);
+    }
   };
 
   return (
@@ -78,7 +87,7 @@ export function AttachmentUploader({ jobId }: { jobId: string }) {
           accept={ACCEPT}
           required
           className="sr-only"
-          onChange={(e) => setPicked(e.target.files?.length ?? 0)}
+          onChange={(e) => onFiles(e.target.files)}
         />
       </label>
       <div className="flex flex-wrap items-end gap-3">
@@ -94,14 +103,18 @@ export function AttachmentUploader({ jobId }: { jobId: string }) {
             className={inputCls}
           />
         </div>
-        <Button type="submit" disabled={pending} size="sm">
-          {pending
+        <Button type="submit" disabled={pending || compressing} size="sm">
+          {compressing
             ? cs
-              ? "Nahrávám…"
-              : "Uploading…"
-            : cs
-              ? "Nahrát"
-              : "Upload"}
+              ? "Připravuji…"
+              : "Preparing…"
+            : pending
+              ? cs
+                ? "Nahrávám…"
+                : "Uploading…"
+              : cs
+                ? "Nahrát"
+                : "Upload"}
         </Button>
         {state.error && <span className="text-xs text-red-600">{state.error}</span>}
         {state.uploadedCount && state.uploadedCount > 0 && (

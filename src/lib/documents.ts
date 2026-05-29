@@ -4,7 +4,7 @@ import fs from "node:fs/promises";
 import { renderToBuffer } from "@react-pdf/renderer";
 import type { Document, DocumentLineItem, DocumentType } from "@prisma/client";
 import { prisma } from "./prisma";
-import { allocateNumber } from "./numbering";
+import { allocateNumber, resolveNumberingScope } from "./numbering";
 import { DocumentPdf } from "./pdf/document-pdf";
 import { buildQrPlatbaDataUrl } from "./pdf/qr-platba";
 import { calculateDocument } from "./line-items";
@@ -223,9 +223,20 @@ export async function transitionToSent(
         workspaceId: doc.workspaceId,
       };
     }
-    // Per-day numbering uses the doc's issueDate so back-dated invoices
-    // get the right embedded date in their number.
-    const allocated = await allocateNumber(tx, doc.workspaceId, doc.type, doc.issueDate);
+    // Numbering is scoped to the LEGAL ENTITY (IČO of the issuing company
+    // profile), not the workspace/brand — so all brands of one legal entity
+    // share a single gapless, duplicate-free series. Per-day numbering uses
+    // the doc's issueDate so back-dated invoices embed the right date.
+    const company = await tx.companyProfile.findUnique({
+      where: { id: doc.companyProfileId },
+      select: { ico: true },
+    });
+    const scopeWorkspaceId = await resolveNumberingScope(
+      tx,
+      doc.workspaceId,
+      company?.ico,
+    );
+    const allocated = await allocateNumber(tx, scopeWorkspaceId, doc.type, doc.issueDate);
     await tx.document.update({
       where: { id: documentId },
       data: {

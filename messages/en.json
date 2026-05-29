@@ -520,6 +520,12 @@
     "searchPlaceholder": "Search by name, IČO, email…",
     "filterStatus": "Status",
     "filterAll": "All",
+    "docsFilter": {
+      "ALL": "All documents",
+      "invoiced": "Has invoices",
+      "quotes": "Quotes only",
+      "none": "No documents"
+    },
     "type": {
       "INDIVIDUAL": "Individual",
       "COMPANY": "Company"
