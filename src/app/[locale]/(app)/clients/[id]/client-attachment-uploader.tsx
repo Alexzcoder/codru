@@ -2,6 +2,7 @@
 
 import { useActionState, useRef, useEffect, useTransition, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { CompressingFileInput } from "@/components/compressing-file-input";
 import {
   uploadClientAttachment,
   deleteClientAttachment,
@@ -52,8 +53,7 @@ export function ClientAttachments({
         className="mt-3 flex flex-wrap items-end gap-3 rounded-xl border border-border bg-card p-3 shadow-sm"
       >
         <div className="flex-1 min-w-[220px]">
-          <input
-            type="file"
+          <CompressingFileInput
             name="file"
             multiple
             accept="image/png,image/jpeg,image/webp,image/heic,image/heif,application/pdf"

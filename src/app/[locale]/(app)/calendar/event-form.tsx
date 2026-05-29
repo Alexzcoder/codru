@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 import { splitDateTimeForFormPrague } from "@/lib/format-datetime";
 import type { CalendarEventState } from "./actions";
+import { JobCombobox } from "@/components/job-combobox";
 
 type Initial = Partial<CalendarEvent>;
 
@@ -131,19 +132,13 @@ export function EventForm({
         </div>
         <div className="space-y-2">
           <Label htmlFor="jobId">{t("form.job")}</Label>
-          <select
+          <JobCombobox
             id="jobId"
             name="jobId"
+            jobs={jobs}
             defaultValue={initial?.jobId ?? ""}
-            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
-          >
-            <option value="">{t("form.none")}</option>
-            {jobs.map((j) => (
-              <option key={j.id} value={j.id}>
-                {j.title}
-              </option>
-            ))}
-          </select>
+            emptyLabel={t("form.none")}
+          />
         </div>
       </div>
 

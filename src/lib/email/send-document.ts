@@ -1,8 +1,7 @@
 import { Resend } from "resend";
 import { prisma } from "@/lib/prisma";
 import { renderDocumentPdf, latestSnapshotPath, transitionToSent } from "@/lib/documents";
-import fs from "node:fs/promises";
-import path from "node:path";
+import { readUpload } from "@/lib/uploads";
 
 export type SendDocumentEmailInput = {
   identityId: string;
@@ -35,7 +34,7 @@ export async function sendDocumentEmail(
     return { ok: false, error: "Selected sender no longer available." };
   }
 
-  const doc = await prisma.document.findUnique({
+  let doc = await prisma.document.findUnique({
     where: { id: input.documentId },
     include: { lineItems: { orderBy: { position: "asc" } } },
   });
@@ -43,14 +42,35 @@ export async function sendDocumentEmail(
     return { ok: false, error: "Document not found." };
   }
 
-  // Get the PDF buffer — use the latest snapshot if document is sent;
-  // otherwise render fresh.
+  // Finalize BEFORE rendering the attachment. Emailing a document IS the act of
+  // issuing it, so it must go out as the numbered final — never a "KONCEPT"
+  // draft. transitionToSent allocates the gapless number + freezes the snapshot
+  // and is idempotent (no-op once past UNSENT). If it fails we abort rather than
+  // mail a draft.
+  if (doc.status === "UNSENT") {
+    try {
+      await transitionToSent(input.sentById, doc.id);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Unknown error";
+      return { ok: false, error: `Could not finalize document before sending: ${msg}` };
+    }
+    const refreshed = await prisma.document.findUnique({
+      where: { id: input.documentId },
+      include: { lineItems: { orderBy: { position: "asc" } } },
+    });
+    if (!refreshed) return { ok: false, error: "Document not found after finalizing." };
+    doc = refreshed;
+  }
+
+  // Attach the archived snapshot (the legal copy) when present; otherwise render
+  // fresh from the now-numbered document. readUpload handles both Vercel Blob
+  // URLs (prod) and local /uploads paths (dev).
   let pdfBuffer: Buffer;
-  if (doc.status !== "UNSENT") {
-    const rel = await latestSnapshotPath(doc.id);
-    if (rel) {
-      pdfBuffer = await fs.readFile(path.join(process.cwd(), "public", rel));
-    } else {
+  const snapshotRel = await latestSnapshotPath(doc.id);
+  if (snapshotRel) {
+    try {
+      pdfBuffer = await readUpload(snapshotRel);
+    } catch {
       pdfBuffer = await renderDocumentPdf(doc);
     }
   } else {
@@ -118,23 +138,7 @@ export async function sendDocumentEmail(
     return { ok: false, error: errorMessage ?? "Send failed." };
   }
 
-  // Auto-mark Sent on first successful send. transitionToSent allocates a
-  // gapless number, snapshots the PDF, and writes the audit log. Idempotent —
-  // it bails if the doc is already past UNSENT, so resending a Sent invoice
-  // doesn't produce a second number or snapshot.
-  if (doc.status === "UNSENT") {
-    try {
-      await transitionToSent(input.sentById, doc.id);
-    } catch (e) {
-      // Don't fail the send if status flip hits a snag — the email already
-      // left. Log it on the email row so we can debug later.
-      const msg = e instanceof Error ? e.message : "auto-mark failed";
-      await prisma.emailLog.update({
-        where: { id: log.id },
-        data: { errorMessage: `${log.errorMessage ?? ""}\n[auto-mark] ${msg}`.trim() },
-      });
-    }
-  }
-
+  // Document was already finalized (numbered + snapshotted) above, before the
+  // PDF was rendered, so the recipient received the numbered final document.
   return { ok: true, emailLogId: log.id };
 }

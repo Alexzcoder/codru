@@ -9,17 +9,26 @@ import { createDemoClient } from "./actions";
 import { PageHeader } from "@/components/page-header";
 import { ClickableRow } from "@/components/clickable-row";
 import { Plus, Download, Sparkles, Upload } from "lucide-react";
-import type { ClientStatus } from "@prisma/client";
+import type { ClientStatus, DocumentType, Prisma } from "@prisma/client";
 
 const PAGE_SIZE = 50;
 const VALID_STATUSES: ClientStatus[] = ["POTENTIAL", "ACTIVE", "PAST", "FAILED"];
+const VALID_DOCS = ["invoiced", "quotes", "none"] as const;
+type DocsFilter = (typeof VALID_DOCS)[number];
+// "Invoice" = anything legally an invoice (advance, final, credit note). Quotes
+// are NA/Nabídka only.
+const INVOICE_TYPES: DocumentType[] = [
+  "ADVANCE_INVOICE",
+  "FINAL_INVOICE",
+  "CREDIT_NOTE",
+];
 
 export default async function ClientsPage({
   params,
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ q?: string; status?: string; page?: string }>;
+  searchParams: Promise<{ q?: string; status?: string; docs?: string; page?: string }>;
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
@@ -31,12 +40,32 @@ export default async function ClientsPage({
   const statusFilter = VALID_STATUSES.includes(sp.status as ClientStatus)
     ? (sp.status as ClientStatus)
     : undefined;
+  const docsFilter = VALID_DOCS.includes(sp.docs as DocsFilter)
+    ? (sp.docs as DocsFilter)
+    : undefined;
   const page = Math.max(1, Number(sp.page) || 1);
 
-  const where = {
+  // Filter by what documents a client has. Drafts count — a draft quote means
+  // the client is "quoted". Soft-deleted documents are ignored.
+  const docsWhere: Prisma.ClientWhereInput =
+    docsFilter === "invoiced"
+      ? { documents: { some: { deletedAt: null, type: { in: INVOICE_TYPES } } } }
+      : docsFilter === "quotes"
+        ? {
+            AND: [
+              { documents: { some: { deletedAt: null, type: "QUOTE" } } },
+              { documents: { none: { deletedAt: null, type: { in: INVOICE_TYPES } } } },
+            ],
+          }
+        : docsFilter === "none"
+          ? { documents: { none: { deletedAt: null } } }
+          : {};
+
+  const where: Prisma.ClientWhereInput = {
     workspaceId: workspace.id,
     deletedAt: null,
     ...(statusFilter && { status: statusFilter }),
+    ...docsWhere,
     ...(q && {
       OR: [
         { companyName: { contains: q, mode: "insensitive" as const } },
@@ -91,7 +120,11 @@ export default async function ClientsPage({
       />
 
       <div className="mb-6">
-        <ClientListFilters initialQ={q} initialStatus={statusFilter ?? "ALL"} />
+        <ClientListFilters
+          initialQ={q}
+          initialStatus={statusFilter ?? "ALL"}
+          initialDocs={docsFilter ?? "ALL"}
+        />
       </div>
 
       {clients.length === 0 ? (
@@ -149,7 +182,7 @@ export default async function ClientsPage({
               <Link
                 href={{
                   pathname: "/clients",
-                  query: { ...(q && { q }), ...(statusFilter && { status: statusFilter }), page: page - 1 },
+                  query: { ...(q && { q }), ...(statusFilter && { status: statusFilter }), ...(docsFilter && { docs: docsFilter }), page: page - 1 },
                 }}
               >
                 <Button variant="outline" size="sm">
@@ -161,7 +194,7 @@ export default async function ClientsPage({
               <Link
                 href={{
                   pathname: "/clients",
-                  query: { ...(q && { q }), ...(statusFilter && { status: statusFilter }), page: page + 1 },
+                  query: { ...(q && { q }), ...(statusFilter && { status: statusFilter }), ...(docsFilter && { docs: docsFilter }), page: page + 1 },
                 }}
               >
                 <Button variant="outline" size="sm">

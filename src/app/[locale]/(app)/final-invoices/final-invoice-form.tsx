@@ -20,6 +20,7 @@ import type {
 } from "../quotes/quote-form";
 import type { FinalInvoiceState } from "./actions";
 import type { SitePhoto } from "@/components/price-suggester";
+import { JobCombobox } from "@/components/job-combobox";
 
 export type AvailableAdvance = {
   id: string;
@@ -245,24 +246,17 @@ export function FinalInvoiceForm({
         </div>
         <div className="space-y-2">
           <Label htmlFor="jobId">{t("fields.jobRequired")}</Label>
-          <select
+          <JobCombobox
             id="jobId"
             name="jobId"
+            jobs={availableJobs}
             value={jobId}
-            onChange={(e) => {
-              setJobId(e.target.value);
+            required
+            onValueChange={(id) => {
+              setJobId(id);
               setSelectedAdvances(new Set());
             }}
-            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
-            required
-          >
-            <option value="">—</option>
-            {availableJobs.map((j) => (
-              <option key={j.id} value={j.id}>
-                {j.title}
-              </option>
-            ))}
-          </select>
+          />
           {!jobId && clientId && (
             <p className="text-xs text-red-600">{t("jobRequiredHint")}</p>
           )}
