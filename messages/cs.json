@@ -260,8 +260,18 @@
     }
   },
   "PaymentTaxDocuments": {
+    "title": "Daňové doklady k platbě",
     "linked": "Daňový doklad k přijaté platbě",
-    "openPdf": "Otevřít PDF"
+    "openPdf": "Otevřít PDF",
+    "empty": "Zatím žádné daňové doklady k přijaté platbě. Vytvoří se automaticky po úhradě zálohové faktury.",
+    "fields": {
+      "number": "Číslo",
+      "client": "Klient",
+      "issueDate": "Vystaveno",
+      "taxPoint": "DUZP",
+      "forAdvance": "K záloze",
+      "gross": "Celkem"
+    }
   },
   "CreditNotes": {
     "title": "Opravné doklady",

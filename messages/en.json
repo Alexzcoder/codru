@@ -260,8 +260,18 @@
     }
   },
   "PaymentTaxDocuments": {
+    "title": "Payment tax documents",
     "linked": "Tax document for received payment",
-    "openPdf": "Open PDF"
+    "openPdf": "Open PDF",
+    "empty": "No payment tax documents yet. They're created automatically when an advance invoice is paid.",
+    "fields": {
+      "number": "Number",
+      "client": "Client",
+      "issueDate": "Issued",
+      "taxPoint": "Tax point",
+      "forAdvance": "For advance",
+      "gross": "Total"
+    }
   },
   "CreditNotes": {
     "title": "Credit notes",

@@ -18,6 +18,7 @@ import {
   Sparkles,
   Mic,
   Upload,
+  ReceiptText,
 } from "lucide-react";
 import { SidebarLink } from "./sidebar-link";
 import type { Workspace, Membership } from "@prisma/client";
@@ -60,6 +61,7 @@ export async function Sidebar({
         { href: "/advance-invoices",   label: t("AdvanceInvoices.title"),  icon: <FileCheck size={16} />, key: "documents" },
         { href: "/final-invoices",     label: t("FinalInvoices.title"),    icon: <Receipt size={16} />,   key: "documents" },
         { href: "/credit-notes",       label: t("CreditNotes.title"),      icon: <FileX size={16} />,     key: "documents" },
+        { href: "/payment-tax-documents", label: t("PaymentTaxDocuments.title"), icon: <ReceiptText size={16} />, key: "documents" },
         { href: "/imports/documents",  label: "Import PDFs",               icon: <Upload size={16} />,    key: "documents" },
       ],
     },
