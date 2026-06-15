@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/page-header";
 import { ClickableRow } from "@/components/clickable-row";
 import { SearchBar } from "@/components/search-bar";
-import { Plus, Download } from "lucide-react";
+import { Plus, Download, Upload } from "lucide-react";
+import { ExcelExport } from "@/components/excel-export";
 
 const PAGE_SIZE = 50;
 
@@ -93,6 +94,16 @@ export default async function ExpensesPage({
                 <Download size={14} /> Excel
               </Button>
             </a>
+            <ExcelExport
+              action={`/${locale}/expenses/export-receipts.zip`}
+              label="Účtenky (ZIP)"
+              q={q || undefined}
+            />
+            <Link href="/expenses/import">
+              <Button variant="outline" size="sm" className="gap-1.5">
+                <Upload size={14} /> Import účtenek
+              </Button>
+            </Link>
             <Link href="/expenses/new">
               <Button size="sm" className="gap-1.5">
                 <Plus size={14} /> {t("Expenses.new")}
