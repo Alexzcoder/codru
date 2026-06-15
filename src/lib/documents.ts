@@ -45,6 +45,7 @@ export async function buildPdfDataForDocument(
       taxMode: l.taxMode,
       lineDiscountPercent: l.lineDiscountPercent?.toString() ?? null,
       lineDiscountAmount: l.lineDiscountAmount?.toString() ?? null,
+      isAdvanceDeduction: l.isAdvanceDeduction,
     }));
 
   return {

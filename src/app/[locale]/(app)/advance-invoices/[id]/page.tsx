@@ -82,6 +82,11 @@ export default async function AdvanceInvoiceDetailPage({
   const snapshot = doc.pdfSnapshots[0];
   const ppc = doc.status === "PAID_PENDING_COMPLETION";
   const creditNotes = await loadCreditNotesForOriginal(id);
+  // Tax document for the received payment (auto-issued when this advance is paid).
+  const paymentTaxDoc = await prisma.document.findFirst({
+    where: { type: "PAYMENT_TAX_DOCUMENT", sourceQuoteId: id, deletedAt: null },
+    select: { id: true, number: true, issueDate: true },
+  });
   const effectiveGross =
     (Number.parseFloat(totals.totalGross) -
       Number.parseFloat(creditNotes.effectiveReduction)).toFixed(2);
@@ -302,6 +307,30 @@ export default async function AdvanceInvoiceDetailPage({
           </tfoot>
         </table>
       </div>
+
+      {paymentTaxDoc && (
+        <div className="mt-6 rounded-xl border border-border bg-card shadow-sm p-4 text-sm">
+          <p className="text-xs uppercase tracking-wider text-muted-foreground">
+            {t("PaymentTaxDocuments.linked")}
+          </p>
+          <div className="mt-2 flex items-center justify-between">
+            <span>
+              {paymentTaxDoc.number ?? t("Common.draft")}
+              <span className="ml-2 text-xs text-muted-foreground">
+                {paymentTaxDoc.issueDate.toISOString().slice(0, 10)}
+              </span>
+            </span>
+            <a
+              href={`/${locale}/payment-tax-documents/${paymentTaxDoc.id}/pdf`}
+              target="_blank"
+              rel="noreferrer"
+              className="text-primary hover:underline"
+            >
+              {t("PaymentTaxDocuments.openPdf")}
+            </a>
+          </div>
+        </div>
+      )}
 
       {creditNotes.notes.length > 0 && (
         <div className="mt-6 rounded-xl border border-border bg-card shadow-sm p-4 text-sm">

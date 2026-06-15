@@ -19,6 +19,7 @@ const lineSchema = z.object({
   taxMode: z.enum(["NET", "GROSS"]),
   lineDiscountPercent: z.string().optional(),
   lineDiscountAmount: z.string().optional(),
+  isAdvanceDeduction: z.coerce.boolean().optional(),
 });
 
 const finalSchema = z.object({
@@ -58,6 +59,7 @@ function buildLinePayload(lines: z.infer<typeof lineSchema>[]) {
     taxMode: l.taxMode,
     lineDiscountPercent: l.lineDiscountPercent || null,
     lineDiscountAmount: l.lineDiscountAmount || null,
+    isAdvanceDeduction: l.isAdvanceDeduction ?? false,
   }));
 }
 

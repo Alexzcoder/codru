@@ -24,6 +24,8 @@ const PREFIX: Record<DocumentType, string> = {
   ADVANCE_INVOICE: "ZF",
   FINAL_INVOICE: "FA",
   CREDIT_NOTE: "OD",
+  // DD = Daňový doklad k přijaté platbě (own gapless series per legal entity).
+  PAYMENT_TAX_DOCUMENT: "DD",
 };
 
 function dateKey(d: Date): number {

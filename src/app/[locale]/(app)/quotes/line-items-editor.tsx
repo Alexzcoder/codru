@@ -24,6 +24,9 @@ export type EditorLine = {
   taxMode: "NET" | "GROSS";
   lineDiscountPercent: string;
   lineDiscountAmount: string;
+  /** Negative advance-deduction line on a final invoice — excluded from the
+   * document discount base. Absent/false on ordinary work lines. */
+  isAdvanceDeduction?: boolean;
 };
 
 export type TemplateOption = {
@@ -135,6 +138,7 @@ export function LineItemsEditor({
           taxMode: l.taxMode,
           lineDiscountPercent: l.lineDiscountPercent || null,
           lineDiscountAmount: l.lineDiscountAmount || null,
+          isAdvanceDeduction: l.isAdvanceDeduction ?? false,
         })),
         documentDiscountPercent: documentDiscountPercent || null,
         documentDiscountAmount: documentDiscountAmount || null,

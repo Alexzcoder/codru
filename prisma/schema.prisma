@@ -585,6 +585,9 @@ enum DocumentType {
   ADVANCE_INVOICE
   FINAL_INVOICE
   CREDIT_NOTE
+  // Daňový doklad k přijaté platbě — the tax document a VAT payer must issue
+  // when an advance (zálohová faktura) is paid. Auto-generated on payment.
+  PAYMENT_TAX_DOCUMENT
 }
 
 model DocumentTemplate {
@@ -773,6 +776,10 @@ model DocumentLineItem {
   taxMode             TaxMode  @default(NET)
   lineDiscountPercent Decimal? @db.Decimal(5, 2)
   lineDiscountAmount  Decimal? @db.Decimal(12, 2)
+  // True for the negative "odečet zálohy" lines on a final invoice that reverse
+  // an already-paid advance. Excluded from the document-level discount base so a
+  // discount applies to the work only, not to the amount already paid.
+  isAdvanceDeduction  Boolean  @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

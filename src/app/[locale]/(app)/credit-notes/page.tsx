@@ -72,7 +72,7 @@ export default async function CreditNotesPage({
         description="Opravný daňový doklad — issued from an invoice detail page."
         actions={
           <a
-            href={`/credit-notes/export.xlsx${q ? `?q=${encodeURIComponent(q)}` : ""}`}
+            href={`/${locale}/credit-notes/export.xlsx${q ? `?q=${encodeURIComponent(q)}` : ""}`}
             download
           >
             <Button variant="outline" size="sm" className="gap-1.5">

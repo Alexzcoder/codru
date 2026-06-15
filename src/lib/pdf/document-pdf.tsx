@@ -24,6 +24,8 @@ function titleFor(type: PdfDocumentData["type"], locale: "cs" | "en"): string {
       return L.finalInvoiceTitle;
     case "CREDIT_NOTE":
       return L.creditNoteTitle;
+    case "PAYMENT_TAX_DOCUMENT":
+      return L.paymentTaxDocumentTitle;
   }
 }
 
@@ -353,10 +355,15 @@ export function DocumentPdf({
           </View>
         </View>
 
-        {/* Celkem k úhradě bar */}
+        {/* Celkem k úhradě bar — a payment tax document is already paid, so it
+            shows the received amount instead of an amount due. */}
         <View style={styles.payTotalBar}>
           <Text style={styles.payTotalLabel}>
-            {data.locale === "cs" ? "Celkem k úhradě:" : "Total due:"}
+            {data.type === "PAYMENT_TAX_DOCUMENT"
+              ? `${L.totalReceived}:`
+              : data.locale === "cs"
+                ? "Celkem k úhradě:"
+                : "Total due:"}
           </Text>
           <Text style={styles.payTotalValue}>
             {formatMoney(totals.totalGross, data.currency, data.locale)}

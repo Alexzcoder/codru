@@ -124,6 +124,7 @@ export async function loadFinalInvoiceFormData(workspaceId: string, opts?: {
       taxMode: l.taxMode,
       lineDiscountPercent: l.lineDiscountPercent?.toString() ?? "",
       lineDiscountAmount: l.lineDiscountAmount?.toString() ?? "",
+      isAdvanceDeduction: l.isAdvanceDeduction,
     })),
   }));
 
@@ -162,6 +163,7 @@ export async function loadFinalInvoiceFormData(workspaceId: string, opts?: {
           taxMode: l.taxMode,
           lineDiscountPercent: l.lineDiscountPercent?.toString() ?? null,
           lineDiscountAmount: l.lineDiscountAmount?.toString() ?? null,
+          isAdvanceDeduction: l.isAdvanceDeduction,
         })),
         documentDiscountPercent: a.documentDiscountPercent?.toString() ?? null,
         documentDiscountAmount: a.documentDiscountAmount?.toString() ?? null,

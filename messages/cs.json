@@ -258,6 +258,10 @@
       "fromMarkup": "jedn. cena = náklad × (1 + marže%)"
     }
   },
+  "PaymentTaxDocuments": {
+    "linked": "Daňový doklad k přijaté platbě",
+    "openPdf": "Otevřít PDF"
+  },
   "CreditNotes": {
     "title": "Opravné doklady",
     "new": "Vystavit opravný doklad",

@@ -258,6 +258,10 @@
       "fromMarkup": "unit price = cost × (1 + markup%)"
     }
   },
+  "PaymentTaxDocuments": {
+    "linked": "Tax document for received payment",
+    "openPdf": "Open PDF"
+  },
   "CreditNotes": {
     "title": "Credit notes",
     "new": "Issue credit note",

@@ -82,7 +82,7 @@ export default async function QuotesPage({
         description={`${total} ${total === 1 ? "quote" : "quotes"}`}
         actions={
           <>
-            <a href={`/quotes/export.xlsx${q ? `?q=${encodeURIComponent(q)}` : ""}`} download>
+            <a href={`/${locale}/quotes/export.xlsx${q ? `?q=${encodeURIComponent(q)}` : ""}`} download>
               <Button variant="outline" size="sm" className="gap-1.5">
                 <Download size={14} /> Excel
               </Button>

@@ -30,7 +30,9 @@ export default async function EditFinalInvoicePage({
   const data = await loadFinalInvoiceFormData(workspace.id, { excludeAdvanceIdsUsedOn: id });
   const bound = updateFinalInvoice.bind(null, id);
 
-  // Strip stored deduction lines so the form rebuilds them from the checkbox selection.
+  // Strip stored deduction lines so the form rebuilds them from the checkbox
+  // selection. Identified by the persisted flag (older rows fall back to the
+  // negative-price + name heuristic).
   const lines: EditorLine[] = doc.lineItems
     .map((l) => ({
       name: l.name,
@@ -42,10 +44,11 @@ export default async function EditFinalInvoicePage({
       taxMode: l.taxMode,
       lineDiscountPercent: l.lineDiscountPercent?.toString() ?? "",
       lineDiscountAmount: l.lineDiscountAmount?.toString() ?? "",
+      isAdvanceDeduction: l.isAdvanceDeduction,
     }))
-    // heuristic: deduction lines have negative unitPrice and name starting with "Advance " or "Záloha "
     .filter(
       (l) =>
+        !l.isAdvanceDeduction &&
         !(
           Number.parseFloat(l.unitPrice) < 0 &&
           /^(Advance |Záloha )/i.test(l.name)
