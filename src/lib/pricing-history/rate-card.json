@@ -1,0 +1,3108 @@
+{
+  "$schema_description": "Unified pricing rate card for the STOREX GROUP covering two business units: Sezona a Pece (gardening & landscaping, brand sezonapece.cz) and DomovFix (flat/house renovation, finishing & home maintenance, domovfix.cz). Each service carries a 'business_unit' tag. Built as a reference dataset for an AI pricing skill: a quote = sum of line items x modifiers + fees, with a minimum floor and a final VAT step. Use only the modifiers/fees relevant to the service's business unit.",
+  "meta": {
+    "group": "Storex group",
+    "business_units": {
+      "sezonapece": {
+        "name": "Sezona a Pece",
+        "domain": "Gardening, landscaping & green-space maintenance",
+        "site": "sezonapece.cz"
+      },
+      "domovfix": {
+        "name": "DomovFix",
+        "domain": "Turnkey flat/house renovation, finishing & home maintenance",
+        "site": "domovfix.cz",
+        "model": "Fixed price + fixed deadline + 24-month warranty, agreed after free site survey"
+      }
+    },
+    "region": "Praha + Stredocesky kraj (Central Bohemia)",
+    "currency": "CZK",
+    "compiled": "2026-05",
+    "data_vintage": "Mostly 2025-2026 published price lists and aggregators; a few older itemised tables kept for structure (flagged in source notes). | recalibrated 2026-06-15 vs real quote (Tuřany earthworks)",
+    "vat_rates": {
+      "standard": 0.21,
+      "reduced_housing_construction": 0.12,
+      "note": "Since 2024 CZ VAT = 21% standard + 12% reduced. Construction/assembly work on residential housing ('stavby pro bydleni') generally qualifies for 12%; standalone handyman/appliance/non-residential and most gardening services are 21%. Many consumer price lists quote 'vcetne DPH' (incl) while trade ceniks quote 'bez DPH' (excl). Decide per job + per customer."
+    },
+    "price_basis_default": "GARDENING rates are usually labour (some incl. material where noted); RENOVATION trade rates are usually LABOUR ONLY (bez materialu) unless 'scope' says otherwise. Keep labour and material in separate buckets.",
+    "important_caveats": [
+      "Published prices are floor/standard; 'low' = budget/large-area/contract floor, 'typical' = realistic Prague rate, 'high' = small/awkward/premium/old-building conditions.",
+      "Prague runs higher than other CZ regions; treat the upper half of national ranges as the Prague baseline.",
+      "These are MARKET reference points, not your margins. Anchor the final card to your own cost base, overhead and warranty.",
+      "Filter by business_unit first, then apply only that unit's relevant modifiers and fees."
+    ]
+  },
+  "units_glossary": {
+    "m2": "square metre (area work) | square metre (area work: plaster, paint, tiling, flooring, drywall)",
+    "bm": "běžný metr / running metre (linear: hedges, edging) | běžný metr / running metre (linear: skirting, beam cladding, channel cutting, lintels)",
+    "ks": "kus / piece (trees, stumps, plants, jobs per item) | kus / piece (doors, fixtures, sockets, windows, per-item tasks)",
+    "m3": "cubic metre (mulch, soil, bulk waste) | cubic metre (demolished masonry, bulk waste)",
+    "hod": "hour (ad-hoc labour, machine time) | hour (handyman/trade labour, material handling)",
+    "km": "kilometre (transport, usually round-trip) | kilometre (transport, usually flat Prague call-out instead)",
+    "m_vyska": "per metre of TREE HEIGHT (felling)",
+    "cm_prumer": "per cm of STUMP/TRUNK DIAMETER at ground level (stump grinding)",
+    "tonne": "metric tonne (grit/salt)",
+    "job": "flat per-job price | flat per-job / per-task price",
+    "set": "supplied kit / set of components",
+    "flat_month": "per residential flat per month (SVJ/HOA contracts)",
+    "year": "per season/year (maintenance contracts)",
+    "room": "per room/zone (interior design)",
+    "flat": "per whole flat (rewire, cleaning, by flat size e.g. 1+1, 2+1)"
+  },
+  "pricing_modifiers": [
+    {
+      "id": "vat_standard",
+      "name": "VAT standard (non-residential / appliance / standalone handyman)",
+      "type": "multiplier",
+      "value": 1.21,
+      "applies": "final step on net subtotal"
+    },
+    {
+      "id": "vat_reduced_housing",
+      "name": "VAT reduced 12% (renovation/assembly work on residential housing)",
+      "type": "multiplier",
+      "value": 1.12,
+      "applies": "final step on net subtotal for qualifying residential construction work"
+    },
+    {
+      "id": "occupied_flat",
+      "name": "Occupied flat (work around residents/furniture, protection, daily clean)",
+      "type": "multiplier",
+      "value_range": [
+        1.1,
+        1.2
+      ],
+      "applies": "labour line items"
+    },
+    {
+      "id": "old_building",
+      "name": "Old/pre-war building (uneven walls, brick dust, surprises)",
+      "type": "multiplier",
+      "value_range": [
+        1.1,
+        1.25
+      ],
+      "applies": "masonry, plaster, demolition, electrical"
+    },
+    {
+      "id": "no_elevator_high_floor",
+      "name": "No elevator / high floor (material & waste carry)",
+      "type": "multiplier",
+      "value_range": [
+        1.05,
+        1.15
+      ],
+      "applies": "material handling, demolition, waste"
+    },
+    {
+      "id": "complex_surfaces",
+      "name": "Small rooms / curved / complex surfaces / many cuts",
+      "type": "multiplier",
+      "value_range": [
+        1.2,
+        1.4
+      ],
+      "applies": "tiling, plaster, drywall, painting"
+    },
+    {
+      "id": "material_supply_markup",
+      "name": "Firm supplies materials",
+      "type": "multiplier",
+      "value_range": [
+        1.1,
+        1.3
+      ],
+      "applies": "on material cost only"
+    },
+    {
+      "id": "weekend_emergency",
+      "name": "Weekend / evening / emergency call-out",
+      "type": "multiplier",
+      "value_range": [
+        1.3,
+        2.0
+      ],
+      "applies": "handyman, plumbing, electrical urgent"
+    },
+    {
+      "id": "large_scope_discount",
+      "name": "Whole-flat / large scope discount",
+      "type": "multiplier",
+      "value_range": [
+        0.85,
+        0.95
+      ],
+      "applies": "per-unit rates drop on big coordinated jobs"
+    },
+    {
+      "id": "slope",
+      "name": "Sloped / difficult terrain",
+      "type": "multiplier",
+      "value_range": [
+        1.2,
+        1.35
+      ],
+      "applies": "area & labour line items"
+    },
+    {
+      "id": "poor_access",
+      "name": "Poor machine access (narrow gate, dense urban, no vehicle reach)",
+      "type": "multiplier",
+      "value_range": [
+        1.2,
+        1.5
+      ],
+      "applies": "clearance, felling, stump, material haul"
+    },
+    {
+      "id": "small_plot",
+      "name": "Small plot surcharge (<200-300 m2)",
+      "type": "note",
+      "effect": "use hourly rate or min job charge instead of per-m2; per-m2 rate effectively higher"
+    },
+    {
+      "id": "large_area_discount",
+      "name": "Large-area / volume discount",
+      "type": "multiplier",
+      "value_range": [
+        0.6,
+        0.9
+      ],
+      "applies": "per-unit rate drops with quantity (many trees/stumps/plants, big lawns)"
+    },
+    {
+      "id": "regular_contract_discount",
+      "name": "Recurring/contract work",
+      "type": "multiplier",
+      "value_range": [
+        0.8,
+        0.95
+      ],
+      "applies": "vs one-off visit"
+    },
+    {
+      "id": "peak_season",
+      "name": "Peak season Apr-Oct",
+      "type": "multiplier",
+      "value_range": [
+        1.05,
+        1.15
+      ],
+      "applies": "capacity-constrained; off-season can discount"
+    },
+    {
+      "id": "emergency",
+      "name": "Emergency / storm / out-of-hours",
+      "type": "multiplier",
+      "value_range": [
+        1.3,
+        2.0
+      ],
+      "applies": "felling, snow, urgent call-outs"
+    },
+    {
+      "id": "hard_wood",
+      "name": "Hard wood (oak/beech/acacia)",
+      "type": "multiplier",
+      "value_range": [
+        1.1,
+        1.25
+      ],
+      "applies": "felling, stump grinding"
+    }
+  ],
+  "fees": {
+    "min_job_charge": {
+      "low": 1000,
+      "typical": 1500,
+      "high": 2000,
+      "unit": "job",
+      "note": "Floor for small jobs; felling/stump often 1000-1500 minimum.",
+      "applies_to": "sezonapece"
+    },
+    "transport_van": {
+      "low": 10,
+      "typical": 15,
+      "high": 20,
+      "unit": "km",
+      "note": "Round-trip from depot. Some bill from a fixed origin point.",
+      "applies_to": "sezonapece"
+    },
+    "transport_van_trailer": {
+      "low": 16,
+      "typical": 19,
+      "high": 22,
+      "unit": "km",
+      "applies_to": "sezonapece"
+    },
+    "transport_machine": {
+      "low": 30,
+      "typical": 40,
+      "high": 50,
+      "unit": "km",
+      "note": "Ride-on mowers / heavy machines; often free within ~10 km.",
+      "applies_to": "sezonapece"
+    },
+    "waste_tipping_fee": {
+      "low": 1.5,
+      "typical": 2,
+      "high": 3,
+      "unit": "kg",
+      "note": "Bio-dump/skládka charge passed through.",
+      "applies_to": "sezonapece"
+    },
+    "handyman_min_visit": {
+      "low": 590,
+      "typical": 900,
+      "high": 1500,
+      "unit": "job",
+      "note": "Effective floor = ~1 hour + call-out. Many bill in 15-30 min intervals after the first hour.",
+      "applies_to": "domovfix"
+    },
+    "renovation_min_job": {
+      "low": 2000,
+      "typical": 5000,
+      "high": 10000,
+      "unit": "job",
+      "note": "Floor for a small trade job mobilising a crew.",
+      "applies_to": "domovfix"
+    },
+    "callout_transport_prague": {
+      "low": 300,
+      "typical": 500,
+      "high": 500,
+      "unit": "job",
+      "note": "Flat Prague call-out fee; outside Prague add per km.",
+      "applies_to": "domovfix"
+    },
+    "transport_per_km_outside": {
+      "low": 10,
+      "typical": 25,
+      "high": 20,
+      "unit": "km",
+      "applies_to": "domovfix",
+      "note": "Round-trip from depot. ~25 Kc/km typical (real: 40 km job billed ~2000)."
+    },
+    "material_handling": {
+      "low": 200,
+      "typical": 220,
+      "high": 300,
+      "unit": "hod",
+      "note": "'Přesun materiálu' if not pre-staged on the floor of works.",
+      "applies_to": "domovfix"
+    },
+    "waste_container_bathroom_5m2": {
+      "low": 3000,
+      "typical": 3600,
+      "high": 4500,
+      "unit": "job",
+      "note": "Removal + container for a small bathroom strip-out (excl. landfill fees).",
+      "applies_to": "domovfix"
+    },
+    "soil_container_5m3": {
+      "low": 4800,
+      "typical": 5600,
+      "high": 6500,
+      "unit": "container",
+      "note": "Soil removal: container delivery + haul + tipping fee (~5 m3 each). Compute count from excavation volume, NOT from the inquiry.",
+      "applies_to": "earthworks"
+    },
+    "mobilization_machine_outside_prague": {
+      "low": 4000,
+      "typical": 7000,
+      "high": 9000,
+      "unit": "job",
+      "note": "Transport of machine + material + container positioning for an out-of-Prague job (~+30 km). Replaces per-km transport on machine earthwork jobs. Calibrated to real median 7000 (range 6000-8000).",
+      "applies_to": "earthworks outside Prague"
+    }
+  },
+  "services": [
+    {
+      "business_unit": "sezonapece",
+      "id": "labour_general",
+      "category": "labour",
+      "name_en": "General gardening labour (hourly)",
+      "name_cs": "Zahradnické práce - hodinová sazba",
+      "unit": "hod",
+      "low": 350,
+      "typical": 500,
+      "high": 690,
+      "vat": "excl",
+      "modifiers": [],
+      "note": "Fallback rate for work without a per-unit price."
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "labour_handweeding",
+      "category": "labour",
+      "name_en": "Hand weeding (beds/perennials)",
+      "name_cs": "Ruční pletí záhonů",
+      "unit": "hod",
+      "low": 350,
+      "typical": 420,
+      "high": 550,
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "labour_brushcutter",
+      "category": "labour",
+      "name_en": "Brushcutter work (hourly, where area not measurable)",
+      "name_cs": "Práce s křovinořezem",
+      "unit": "hod",
+      "low": 500,
+      "typical": 550,
+      "high": 650,
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "labour_chainsaw",
+      "category": "labour",
+      "name_en": "Chainsaw work (hourly)",
+      "name_cs": "Práce s motorovou pilou",
+      "unit": "hod",
+      "low": 550,
+      "typical": 600,
+      "high": 700,
+      "vat": "excl",
+      "modifiers": [
+        "emergency"
+      ]
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "labour_ride_on_mower",
+      "category": "labour",
+      "name_en": "Ride-on / large-area mowing (machine + operator)",
+      "name_cs": "Sekání velkých ploch profi sekačkou",
+      "unit": "hod",
+      "low": 800,
+      "typical": 1100,
+      "high": 1400,
+      "vat": "excl",
+      "modifiers": [
+        "slope"
+      ],
+      "note": "Covers ~2000-2200 m2/h in tall grass. Min billed 2-3 h. Transport separate."
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "consultation_onsite",
+      "category": "labour",
+      "name_en": "On-site consultation",
+      "name_cs": "Konzultace u zákazníka",
+      "unit": "hod",
+      "low": 400,
+      "typical": 400,
+      "high": 600,
+      "vat": "excl",
+      "modifiers": [],
+      "note": "Often free if it converts to a job."
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "lawn_seed_sow",
+      "category": "lawn_establishment",
+      "name_en": "Seeded lawn - sowing incl. seed",
+      "name_cs": "Založení setého trávníku vč. osiva",
+      "unit": "m2",
+      "low": 17,
+      "typical": 30,
+      "high": 40,
+      "vat": "excl",
+      "modifiers": [
+        "slope",
+        "small_plot"
+      ]
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "lawn_soil_prep_rotavator",
+      "category": "lawn_establishment",
+      "name_en": "Soil prep with rotavator",
+      "name_cs": "Příprava půdy rotavátorem",
+      "unit": "m2",
+      "low": 35,
+      "typical": 60,
+      "high": 89,
+      "vat": "excl",
+      "modifiers": [
+        "slope"
+      ]
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "lawn_terrain_modelling",
+      "category": "lawn_establishment",
+      "name_en": "Fine terrain modelling",
+      "name_cs": "Jemná modelace terénu",
+      "unit": "m2",
+      "low": 4,
+      "typical": 6,
+      "high": 12,
+      "vat": "excl",
+      "modifiers": [
+        "slope"
+      ]
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "lawn_pre_sow_deweed",
+      "category": "lawn_establishment",
+      "name_en": "Chemical de-weeding before sowing (incl. product)",
+      "name_cs": "Chemické odplevelení (vč. přípravku)",
+      "unit": "m2",
+      "low": 6,
+      "typical": 9,
+      "high": 12,
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "lawn_rolling",
+      "category": "lawn_establishment",
+      "name_en": "Rolling",
+      "name_cs": "Válcování",
+      "unit": "m2",
+      "low": 3,
+      "typical": 5,
+      "high": 6,
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "lawn_turf_lay",
+      "category": "lawn_establishment",
+      "name_en": "Turf / roll lawn incl. laying",
+      "name_cs": "Položení kobercového trávníku",
+      "unit": "m2",
+      "low": 230,
+      "typical": 290,
+      "high": 350,
+      "vat": "excl",
+      "modifiers": [
+        "slope",
+        "small_plot"
+      ],
+      "note": "Includes turf material + laying."
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "lawn_sod_cut_relay",
+      "category": "lawn_establishment",
+      "name_en": "Sod cutting + re-laying",
+      "name_cs": "Seříznutí a zpětné položení drnu",
+      "unit": "m2",
+      "low": 140,
+      "typical": 170,
+      "high": 220,
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "lawn_fabric",
+      "category": "lawn_establishment",
+      "name_en": "Landscape fabric laying (incl. fabric)",
+      "name_cs": "Položení netkané textilie",
+      "unit": "m2",
+      "low": 15,
+      "typical": 25,
+      "high": 35,
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "mow_rotary_no_collect",
+      "category": "lawn_maintenance",
+      "name_en": "Mowing, rotary, no collection",
+      "name_cs": "Sekání sekačkou bez sběru",
+      "unit": "m2",
+      "low": 2,
+      "typical": 3,
+      "high": 4,
+      "vat": "excl",
+      "modifiers": [
+        "slope",
+        "small_plot",
+        "regular_contract_discount",
+        "large_area_discount"
+      ]
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "mow_rotary_collect",
+      "category": "lawn_maintenance",
+      "name_en": "Mowing, rotary, with collection",
+      "name_cs": "Sekání sekačkou se sběrem",
+      "unit": "m2",
+      "low": 3,
+      "typical": 4.3,
+      "high": 6,
+      "vat": "excl",
+      "modifiers": [
+        "slope",
+        "small_plot",
+        "regular_contract_discount",
+        "large_area_discount"
+      ]
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "mow_brushcutter",
+      "category": "lawn_maintenance",
+      "name_en": "Mowing tall grass with brushcutter",
+      "name_cs": "Sekání vysoké trávy křovinořezem",
+      "unit": "m2",
+      "low": 5,
+      "typical": 8,
+      "high": 10,
+      "vat": "excl",
+      "modifiers": [
+        "slope"
+      ]
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "mow_edge_trim",
+      "category": "lawn_maintenance",
+      "name_en": "Edge trimming with brushcutter",
+      "name_cs": "Úprava obvodu plochy křovinořezem",
+      "unit": "m2",
+      "low": 1.5,
+      "typical": 3,
+      "high": 5,
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "rake_after_brushcutter",
+      "category": "lawn_maintenance",
+      "name_en": "Raking cuttings after brushcutter",
+      "name_cs": "Hrabání po křovinořezu",
+      "unit": "m2",
+      "low": 3,
+      "typical": 4,
+      "high": 6,
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "scarify",
+      "category": "lawn_maintenance",
+      "name_en": "Scarifying (vertikutace)",
+      "name_cs": "Vertikutace",
+      "unit": "m2",
+      "low": 5,
+      "typical": 8,
+      "high": 10,
+      "vat": "excl",
+      "modifiers": [
+        "large_area_discount"
+      ]
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "comb_out",
+      "category": "lawn_maintenance",
+      "name_en": "Combing out",
+      "name_cs": "Vyčesání trávníku",
+      "unit": "m2",
+      "low": 6,
+      "typical": 6,
+      "high": 9,
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "aerate",
+      "category": "lawn_maintenance",
+      "name_en": "Aeration (aerifikace)",
+      "name_cs": "Aerifikace",
+      "unit": "m2",
+      "low": 8,
+      "typical": 15,
+      "high": 26,
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "sand_topdress",
+      "category": "lawn_maintenance",
+      "name_en": "Sanding (incl. sand)",
+      "name_cs": "Pískování (vč. písku)",
+      "unit": "m2",
+      "low": 6,
+      "typical": 25,
+      "high": 40,
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "topdressing",
+      "category": "lawn_maintenance",
+      "name_en": "Topdressing",
+      "name_cs": "Topdressing",
+      "unit": "m2",
+      "low": 20,
+      "typical": 29,
+      "high": 40,
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "fertilize",
+      "category": "lawn_maintenance",
+      "name_en": "Fertilizing (incl. fertilizer)",
+      "name_cs": "Hnojení (vč. hnojiva)",
+      "unit": "m2",
+      "low": 3,
+      "typical": 9,
+      "high": 15,
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "overseed",
+      "category": "lawn_maintenance",
+      "name_en": "Overseeding (incl. seed)",
+      "name_cs": "Dosev trávníku (vč. osiva)",
+      "unit": "m2",
+      "low": 12,
+      "typical": 17,
+      "high": 22,
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "weed_control_broadleaf",
+      "category": "lawn_maintenance",
+      "name_en": "Broadleaf weed control in lawn",
+      "name_cs": "Postřik proti dvouděložným plevelům",
+      "unit": "m2",
+      "low": 4,
+      "typical": 6,
+      "high": 9,
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "chem_kill_sward",
+      "category": "lawn_maintenance",
+      "name_en": "Chemical kill of full sward",
+      "name_cs": "Chemická likvidace porostu",
+      "unit": "m2",
+      "low": 9,
+      "typical": 12,
+      "high": 15,
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "maintenance_cycle_bundle",
+      "category": "lawn_maintenance",
+      "name_en": "Maintenance bundle per cycle (mow+scarify+rake+fertilize+haul)",
+      "name_cs": "Balíček údržby za cyklus",
+      "unit": "m2",
+      "low": 14,
+      "typical": 18,
+      "high": 24,
+      "vat": "excl",
+      "modifiers": [
+        "large_area_discount"
+      ],
+      "note": "Example bundle: 2x scarify, 2x rake, 1x mow, 1x fertilize, waste removal."
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "maintenance_annual_300",
+      "category": "lawn_maintenance",
+      "name_en": "Annual contract, lawn from 300 m2 (6x mow, 2x fertilize, 1x scarify, haul)",
+      "name_cs": "Roční údržba od 300 m2",
+      "unit": "year",
+      "low": 15000,
+      "typical": 18000,
+      "high": 24000,
+      "vat": "excl",
+      "modifiers": [],
+      "note": "Minimum-area package benchmark."
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "maintenance_annual_500",
+      "category": "lawn_maintenance",
+      "name_en": "Annual contract, lawn from 500 m2 (8x mow, 2x fertilize, 2x scarify, haul)",
+      "name_cs": "Roční údržba od 500 m2",
+      "unit": "year",
+      "low": 28000,
+      "typical": 34000,
+      "high": 42000,
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "maintenance_annual_750",
+      "category": "lawn_maintenance",
+      "name_en": "Annual contract, lawn from 750 m2 (12x mow, 3x fertilize, 2x scarify, 2x comb, overseed, haul)",
+      "name_cs": "Roční údržba od 750 m2",
+      "unit": "year",
+      "low": 75000,
+      "typical": 90000,
+      "high": 120000,
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "equip_rent_scarifier",
+      "category": "lawn_maintenance",
+      "name_en": "Scarifier rental (Billy Goat)",
+      "name_cs": "Půjčovna vertikutátoru",
+      "unit": "den",
+      "low": 1350,
+      "typical": 1350,
+      "high": 1600,
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "equip_rent_aerator",
+      "category": "lawn_maintenance",
+      "name_en": "Aerator rental (Billy Goat)",
+      "name_cs": "Půjčovna aerifikátoru",
+      "unit": "den",
+      "low": 1350,
+      "typical": 1350,
+      "high": 1600,
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "hedge_trim_low",
+      "category": "hedges",
+      "name_en": "Hedge trim, <=0.8 m high",
+      "name_cs": "Řez plotu do 0,8 m",
+      "unit": "m2",
+      "low": 18,
+      "typical": 22,
+      "high": 28,
+      "vat": "excl",
+      "modifiers": [],
+      "note": "m2 of cut surface."
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "hedge_trim_mid",
+      "category": "hedges",
+      "name_en": "Hedge trim, 0.8-1.5 m high",
+      "name_cs": "Řez plotu 0,8-1,5 m",
+      "unit": "m2",
+      "low": 30,
+      "typical": 38,
+      "high": 48,
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "hedge_trim_tall",
+      "category": "hedges",
+      "name_en": "Hedge trim, 1.5-3.0 m high",
+      "name_cs": "Řez plotu 1,5-3,0 m",
+      "unit": "m2",
+      "low": 52,
+      "typical": 65,
+      "high": 90,
+      "vat": "excl",
+      "modifiers": [
+        "poor_access"
+      ],
+      "note": "Working at height adds cost."
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "hedge_trim_bm_low",
+      "category": "hedges",
+      "name_en": "Maintained hedge per running metre, to 150 cm",
+      "name_cs": "Tvarování plotu do 150 cm",
+      "unit": "bm",
+      "low": 60,
+      "typical": 80,
+      "high": 110,
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "hedge_trim_bm_high",
+      "category": "hedges",
+      "name_en": "Maintained hedge per running metre, over 150 cm",
+      "name_cs": "Tvarování plotu nad 150 cm",
+      "unit": "bm",
+      "low": 120,
+      "typical": 150,
+      "high": 200,
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "tree_plant_decid_to3m",
+      "category": "planting_trees",
+      "name_en": "Deciduous tree planting incl. hole, <=3 m",
+      "name_cs": "Výsadba listnatého stromu do 3 m vč. jamky",
+      "unit": "ks",
+      "low": 840,
+      "typical": 1000,
+      "high": 1300,
+      "vat": "excl",
+      "modifiers": [
+        "hard_wood"
+      ],
+      "note": "Hole 390-490 + planting 445-460; excludes tree, stake, soil."
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "tree_plant_decid_3to6m",
+      "category": "planting_trees",
+      "name_en": "Deciduous tree planting incl. hole, 3-6 m",
+      "name_cs": "Výsadba listnatého stromu 3-6 m",
+      "unit": "ks",
+      "low": 1450,
+      "typical": 1800,
+      "high": 2400,
+      "vat": "excl",
+      "modifiers": [],
+      "note": "Hole 780-980 + planting 670."
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "tree_plant_conifer_to3m",
+      "category": "planting_trees",
+      "name_en": "Conifer planting incl. hole, <=3 m",
+      "name_cs": "Výsadba jehličnanu do 3 m",
+      "unit": "ks",
+      "low": 915,
+      "typical": 1100,
+      "high": 1400,
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "tree_plant_conifer_3to6m",
+      "category": "planting_trees",
+      "name_en": "Conifer planting incl. hole, 3-6 m",
+      "name_cs": "Výsadba jehličnanu 3-6 m",
+      "unit": "ks",
+      "low": 1630,
+      "typical": 2000,
+      "high": 2600,
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "tree_solitaire_avenue",
+      "category": "planting_trees",
+      "name_en": "Solitaire shrub / avenue tree planting",
+      "name_cs": "Výsadba solitérního keře / alejového stromu",
+      "unit": "ks",
+      "low": 2900,
+      "typical": 3500,
+      "high": 5000,
+      "vat": "excl",
+      "modifiers": [
+        "poor_access"
+      ]
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "tree_stake",
+      "category": "planting_trees",
+      "name_en": "Support stake (incl.)",
+      "name_cs": "Kůl k ukotvení",
+      "unit": "ks",
+      "low": 120,
+      "typical": 140,
+      "high": 150,
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "tree_anchor",
+      "category": "planting_trees",
+      "name_en": "Anchoring with stakes",
+      "name_cs": "Ukotvení dřeviny kůly",
+      "unit": "ks",
+      "low": 50,
+      "typical": 100,
+      "high": 125,
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "tree_trunk_protection",
+      "category": "planting_trees",
+      "name_en": "Trunk protection (jute)",
+      "name_cs": "Ochrana kmene jutou",
+      "unit": "m",
+      "low": 15,
+      "typical": 20,
+      "high": 30,
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "plant_perennial",
+      "category": "planting_beds",
+      "name_en": "Perennial / ornamental grass planting",
+      "name_cs": "Výsadba trvalky / okrasné trávy",
+      "unit": "ks",
+      "low": 65,
+      "typical": 80,
+      "high": 110,
+      "vat": "excl",
+      "modifiers": [
+        "large_area_discount"
+      ],
+      "note": "Labour only; plant extra."
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "plant_shrub",
+      "category": "planting_beds",
+      "name_en": "Ornamental shrub planting",
+      "name_cs": "Výsadba okrasného keře",
+      "unit": "ks",
+      "low": 175,
+      "typical": 220,
+      "high": 300,
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "plant_container_10l",
+      "category": "planting_beds",
+      "name_en": "Planting into 10 l container size",
+      "name_cs": "Výsadba do obj. 10 l",
+      "unit": "ks",
+      "low": 30,
+      "typical": 45,
+      "high": 70,
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "plant_container_50l",
+      "category": "planting_beds",
+      "name_en": "Planting into 50 l container size",
+      "name_cs": "Výsadba do obj. 50 l",
+      "unit": "ks",
+      "low": 92,
+      "typical": 130,
+      "high": 180,
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "plant_container_300l",
+      "category": "planting_beds",
+      "name_en": "Planting into 300 l container size",
+      "name_cs": "Výsadba do obj. 300 l",
+      "unit": "ks",
+      "low": 270,
+      "typical": 350,
+      "high": 500,
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "substrate_topup",
+      "category": "planting_beds",
+      "name_en": "Substrate top-up",
+      "name_cs": "Doplnění substrátu",
+      "unit": "m2",
+      "low": 9,
+      "typical": 15,
+      "high": 25,
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "bark_cover",
+      "category": "mulch_finishing",
+      "name_en": "Bark mulch cover (incl. material)",
+      "name_cs": "Mulčování kůrou vč. materiálu",
+      "unit": "m2",
+      "low": 290,
+      "typical": 320,
+      "high": 350,
+      "vat": "excl",
+      "modifiers": [],
+      "note": "6-8 cm layer; some quote + fabric."
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "bark_material_only",
+      "category": "mulch_finishing",
+      "name_en": "Bark mulch material only",
+      "name_cs": "Mulčovací kůra - materiál",
+      "unit": "m3",
+      "low": 890,
+      "typical": 1100,
+      "high": 1400,
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "gravel_cover",
+      "category": "mulch_finishing",
+      "name_en": "Gravel / crushed slate cover",
+      "name_cs": "Pokrytí kačírkem / drcenou břidlicí",
+      "unit": "m2",
+      "low": 490,
+      "typical": 600,
+      "high": 800,
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "gravel_material_only",
+      "category": "mulch_finishing",
+      "name_en": "Gravel material only (kačírek)",
+      "name_cs": "Kačírek - materiál",
+      "unit": "m3",
+      "low": 1250,
+      "typical": 1500,
+      "high": 2000,
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "bed_edging_plastic",
+      "category": "mulch_finishing",
+      "name_en": "Plastic bed edging install",
+      "name_cs": "Montáž plastové lemovky",
+      "unit": "bm",
+      "low": 245,
+      "typical": 300,
+      "high": 400,
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "fell_ground_per_m",
+      "category": "tree_felling",
+      "name_en": "Standard felling from ground, per m of height",
+      "name_cs": "Kácení ze země za metr výšky",
+      "unit": "m_vyska",
+      "low": 60,
+      "typical": 120,
+      "high": 200,
+      "vat": "excl",
+      "modifiers": [
+        "hard_wood"
+      ],
+      "note": "Open space, low risk. Min ~1000 Kč."
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "fell_small_orchard",
+      "category": "tree_felling",
+      "name_en": "Small orchard tree (each)",
+      "name_cs": "Menší ovocný strom",
+      "unit": "ks",
+      "low": 600,
+      "typical": 900,
+      "high": 1500,
+      "vat": "excl",
+      "modifiers": [
+        "large_area_discount"
+      ]
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "fell_large_grown",
+      "category": "tree_felling",
+      "name_en": "Single large grown tree (ground felling)",
+      "name_cs": "Vzrostlý strom (kácení ze země)",
+      "unit": "ks",
+      "low": 1500,
+      "typical": 3000,
+      "high": 6000,
+      "vat": "excl",
+      "modifiers": [
+        "hard_wood"
+      ]
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "fell_sectional_conifer_per_m",
+      "category": "tree_felling",
+      "name_en": "Sectional risk felling, conifer, per m height",
+      "name_cs": "Rizikové postupné kácení jehličnanu za m",
+      "unit": "m_vyska",
+      "low": 85,
+      "typical": 150,
+      "high": 250,
+      "vat": "excl",
+      "modifiers": [
+        "poor_access"
+      ]
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "fell_sectional_decid_per_m",
+      "category": "tree_felling",
+      "name_en": "Sectional risk felling, branched deciduous, per m height",
+      "name_cs": "Rizikové postupné kácení listnáče za m",
+      "unit": "m_vyska",
+      "low": 125,
+      "typical": 200,
+      "high": 320,
+      "vat": "excl",
+      "modifiers": [
+        "poor_access",
+        "hard_wood"
+      ]
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "fell_risk_no_rope",
+      "category": "tree_felling",
+      "name_en": "Risk felling, no rope-catching of wood (each)",
+      "name_cs": "Rizikové kácení bez chytání do lana",
+      "unit": "ks",
+      "low": 3000,
+      "typical": 8000,
+      "high": 20000,
+      "vat": "excl",
+      "modifiers": [
+        "poor_access",
+        "emergency"
+      ]
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "fell_risk_with_rope",
+      "category": "tree_felling",
+      "name_en": "Risk felling with roped lowering (each)",
+      "name_cs": "Rizikové kácení s chytáním do lana",
+      "unit": "ks",
+      "low": 5000,
+      "typical": 12000,
+      "high": 30000,
+      "vat": "excl",
+      "modifiers": [
+        "poor_access",
+        "emergency"
+      ],
+      "note": "Overall job benchmark: avg ~12600, typical 7700-21400."
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "stump_grind_per_cm",
+      "category": "stump_grinding",
+      "name_en": "Stump grinding, per cm of diameter",
+      "name_cs": "Frézování pařezu za cm průměru",
+      "unit": "cm_prumer",
+      "low": 10,
+      "typical": 20,
+      "high": 35,
+      "vat": "varies",
+      "modifiers": [
+        "hard_wood",
+        "poor_access",
+        "large_area_discount"
+      ],
+      "note": "Measured at ground level. Depth 10 cm lawn / 20 cm beds. Example Ø50 cm => 500-1500 Kč. Min call-out ~1000 + transport."
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "tree_crown_prune",
+      "category": "arboriculture",
+      "name_en": "Crown pruning / thinning, per tree",
+      "name_cs": "Řez / prořez koruny stromu",
+      "unit": "ks",
+      "low": 2600,
+      "typical": 4500,
+      "high": 6800,
+      "vat": "excl",
+      "modifiers": [
+        "poor_access"
+      ],
+      "note": "By height & crown size; climbing work may be hourly."
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "tree_dynamic_bracing",
+      "category": "arboriculture",
+      "name_en": "Dynamic crown bracing",
+      "name_cs": "Instalace dynamické vazby",
+      "unit": "ks",
+      "low": 2000,
+      "typical": 4000,
+      "high": 8000,
+      "vat": "excl",
+      "modifiers": [],
+      "note": "Custom, after site visit."
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "design_basic_doc",
+      "category": "design",
+      "name_en": "Basic project documentation",
+      "name_cs": "Základní projektová dokumentace",
+      "unit": "ks",
+      "low": 3000,
+      "typical": 8000,
+      "high": 15000,
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "design_to_100",
+      "category": "design",
+      "name_en": "Project + visualization, garden <=100 m2",
+      "name_cs": "Projekt s vizualizací do 100 m2",
+      "unit": "ks",
+      "low": 12500,
+      "typical": 19000,
+      "high": 20000,
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "design_to_600",
+      "category": "design",
+      "name_en": "Project + visualization, garden <=600 m2",
+      "name_cs": "Projekt s vizualizací do 600 m2",
+      "unit": "ks",
+      "low": 20000,
+      "typical": 40000,
+      "high": 43000,
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "design_over_600",
+      "category": "design",
+      "name_en": "Project + visualization, garden >600 m2",
+      "name_cs": "Projekt s vizualizací nad 600 m2",
+      "unit": "ks",
+      "low": 40000,
+      "typical": 77000,
+      "high": 108000,
+      "vat": "excl",
+      "modifiers": [],
+      "note": "Park-scale 2000-10000 m2 ~108000."
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "design_architect_hourly",
+      "category": "design",
+      "name_en": "Garden architect (hourly)",
+      "name_cs": "Zahradní architekt - hodina",
+      "unit": "hod",
+      "low": 1000,
+      "typical": 1200,
+      "high": 1500,
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "waste_biowaste",
+      "category": "waste",
+      "name_en": "Bio-waste removal (grass, branches)",
+      "name_cs": "Likvidace bioodpadu",
+      "unit": "m3",
+      "low": 400,
+      "typical": 550,
+      "high": 800,
+      "vat": "excl",
+      "modifiers": [
+        "poor_access"
+      ]
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "waste_cart_3m3",
+      "category": "waste",
+      "name_en": "Cart load/unload 3 m3",
+      "name_cs": "Nakládka/vykládka vozíku 3 m3",
+      "unit": "ks",
+      "low": 890,
+      "typical": 1000,
+      "high": 1300,
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "clear_ruderal",
+      "category": "waste",
+      "name_en": "Clearing ruderal vegetation",
+      "name_cs": "Likvidace ruderálního porostu",
+      "unit": "m2",
+      "low": 6,
+      "typical": 12,
+      "high": 20,
+      "vat": "excl",
+      "modifiers": [
+        "poor_access"
+      ]
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "clear_self_seeded",
+      "category": "waste",
+      "name_en": "Clearing self-seeded woody growth (nálety)",
+      "name_cs": "Likvidace náletových dřevin",
+      "unit": "m2",
+      "low": 15,
+      "typical": 25,
+      "high": 45,
+      "vat": "excl",
+      "modifiers": [
+        "poor_access"
+      ]
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "irrigation_project",
+      "category": "irrigation",
+      "name_en": "Automatic irrigation system - design/project",
+      "name_cs": "Projekt AZS",
+      "unit": "ks",
+      "low": 5000,
+      "typical": 8000,
+      "high": 12000,
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "irrigation_realization",
+      "category": "irrigation",
+      "name_en": "Irrigation system realization (turnkey)",
+      "name_cs": "Realizace AZS",
+      "unit": "m2",
+      "low": 150,
+      "typical": 300,
+      "high": 450,
+      "vat": "excl",
+      "modifiers": [
+        "small_plot"
+      ],
+      "note": "Lower with simple pop-up zones, higher with drip + components."
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "irrigation_seasonal",
+      "category": "irrigation",
+      "name_en": "Spring start-up OR winterizing (each)",
+      "name_cs": "Spuštění / zazimování AZS",
+      "unit": "ks",
+      "low": 1200,
+      "typical": 1500,
+      "high": 1800,
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "irrigation_trench",
+      "category": "irrigation",
+      "name_en": "Trenching for irrigation/electrics (<=30 cm)",
+      "name_cs": "Rýhování pro závlahu (do 30 cm)",
+      "unit": "m",
+      "low": 70,
+      "typical": 110,
+      "high": 160,
+      "vat": "excl",
+      "modifiers": [
+        "poor_access"
+      ]
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "irrigation_diy_set",
+      "category": "irrigation",
+      "name_en": "DIY basic component set (material)",
+      "name_cs": "Základní sestava závlahy (materiál)",
+      "unit": "set",
+      "low": 11800,
+      "typical": 11800,
+      "high": 16000,
+      "vat": "incl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "irrigation_controller",
+      "category": "irrigation",
+      "name_en": "Control unit / controller",
+      "name_cs": "Řídicí jednotka",
+      "unit": "ks",
+      "low": 2000,
+      "typical": 4000,
+      "high": 6500,
+      "vat": "incl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "hardscape_retaining_wall",
+      "category": "hardscaping",
+      "name_en": "Reinforced concrete retaining wall",
+      "name_cs": "Betonová opěrná zeď",
+      "unit": "m2",
+      "low": 2500,
+      "typical": 3200,
+      "high": 4000,
+      "vat": "excl",
+      "modifiers": [
+        "slope"
+      ],
+      "note": ">1.5 m may need permit + structural engineer."
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "hardscape_dry_stone_wall",
+      "category": "hardscaping",
+      "name_en": "Dry stone wall (face m2)",
+      "name_cs": "Suchá zídka z lomového kamene",
+      "unit": "m2",
+      "low": 9950,
+      "typical": 11000,
+      "high": 14000,
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "hardscape_stone_step",
+      "category": "hardscaping",
+      "name_en": "Natural stone step (1 bm, set in grit)",
+      "name_cs": "Venkovní schod z přírodního kamene",
+      "unit": "ks",
+      "low": 5900,
+      "typical": 7000,
+      "high": 9000,
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "garden_realization_economy",
+      "category": "hardscaping",
+      "name_en": "Whole-garden realization, economy (all-in)",
+      "name_cs": "Realizace zahrady - úsporná",
+      "unit": "m2",
+      "low": 150,
+      "typical": 200,
+      "high": 250,
+      "vat": "excl",
+      "modifiers": [
+        "slope"
+      ],
+      "note": "Mulched beds + lawn + basic planting."
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "garden_realization_mid",
+      "category": "hardscaping",
+      "name_en": "Whole-garden realization, mid-level (all-in)",
+      "name_cs": "Realizace zahrady - střední",
+      "unit": "m2",
+      "low": 300,
+      "typical": 350,
+      "high": 500,
+      "vat": "excl",
+      "modifiers": [
+        "slope"
+      ],
+      "note": "Edging, better planting, stepping stones, gravel seating."
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "water_swim_pond",
+      "category": "water_features",
+      "name_en": "Swimming pond w/ filtration, stream or waterfall",
+      "name_cs": "Koupací jezírko s filtrací",
+      "unit": "m2",
+      "low": 24000,
+      "typical": 29000,
+      "high": 35000,
+      "vat": "excl",
+      "modifiers": [],
+      "note": "Per m2 of water surface."
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "robotic_mower_install",
+      "category": "robotic_mowers",
+      "name_en": "Robotic mower installation",
+      "name_cs": "Instalace robotické sekačky",
+      "unit": "job",
+      "low": 4000,
+      "typical": 6000,
+      "high": 9000,
+      "vat": "excl",
+      "modifiers": [
+        "poor_access"
+      ],
+      "note": "+ material + transport. RTK antenna >2 m mounting extra. Sometimes free with purchase."
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "winter_snow_clear",
+      "category": "winter",
+      "name_en": "Snow clearing",
+      "name_cs": "Úklid sněhu",
+      "unit": "m2",
+      "low": 0.8,
+      "typical": 1.5,
+      "high": 3,
+      "vat": "excl",
+      "modifiers": [
+        "emergency"
+      ],
+      "note": "Or per 1/4-h machine time. Usually a seasonal contract."
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "winter_salt_spread",
+      "category": "winter",
+      "name_en": "Grit/salt spreading",
+      "name_cs": "Posyp solí",
+      "unit": "tonne",
+      "low": 3500,
+      "typical": 4500,
+      "high": 6000,
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "winter_svj_hourly",
+      "category": "winter",
+      "name_en": "SVJ/HOA common-area cleaning (hourly)",
+      "name_cs": "Úklid společných prostor SVJ",
+      "unit": "hod",
+      "low": 450,
+      "typical": 550,
+      "high": 650,
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "winter_svj_per_flat",
+      "category": "winter",
+      "name_en": "SVJ/HOA cleaning per flat per month",
+      "name_cs": "Úklid SVJ za byt/měsíc",
+      "unit": "flat_month",
+      "low": 200,
+      "typical": 300,
+      "high": 450,
+      "vat": "incl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "labour_handyman",
+      "category": "labour",
+      "name_en": "Handyman labour (hodinový manžel)",
+      "name_cs": "Hodinový manžel - hodina",
+      "unit": "hod",
+      "low": 500,
+      "typical": 600,
+      "high": 800,
+      "scope": "labour_only",
+      "vat": "varies",
+      "modifiers": [
+        "weekend_emergency"
+      ],
+      "note": "Common Prague rate 590-800/h. Tools included. Some firms use fixed per-task prices instead (see installation/plumbing/electrical)."
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "labour_mason",
+      "category": "labour",
+      "name_en": "Mason / bricklayer labour (zedník)",
+      "name_cs": "Zednické práce - hodina",
+      "unit": "hod",
+      "low": 450,
+      "typical": 600,
+      "high": 800,
+      "scope": "labour_only",
+      "vat": "excl",
+      "modifiers": [
+        "old_building"
+      ]
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "labour_tiler",
+      "category": "labour",
+      "name_en": "Tiler labour (obkladač)",
+      "name_cs": "Obkladač - hodina",
+      "unit": "hod",
+      "low": 500,
+      "typical": 650,
+      "high": 850,
+      "scope": "labour_only",
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "labour_plumber",
+      "category": "labour",
+      "name_en": "Plumber labour (instalatér)",
+      "name_cs": "Instalatér - hodina",
+      "unit": "hod",
+      "low": 500,
+      "typical": 700,
+      "high": 1500,
+      "scope": "labour_only",
+      "vat": "varies",
+      "modifiers": [
+        "weekend_emergency"
+      ],
+      "note": "Urgent fixture work 600-1500/h."
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "labour_electrician",
+      "category": "labour",
+      "name_en": "Electrician labour (elektrikář)",
+      "name_cs": "Elektrikář - hodina",
+      "unit": "hod",
+      "low": 500,
+      "typical": 700,
+      "high": 1000,
+      "scope": "labour_only",
+      "vat": "varies",
+      "modifiers": [
+        "weekend_emergency"
+      ]
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "labour_painter",
+      "category": "labour",
+      "name_en": "Painter labour (malíř) - where m2 not used",
+      "name_cs": "Malíř - hodina",
+      "unit": "hod",
+      "low": 350,
+      "typical": 450,
+      "high": 600,
+      "scope": "labour_only",
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "demo_strip_plaster",
+      "category": "demolition",
+      "name_en": "Knock off lime plaster (<=30 mm)",
+      "name_cs": "Otlučení vápenné omítky do 30 mm",
+      "unit": "m2",
+      "low": 60,
+      "typical": 80,
+      "high": 120,
+      "scope": "labour_only",
+      "vat": "excl",
+      "modifiers": [
+        "old_building"
+      ]
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "demo_remove_wall_tile",
+      "category": "demolition",
+      "name_en": "Remove wall tiles",
+      "name_cs": "Odsekání keramického obkladu",
+      "unit": "m2",
+      "low": 70,
+      "typical": 80,
+      "high": 120,
+      "scope": "labour_only",
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "demo_remove_floor_tile",
+      "category": "demolition",
+      "name_en": "Remove floor tiles",
+      "name_cs": "Odsekání keramické dlažby",
+      "unit": "m2",
+      "low": 65,
+      "typical": 75,
+      "high": 120,
+      "scope": "labour_only",
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "demo_partition_brick_m3",
+      "category": "demolition",
+      "name_en": "Demolish solid brick partition",
+      "name_cs": "Bourání zděné příčky z plné cihly",
+      "unit": "m3",
+      "low": 850,
+      "typical": 1100,
+      "high": 1600,
+      "scope": "labour_only",
+      "vat": "excl",
+      "modifiers": [
+        "old_building",
+        "no_elevator_high_floor"
+      ]
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "demo_partition_by_thickness",
+      "category": "demolition",
+      "name_en": "Demolish masonry partition (per m2, by thickness 60-300 mm)",
+      "name_cs": "Bourání zděné příčky dle tloušťky",
+      "unit": "m2",
+      "low": 50,
+      "typical": 140,
+      "high": 280,
+      "scope": "labour_only",
+      "vat": "excl",
+      "modifiers": [
+        "old_building"
+      ],
+      "note": "50 (60mm) up to 280 (400mm)."
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "demo_steel_doorframe",
+      "category": "demolition",
+      "name_en": "Remove steel door frame (incl. cutting wall)",
+      "name_cs": "Demontáž ocelové zárubně",
+      "unit": "ks",
+      "low": 250,
+      "typical": 400,
+      "high": 650,
+      "scope": "labour_only",
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "demo_concrete_floor",
+      "category": "demolition",
+      "name_en": "Demolish concrete floor (~50 mm)",
+      "name_cs": "Demolice betonové podlahy 50 mm",
+      "unit": "m2",
+      "low": 70,
+      "typical": 90,
+      "high": 130,
+      "scope": "labour_only",
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "demo_waste_removal",
+      "category": "demolition",
+      "name_en": "Waste removal + container (excl. landfill fees)",
+      "name_cs": "Odvoz a likvidace odpadu",
+      "unit": "job",
+      "low": 3000,
+      "typical": 4000,
+      "high": 8000,
+      "scope": "labour_only",
+      "vat": "excl",
+      "modifiers": [
+        "no_elevator_high_floor"
+      ],
+      "note": "Scales with volume; ~3600 for a 5 m2 bathroom strip."
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "masonry_ytong",
+      "category": "masonry",
+      "name_en": "Build Ytong/aerated block wall (per m2, by thickness 50-375 mm)",
+      "name_cs": "Zdění z ytong dle tloušťky",
+      "unit": "m2",
+      "low": 320,
+      "typical": 420,
+      "high": 550,
+      "scope": "labour_only",
+      "vat": "excl",
+      "modifiers": [],
+      "note": "320 (50mm) to 550 (375mm), excl. adhesive."
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "masonry_glass_block",
+      "category": "masonry",
+      "name_en": "Glass block wall incl. grouting",
+      "name_cs": "Zdění ze skleněných luxfer vč. spárování",
+      "unit": "m2",
+      "low": 900,
+      "typical": 1000,
+      "high": 1300,
+      "scope": "labour_only",
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "masonry_channel_cutting",
+      "category": "masonry",
+      "name_en": "Channel cutting in brick for wiring (per bm, by size)",
+      "name_cs": "Sekání šliců v cihle",
+      "unit": "bm",
+      "low": 20,
+      "typical": 40,
+      "high": 80,
+      "scope": "labour_only",
+      "vat": "excl",
+      "modifiers": [
+        "old_building"
+      ],
+      "note": "+ filling channels back, similar rate."
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "masonry_steel_frame_set",
+      "category": "masonry",
+      "name_en": "Set + brick-in steel door frame",
+      "name_cs": "Osazení a zazdění ocelové zárubně",
+      "unit": "ks",
+      "low": 700,
+      "typical": 850,
+      "high": 1200,
+      "scope": "labour_only",
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "masonry_geberit",
+      "category": "masonry",
+      "name_en": "Mount + enclose concealed WC frame (Geberit)",
+      "name_cs": "Montáž a obezdění geberitu",
+      "unit": "ks",
+      "low": 3000,
+      "typical": 3500,
+      "high": 4500,
+      "scope": "labour_only",
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "masonry_lintel",
+      "category": "masonry",
+      "name_en": "Install lintel (steel L / traverse / RC) per bm",
+      "name_cs": "Uložení překladu",
+      "unit": "bm",
+      "low": 41,
+      "typical": 90,
+      "high": 150,
+      "scope": "labour_only",
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "plaster_spritz",
+      "category": "plastering",
+      "name_en": "Spritz/key coat (wall/ceiling)",
+      "name_cs": "Špricování",
+      "unit": "m2",
+      "low": 60,
+      "typical": 65,
+      "high": 90,
+      "scope": "labour_only",
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "plaster_hand_core",
+      "category": "plastering",
+      "name_en": "Hand lime core plaster (by thickness 20-40 mm)",
+      "name_cs": "Ruční jádrová omítka",
+      "unit": "m2",
+      "low": 260,
+      "typical": 310,
+      "high": 400,
+      "scope": "labour_only",
+      "vat": "excl",
+      "modifiers": [
+        "old_building",
+        "complex_surfaces"
+      ]
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "plaster_stuk_wall",
+      "category": "plastering",
+      "name_en": "Fine skim/stucco - wall",
+      "name_cs": "Štukování stěny",
+      "unit": "m2",
+      "low": 125,
+      "typical": 140,
+      "high": 180,
+      "scope": "labour_only",
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "plaster_stuk_ceiling",
+      "category": "plastering",
+      "name_en": "Fine skim/stucco - ceiling",
+      "name_cs": "Štukování stropu",
+      "unit": "m2",
+      "low": 135,
+      "typical": 150,
+      "high": 200,
+      "scope": "labour_only",
+      "vat": "excl",
+      "modifiers": [],
+      "note": "Ceilings cost more (overhead work)."
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "plaster_mesh_adhesive",
+      "category": "plastering",
+      "name_en": "Mesh + adhesive skim (per coat/with mesh)",
+      "name_cs": "Natažení lepidlem s perlinkou",
+      "unit": "m2",
+      "low": 80,
+      "typical": 110,
+      "high": 170,
+      "scope": "labour_only",
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "drywall_ceiling",
+      "category": "drywall",
+      "name_en": "Suspended ceiling, single SDK layer",
+      "name_cs": "SDK podhled 12,5 mm",
+      "unit": "m2",
+      "low": 290,
+      "typical": 320,
+      "high": 420,
+      "scope": "labour_only",
+      "vat": "excl",
+      "modifiers": [],
+      "note": "Cross-grid +~30/m2."
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "drywall_partition_1x",
+      "category": "drywall",
+      "name_en": "Partition, both sides single SDK",
+      "name_cs": "Příčka oboustranně 1x SDK",
+      "unit": "m2",
+      "low": 350,
+      "typical": 400,
+      "high": 500,
+      "scope": "labour_only",
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "drywall_partition_2x",
+      "category": "drywall",
+      "name_en": "Partition, both sides double SDK",
+      "name_cs": "Příčka oboustranně 2x SDK",
+      "unit": "m2",
+      "low": 500,
+      "typical": 600,
+      "high": 740,
+      "scope": "labour_only",
+      "vat": "excl",
+      "modifiers": [],
+      "note": "Security/double-clad up to ~740."
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "drywall_shaft_wall",
+      "category": "drywall",
+      "name_en": "Free-standing lining wall",
+      "name_cs": "Předsazená stěna SDK",
+      "unit": "m2",
+      "low": 260,
+      "typical": 320,
+      "high": 420,
+      "scope": "labour_only",
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "drywall_loft_slope",
+      "category": "drywall",
+      "name_en": "Loft slope/ceiling SDK",
+      "name_cs": "Podkroví (šikmina) SDK",
+      "unit": "m2",
+      "low": 350,
+      "typical": 420,
+      "high": 550,
+      "scope": "labour_only",
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "drywall_insulation",
+      "category": "drywall",
+      "name_en": "Insert thermal insulation + vapour barrier",
+      "name_cs": "Vkládání izolace + parozábrana",
+      "unit": "m2",
+      "low": 45,
+      "typical": 65,
+      "high": 100,
+      "scope": "labour_only",
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "drywall_pocket_door",
+      "category": "drywall",
+      "name_en": "Mount sliding-door pocket frame",
+      "name_cs": "Montáž stavebního pouzdra",
+      "unit": "ks",
+      "low": 1000,
+      "typical": 1300,
+      "high": 1800,
+      "scope": "labour_only",
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "drywall_revision_door",
+      "category": "drywall",
+      "name_en": "Install access/revision hatch",
+      "name_cs": "Montáž revizních dvířek",
+      "unit": "ks",
+      "low": 210,
+      "typical": 250,
+      "high": 350,
+      "scope": "labour_only",
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "drywall_quality_finishing",
+      "category": "drywall",
+      "name_en": "Joint filling/finishing to Q2-Q3",
+      "name_cs": "Tmelení Q2-Q3",
+      "unit": "m2",
+      "low": 20,
+      "typical": 60,
+      "high": 100,
+      "scope": "labour_only",
+      "vat": "excl",
+      "modifiers": [],
+      "note": "Q2 ~20, Q3 ~60, full bandaging ~100."
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "floor_laminate",
+      "category": "flooring",
+      "name_en": "Lay floating laminate",
+      "name_cs": "Pokládka laminátové podlahy",
+      "unit": "m2",
+      "low": 130,
+      "typical": 160,
+      "high": 220,
+      "scope": "labour_only",
+      "vat": "excl",
+      "modifiers": [
+        "complex_surfaces"
+      ]
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "floor_vinyl_click",
+      "category": "flooring",
+      "name_en": "Lay click vinyl",
+      "name_cs": "Pokládka vinylové podlahy se zámkem",
+      "unit": "m2",
+      "low": 130,
+      "typical": 160,
+      "high": 250,
+      "scope": "labour_only",
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "floor_lino",
+      "category": "flooring",
+      "name_en": "Lay lino (loose)",
+      "name_cs": "Pokládka lina",
+      "unit": "m2",
+      "low": 100,
+      "typical": 120,
+      "high": 180,
+      "scope": "labour_only",
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "floor_leveling",
+      "category": "flooring",
+      "name_en": "Self-leveling compound (to 6-10 mm)",
+      "name_cs": "Samonivelační stěrka",
+      "unit": "m2",
+      "low": 100,
+      "typical": 130,
+      "high": 180,
+      "scope": "labour_only",
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "floor_screed",
+      "category": "flooring",
+      "name_en": "Concrete screed (by thickness 30-100 mm)",
+      "name_cs": "Betonování podlahy",
+      "unit": "m2",
+      "low": 90,
+      "typical": 120,
+      "high": 150,
+      "scope": "labour_only",
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "floor_skirting",
+      "category": "flooring",
+      "name_en": "Fit skirting board",
+      "name_cs": "Montáž soklové lišty",
+      "unit": "bm",
+      "low": 45,
+      "typical": 60,
+      "high": 90,
+      "scope": "labour_only",
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "floor_parquet_sanding",
+      "category": "flooring",
+      "name_en": "Parquet sanding + finish",
+      "name_cs": "Broušení a lakování parket",
+      "unit": "m2",
+      "low": 250,
+      "typical": 350,
+      "high": 500,
+      "scope": "labour_only",
+      "vat": "excl",
+      "modifiers": [],
+      "note": "Estimate; varies with layers/finish."
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "tile_wall_floor_standard",
+      "category": "tiling",
+      "name_en": "Lay tiles incl. grouting, standard format",
+      "name_cs": "Pokládka obkladů/dlažby standard",
+      "unit": "m2",
+      "low": 420,
+      "typical": 650,
+      "high": 900,
+      "scope": "labour_only",
+      "vat": "excl",
+      "modifiers": [
+        "complex_surfaces"
+      ],
+      "note": "Baseline 'obklady a dlažba od 600'; small format ~420-600."
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "tile_large_format",
+      "category": "tiling",
+      "name_en": "Lay large-format tiles",
+      "name_cs": "Pokládka velkoformátové dlažby",
+      "unit": "m2",
+      "low": 900,
+      "typical": 1200,
+      "high": 1500,
+      "scope": "labour_only",
+      "vat": "excl",
+      "modifiers": [
+        "complex_surfaces"
+      ]
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "tile_mosaic",
+      "category": "tiling",
+      "name_en": "Lay mosaic",
+      "name_cs": "Pokládka mozaiky",
+      "unit": "m2",
+      "low": 650,
+      "typical": 900,
+      "high": 1500,
+      "scope": "labour_only",
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "tile_waterproofing",
+      "category": "tiling",
+      "name_en": "Waterproofing membrane (coat, excl. material)",
+      "name_cs": "Hydroizolace nátěrem",
+      "unit": "m2",
+      "low": 80,
+      "typical": 150,
+      "high": 250,
+      "scope": "labour_only",
+      "vat": "excl",
+      "modifiers": [],
+      "note": "Bathroom example ~1800 flat for small area."
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "paint_penetration",
+      "category": "painting",
+      "name_en": "Primer/penetration coat",
+      "name_cs": "Penetrace válečkem",
+      "unit": "m2",
+      "low": 10,
+      "typical": 12,
+      "high": 18,
+      "scope": "labour_only",
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "paint_coat",
+      "category": "painting",
+      "name_en": "Paint coat (per coat, wall or ceiling)",
+      "name_cs": "Malba válečkem (1 vrstva)",
+      "unit": "m2",
+      "low": 16,
+      "typical": 20,
+      "high": 30,
+      "scope": "labour_only",
+      "vat": "excl",
+      "modifiers": [
+        "complex_surfaces"
+      ],
+      "note": "Usually 2 coats; colour/vinyl paint slightly higher. Often quoted incl. paint at 40-70/m2 for 2 coats + prep."
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "paint_scrape_old",
+      "category": "painting",
+      "name_en": "Scrape off old paint (wall/ceiling)",
+      "name_cs": "Oškrábání staré malby",
+      "unit": "m2",
+      "low": 20,
+      "typical": 35,
+      "high": 50,
+      "scope": "labour_only",
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "paint_fill_cracks",
+      "category": "painting",
+      "name_en": "Fill small holes/cracks",
+      "name_cs": "Vyspravení děr a trhlin",
+      "unit": "m2",
+      "low": 25,
+      "typical": 35,
+      "high": 60,
+      "scope": "labour_only",
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "paint_masking",
+      "category": "painting",
+      "name_en": "Masking / covering furniture & windows",
+      "name_cs": "Zakrytí a olepení",
+      "unit": "m2",
+      "low": 5,
+      "typical": 15,
+      "high": 25,
+      "scope": "labour_only",
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "wallpapering",
+      "category": "painting",
+      "name_en": "Wallpapering / tapetování",
+      "name_cs": "Tapetování",
+      "unit": "m2",
+      "low": 120,
+      "typical": 180,
+      "high": 300,
+      "scope": "labour_only",
+      "vat": "excl",
+      "modifiers": [
+        "complex_surfaces"
+      ],
+      "note": "Estimate; pattern-match & murals higher."
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "bathroom_turnkey_small_labour",
+      "category": "bathroom",
+      "name_en": "Small bathroom (~5 m2) full reno - LABOUR ONLY",
+      "name_cs": "Rekonstrukce malé koupelny ~5 m2 - práce",
+      "unit": "job",
+      "low": 55000,
+      "typical": 65800,
+      "high": 85000,
+      "scope": "labour_only",
+      "vat": "excl",
+      "modifiers": [
+        "old_building",
+        "complex_surfaces"
+      ],
+      "note": "Incl. strip-out, masonry, electrics, plumbing, waterproofing, tiling labour, sanity install, finishing. Tiles + sanity material EXTRA."
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "bathroom_turnkey_incl_material",
+      "category": "bathroom",
+      "name_en": "Bathroom full reno incl. mid-grade materials & fittings",
+      "name_cs": "Koupelna na klíč vč. materiálu",
+      "unit": "job",
+      "low": 120000,
+      "typical": 180000,
+      "high": 280000,
+      "scope": "incl_material",
+      "vat": "reduced_housing_likely",
+      "modifiers": [],
+      "note": "Wide range driven by tile/sanity grade and size; this is the client-facing turnkey figure."
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "door_interior_with_frame",
+      "category": "doors",
+      "name_en": "Install interior door + lined frame incl. hardware",
+      "name_cs": "Montáž dveří s obložkovou zárubní vč. kování",
+      "unit": "ks",
+      "low": 1500,
+      "typical": 1800,
+      "high": 2800,
+      "scope": "labour_only",
+      "vat": "excl",
+      "modifiers": [],
+      "note": "Door + frame material extra."
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "door_frame_mount_sdk",
+      "category": "doors",
+      "name_en": "Mount frame in drywall opening",
+      "name_cs": "Montáž zárubně do SDK",
+      "unit": "ks",
+      "low": 250,
+      "typical": 350,
+      "high": 600,
+      "scope": "labour_only",
+      "vat": "excl",
+      "modifiers": []
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "plumb_faucet_swap",
+      "category": "plumbing",
+      "name_en": "Swap mixer tap (basin/sink)",
+      "name_cs": "Výměna vodovodní baterie",
+      "unit": "ks",
+      "low": 400,
+      "typical": 950,
+      "high": 1500,
+      "scope": "labour_only",
+      "vat": "incl_21_typical",
+      "modifiers": [
+        "weekend_emergency"
+      ]
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "plumb_wc_swap",
+      "category": "plumbing",
+      "name_en": "Replace / repair WC, replace cistern",
+      "name_cs": "Výměna/oprava WC, splachovadla",
+      "unit": "ks",
+      "low": 800,
+      "typical": 1500,
+      "high": 2500,
+      "scope": "labour_only",
+      "vat": "incl_21_typical",
+      "modifiers": [
+        "weekend_emergency"
+      ]
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "plumb_siphon_drain",
+      "category": "plumbing",
+      "name_en": "Replace siphon / clear drain",
+      "name_cs": "Výměna sifonu / pročištění odpadu",
+      "unit": "ks",
+      "low": 400,
+      "typical": 700,
+      "high": 1200,
+      "scope": "labour_only",
+      "vat": "incl_21_typical",
+      "modifiers": []
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "plumb_washer_connect",
+      "category": "plumbing",
+      "name_en": "Connect washing machine",
+      "name_cs": "Připojení pračky",
+      "unit": "ks",
+      "low": 900,
+      "typical": 1150,
+      "high": 1600,
+      "scope": "labour_only",
+      "vat": "incl_21_typical",
+      "modifiers": []
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "plumb_dishwasher_connect",
+      "category": "plumbing",
+      "name_en": "Connect dishwasher",
+      "name_cs": "Připojení myčky",
+      "unit": "ks",
+      "low": 900,
+      "typical": 1150,
+      "high": 1600,
+      "scope": "labour_only",
+      "vat": "incl_21_typical",
+      "modifiers": []
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "plumb_silicone_reseal",
+      "category": "plumbing",
+      "name_en": "Re-silicone bath/shower",
+      "name_cs": "Výměna silikonu vany/sprchy",
+      "unit": "job",
+      "low": 400,
+      "typical": 700,
+      "high": 1200,
+      "scope": "labour_only",
+      "vat": "incl_21_typical",
+      "modifiers": []
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "plumb_sanity_install_set",
+      "category": "plumbing",
+      "name_en": "Install sanity set (bath, basin, tap, WC)",
+      "name_cs": "Montáž sanity (vana, umyvadlo, baterie, WC)",
+      "unit": "job",
+      "low": 4500,
+      "typical": 5400,
+      "high": 8000,
+      "scope": "labour_only",
+      "vat": "excl",
+      "modifiers": [],
+      "note": "From bathroom reno breakdown."
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "elec_socket_switch_swap",
+      "category": "electrical",
+      "name_en": "Replace socket / switch",
+      "name_cs": "Výměna zásuvky / vypínače",
+      "unit": "ks",
+      "low": 600,
+      "typical": 800,
+      "high": 1200,
+      "scope": "labour_only",
+      "vat": "incl_21_typical",
+      "modifiers": [
+        "weekend_emergency"
+      ]
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "elec_light_fixture",
+      "category": "electrical",
+      "name_en": "Install / replace light fixture",
+      "name_cs": "Výměna/instalace svítidla",
+      "unit": "ks",
+      "low": 500,
+      "typical": 1250,
+      "high": 2000,
+      "scope": "labour_only",
+      "vat": "incl_21_typical",
+      "modifiers": [],
+      "note": "1-3 fixtures ~1250 total; 4+ ~500/each."
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "elec_appliance_connect",
+      "category": "electrical",
+      "name_en": "Connect built-in appliance (hob/oven)",
+      "name_cs": "Zapojení varné desky / trouby",
+      "unit": "ks",
+      "low": 600,
+      "typical": 1000,
+      "high": 1800,
+      "scope": "labour_only",
+      "vat": "incl_21_typical",
+      "modifiers": []
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "elec_rewire_flat",
+      "category": "electrical",
+      "name_en": "Full flat rewire (labour, by flat size)",
+      "name_cs": "Elektroinstalace bytu - práce",
+      "unit": "flat",
+      "low": 14000,
+      "typical": 21000,
+      "high": 30000,
+      "scope": "labour_only",
+      "vat": "excl",
+      "modifiers": [
+        "old_building"
+      ],
+      "note": "1+1 ~14000, 2+1 ~18000, 3+1 ~21000 labour; material + revision extra (see note)."
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "elec_material_flat",
+      "category": "electrical",
+      "name_en": "Rewire material (by flat size)",
+      "name_cs": "Materiál elektro",
+      "unit": "flat",
+      "low": 16500,
+      "typical": 20000,
+      "high": 40000,
+      "scope": "incl_material",
+      "vat": "incl_21_typical",
+      "modifiers": []
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "elec_revision",
+      "category": "electrical",
+      "name_en": "Electrical revision/certificate",
+      "name_cs": "Revize elektroinstalace",
+      "unit": "ks",
+      "low": 1500,
+      "typical": 2000,
+      "high": 2500,
+      "scope": "labour_only",
+      "vat": "incl_21_typical",
+      "modifiers": []
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "mount_shelf",
+      "category": "installation",
+      "name_en": "Mount shelf",
+      "name_cs": "Montáž poličky",
+      "unit": "ks",
+      "low": 250,
+      "typical": 350,
+      "high": 600,
+      "scope": "labour_only",
+      "vat": "incl_21_typical",
+      "modifiers": []
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "mount_curtain_rail",
+      "category": "installation",
+      "name_en": "Mount curtain rail / blinds",
+      "name_cs": "Montáž garnýží / žaluzií",
+      "unit": "ks",
+      "low": 300,
+      "typical": 500,
+      "high": 900,
+      "scope": "labour_only",
+      "vat": "incl_21_typical",
+      "modifiers": []
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "mount_mirror",
+      "category": "installation",
+      "name_en": "Mount mirror",
+      "name_cs": "Montáž zrcadla",
+      "unit": "ks",
+      "low": 300,
+      "typical": 500,
+      "high": 900,
+      "scope": "labour_only",
+      "vat": "incl_21_typical",
+      "modifiers": []
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "mount_tv",
+      "category": "installation",
+      "name_en": "Wall-mount TV incl. cable hiding",
+      "name_cs": "Zavěšení TV vč. kabeláže",
+      "unit": "ks",
+      "low": 1000,
+      "typical": 1500,
+      "high": 2000,
+      "scope": "labour_only",
+      "vat": "incl_21_typical",
+      "modifiers": []
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "assemble_flatpack",
+      "category": "installation",
+      "name_en": "Flat-pack furniture assembly (e.g. IKEA wardrobe)",
+      "name_cs": "Montáž nábytku (skříň)",
+      "unit": "ks",
+      "low": 800,
+      "typical": 1200,
+      "high": 1600,
+      "scope": "labour_only",
+      "vat": "incl_21_typical",
+      "modifiers": [],
+      "note": "1-2 h per unit; large/complex more."
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "kitchen_install",
+      "category": "installation",
+      "name_en": "Kitchen unit assembly + install",
+      "name_cs": "Montáž kuchyňské linky",
+      "unit": "job",
+      "low": 8000,
+      "typical": 18000,
+      "high": 35000,
+      "scope": "labour_only",
+      "vat": "incl_21_typical",
+      "modifiers": [],
+      "note": "Estimate, scales with run length/appliances; ~1500-3000/bm rule of thumb."
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "kitchen_worktop_swap",
+      "category": "installation",
+      "name_en": "Worktop replacement incl. cutouts (to 3 m)",
+      "name_cs": "Výměna kuchyňské desky vč. výřezů",
+      "unit": "ks",
+      "low": 3500,
+      "typical": 4500,
+      "high": 7000,
+      "scope": "labour_only",
+      "vat": "incl_21_typical",
+      "modifiers": []
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "facade_insulation",
+      "category": "exterior",
+      "name_en": "Facade insulation incl. render (polystyrene/wool)",
+      "name_cs": "Zateplení fasády vč. omítky",
+      "unit": "m2",
+      "low": 500,
+      "typical": 550,
+      "high": 700,
+      "scope": "labour_only",
+      "vat": "excl",
+      "modifiers": [
+        "no_elevator_high_floor"
+      ],
+      "note": "Excl. scaffolding & material."
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "exterior_window_balcony_paint",
+      "category": "exterior",
+      "name_en": "Paint windows / balcony",
+      "name_cs": "Nátěr oken / balkonu",
+      "unit": "m2",
+      "low": 120,
+      "typical": 200,
+      "high": 350,
+      "scope": "labour_only",
+      "vat": "excl",
+      "modifiers": [
+        "complex_surfaces"
+      ],
+      "note": "Estimate; per element pricing also common."
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "design_per_m2",
+      "category": "design",
+      "name_en": "Interior design (per m2)",
+      "name_cs": "Návrh interiéru za m2",
+      "unit": "m2",
+      "low": 300,
+      "typical": 600,
+      "high": 900,
+      "scope": "design",
+      "vat": "incl_21_typical",
+      "modifiers": [],
+      "note": "Full design incl. layout + 3D + material schedule."
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "design_per_room",
+      "category": "design",
+      "name_en": "Interior design per room/zone (3D)",
+      "name_cs": "3D návrh místnosti",
+      "unit": "room",
+      "low": 3900,
+      "typical": 6000,
+      "high": 9000,
+      "scope": "design",
+      "vat": "incl_21_typical",
+      "modifiers": [],
+      "note": "Fixed per room up to ~20 m2 (30 m2 for living+kitchen)."
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "design_consultation",
+      "category": "design",
+      "name_en": "Design consultation / advice",
+      "name_cs": "Konzultace bytového architekta",
+      "unit": "room",
+      "low": 1000,
+      "typical": 1500,
+      "high": 2500,
+      "scope": "design",
+      "vat": "incl_21_typical",
+      "modifiers": []
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "design_author_supervision",
+      "category": "design",
+      "name_en": "Author supervision during build",
+      "name_cs": "Autorský dozor",
+      "unit": "hod",
+      "low": 800,
+      "typical": 1200,
+      "high": 1500,
+      "scope": "design",
+      "vat": "incl_21_typical",
+      "modifiers": []
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "clean_post_reno",
+      "category": "cleaning",
+      "name_en": "Post-renovation deep clean (by flat size)",
+      "name_cs": "Úklid po rekonstrukci",
+      "unit": "flat",
+      "low": 2500,
+      "typical": 3300,
+      "high": 5000,
+      "scope": "labour_only",
+      "vat": "incl_21_typical",
+      "modifiers": [],
+      "note": "1+1 ~2500, 2+1 ~3300, 3+1 ~4500, 4+1 ~5000."
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "smart_home_install",
+      "category": "smart_home",
+      "name_en": "Smart home install (KNX/Loxone) - by quote",
+      "name_cs": "Chytrá domácnost KNX/Loxone",
+      "unit": "job",
+      "low": 50000,
+      "typical": 150000,
+      "high": 400000,
+      "scope": "incl_material",
+      "vat": "reduced_housing_likely",
+      "modifiers": [],
+      "note": "Highly variable; depends on device count & integration. Treat as bespoke project, not a line rate."
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "full_reno_per_m2_budget",
+      "category": "full_renovation",
+      "name_en": "Whole-flat turnkey reno - budget (per m2, incl. material, excl. furniture)",
+      "name_cs": "Rekonstrukce bytu na klíč - úsporná",
+      "unit": "m2",
+      "low": 8000,
+      "typical": 10000,
+      "high": 12000,
+      "scope": "turnkey_incl_material",
+      "vat": "reduced_housing_likely",
+      "modifiers": [
+        "old_building"
+      ]
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "full_reno_per_m2_standard",
+      "category": "full_renovation",
+      "name_en": "Whole-flat turnkey reno - standard (per m2)",
+      "name_cs": "Rekonstrukce bytu na klíč - standard",
+      "unit": "m2",
+      "low": 12000,
+      "typical": 14000,
+      "high": 17000,
+      "scope": "turnkey_incl_material",
+      "vat": "reduced_housing_likely",
+      "modifiers": []
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "full_reno_per_m2_premium",
+      "category": "full_renovation",
+      "name_en": "Whole-flat turnkey reno - premium (per m2)",
+      "name_cs": "Rekonstrukce bytu na klíč - nadstandard",
+      "unit": "m2",
+      "low": 17000,
+      "typical": 22000,
+      "high": 30000,
+      "scope": "turnkey_incl_material",
+      "vat": "reduced_housing_likely",
+      "modifiers": [],
+      "note": "Layout changes, all new wiring/plumbing, high-grade finishes."
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "full_reno_garsonka_benchmark",
+      "category": "full_renovation",
+      "name_en": "Whole-flat benchmark: studio/garsonka",
+      "name_cs": "Orientace: garsonka komplet",
+      "unit": "flat",
+      "low": 800000,
+      "typical": 1000000,
+      "high": 1300000,
+      "scope": "turnkey_incl_material",
+      "vat": "reduced_housing_likely",
+      "modifiers": []
+    },
+    {
+      "business_unit": "domovfix",
+      "id": "full_reno_2kk_benchmark",
+      "category": "full_renovation",
+      "name_en": "Whole-flat benchmark: 2+kk complete",
+      "name_cs": "Orientace: 2+kk komplet",
+      "unit": "flat",
+      "low": 1500000,
+      "typical": 1750000,
+      "high": 2000000,
+      "scope": "turnkey_incl_material",
+      "vat": "reduced_housing_likely",
+      "modifiers": []
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "edging_plastic_supply_install",
+      "category": "hardscaping",
+      "name_en": "Plastic garden edging – supply & install",
+      "name_cs": "Plastový zahradní obrubník – dodání a montáž",
+      "unit": "bm",
+      "low": 200,
+      "typical": 250,
+      "high": 320,
+      "vat": "excl",
+      "modifiers": [
+        "poor_access",
+        "slope"
+      ],
+      "note": "All-in supply + install of plastic lawn edging. Calibrated to real quote (80 bm = 20 000)."
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "geotextile_supply_lay",
+      "category": "hardscaping",
+      "name_en": "Geotextile – supply & lay",
+      "name_cs": "Geotextilie – dodání a pokládka",
+      "unit": "m2",
+      "low": 40,
+      "typical": 57,
+      "high": 75,
+      "vat": "excl",
+      "modifiers": [],
+      "note": "Supply + lay weed-control geotextile. ~50 m2 per roll."
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "gravel_supply_spread",
+      "category": "hardscaping",
+      "name_en": "Decorative gravel – supply + barrow + spread",
+      "name_cs": "Kačírek / drcený kámen – dodání + ruční rozvoz a rozprostření",
+      "unit": "m3",
+      "low": 2800,
+      "typical": 3500,
+      "high": 4200,
+      "vat": "excl",
+      "modifiers": [
+        "poor_access"
+      ],
+      "note": "ALL-IN: material + delivery + manual barrow + spread. Use instead of gravel_material_only when we supply AND place it."
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "excavation_strip_light",
+      "category": "earthworks",
+      "name_en": "Strip / light excavation",
+      "name_cs": "Výkop pásu / drobné výkopové práce",
+      "unit": "m3",
+      "low": 600,
+      "typical": 800,
+      "high": 1100,
+      "vat": "excl",
+      "modifiers": [
+        "poor_access"
+      ],
+      "note": "Shallow strip digging (edging beds, trenches). Volume = length*width*depth. Container disposal billed separately."
+    },
+    {
+      "business_unit": "sezonapece",
+      "id": "excavation_minibagr_day",
+      "category": "earthworks",
+      "name_en": "Mini-excavator day incl. operator",
+      "name_cs": "Práce minibagrem vč. obsluhy (výkop, srovnání, modelace do spádů)",
+      "unit": "day",
+      "low": 9000,
+      "typical": 10500,
+      "high": 13000,
+      "vat": "excl",
+      "modifiers": [
+        "poor_access"
+      ],
+      "note": "Per working day incl. operator; ~up to 40-50 m3/day. Use for terrain leveling / bulk excavation."
+    }
+  ],
+  "quote_algorithm": {
+    "description": "Unified logic for both business units. Always: (1) filter services by business_unit, (2) build line items, (3) apply modifiers, (4) add fees, (5) enforce minimum, (6) apply VAT.",
+    "steps": [
+      "1. Identify the business_unit (sezonapece vs domovfix) and quote MODE: itemised build-up, OR a per-m2 / per-unit benchmark (whole-garden realization, whole-flat turnkey). Don't mix a turnkey per-m2 with itemised lines for the same scope/area.",
+      "2. For each line: pick base rate (low for large/simple/contract scope, typical default, high for small/awkward/old-building/premium).",
+      "3. line_subtotal = quantity * base_rate.",
+      "4. Apply only the modifiers in that line's 'modifiers' list that the situation triggers, multiplicatively (use mid of value_range unless severity known). Surcharges (>1) and discounts (<1) stack.",
+      "5. labour_net = sum of labour-scope lines; material_net = sum of materials (apply material_supply_markup if the firm supplies them).",
+      "6. Add fees relevant to the unit: transport/call-out once; material_handling if not pre-staged; waste/container/tipping where applicable.",
+      "EARTHWORKS RULE: whenever dimensions are given, COMPUTE the volume yourself (area * excavation_depth, or length*width*depth for strips) and derive the container count = round(volume_m3 / 5). NEVER trust a container/volume count stated in the inquiry. Price machine excavation/leveling with excavation_minibagr_day (min 1 day), shallow strips with excavation_strip_light per m3, and EACH soil container with soil_container_5m3. Add mobilization_machine_outside_prague once for out-of-Prague machine jobs. Flag that the deepest excavation may need +1 container.",
+      "7. net_total = max(labour_net + material_net + fees, applicable minimum [handyman_min_visit / renovation_min_job / min_job_charge]).",
+      "8. VAT: 12% for qualifying RESIDENTIAL construction/assembly (DomovFix housing reno); 21% for gardening, standalone handyman, appliance and non-residential. Lines marked vat 'incl_21_typical' / 'incl' are NOT taxed again. State the assumed rate.",
+      "9. Present a fixed price (DomovFix) or itemised quote (Sezona a Pece) with scope + key assumptions (size/condition, material grade, access, season, VAT). Optionally show a low-high band by re-running with low/high base rates."
+    ],
+    "worked_examples": {
+      "gardening": {
+        "scenario": "300 m2 lawn, fortnightly mow with collection, flat easy-access Prague garden, VAT-registered, 8 km from depot.",
+        "calc": "mow_rotary_collect typical 4.3 * 300 = 1290; regular_contract_discount ~0.9 => 1161; transport 15*8*2=240; net 1401 -> below min => max(1401, min_job_charge 1500)=1500; +VAT 21% => ~1815 Kc gross per visit."
+      },
+      "renovation": {
+        "scenario": "Repaint a 2+1 (~150 m2 wall+ceiling), occupied flat, Prague, firm supplies paint.",
+        "calc": "prep ~25*150=3750; 2 coats ~2*20*150=6000; masking ~10*150=1500; labour_net ~11250; occupied_flat *1.15 => ~12940; paint material ~3000*1.2=3600; callout 400; net ~16940; VAT 12% (residential) => ~18970 Kc; round to ~19000 Kc fixed."
+      }
+    }
+  },
+  "sources": {
+    "sezonapece_gardening": [
+      "Zerot s.r.o. (Pruhonice, 2026)",
+      "Zahrady Jonas (Praha/Stredocesky, 2026)",
+      "PolGarden (Praha-Vinohrady, 2026)",
+      "Doktor Travnik (2026)",
+      "SecemeZahrady.cz",
+      "Seceni travy pro vsechny (2025)",
+      "mzahrady.com (2026, annual packages)",
+      "zahradnicke-sluzby.eu (2020, structure)",
+      "Barevne zahrady (2026, itemised)",
+      "Lopour zahrady (2026)",
+      "Rikast / venkovniprace.cz / rizikove-kaceni-stromu-praha.cz (felling)",
+      "Parezozrout / parezy-stromy / Profikas / Stromoskop (stump grinding)",
+      "Zahrada Liberec / Zahradnictvi Kavena (planting/hourly structure)",
+      "Daibau.cz (aggregator ranges)",
+      "Aquaro / Zavlahovka / AZ Zahrada (irrigation)",
+      "zeleneudoli / Hornbach / Jarabak (robotic mowers)",
+      "uklidy.com / Lena (winter & SVJ)"
+    ],
+    "domovfix_renovation": [
+      "rekonstrukcelp.cz (itemised renovation ceník, Dec 2025 - backbone for demolition/masonry/plaster/drywall/flooring/painting/bathroom)",
+      "poptavkystavebnichpraci.cz (rekonstrukce bytu, obkladač - 2025)",
+      "pm-reko.cz / richtigbau.com / virtualnibydleni.cz (whole-flat per m2 & benchmarks, 2025-2026)",
+      "ŠikovnýMuž.cz / Jan Meloun (vas-remeslnik.cz) / CleanWhale / Daibau opravář / stehovanicz.cz (handyman fixed prices & hourly, 2025-2026)",
+      "Hornbach tiling ceník (2025) / 3dnavrhy.cz / s-stavdevelop.com / qjob.cz (tiling per m2)",
+      "interiumpro.cz / navrhy3d.cz / nikoladesign.cz (interior design fees, 2025-2026)",
+      "sadrokartonycernyjosef.cz / halasdk.cz (drywall detail)",
+      "cenaomitky.cz (plaster/stucco)"
+    ]
+  },
+  "calibration_log": [
+    {
+      "date": "2026-06-15",
+      "round": 2,
+      "basis": "historical CRM line items (340 lines)",
+      "changes": [
+        "mobilization_machine_outside_prague typical 6500->7000 (median of 5 real 'doprava/technika/manipulace' lines)",
+        "callout_transport_prague typical 400->500 (real 'doprava po Praze')",
+        "transport_per_km_outside typical 15->25, round-trip basis (real 40km job ~2000)"
+      ],
+      "note": "Real quoting style is lump-sum per line (qty 1 ks); rate-card unit rates derive those lumps."
+    }
+  ]
+}

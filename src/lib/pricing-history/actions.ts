@@ -169,10 +169,10 @@ export async function askClaudeForPrice(
     });
   const t0 = Date.now();
   try {
-    const extraLines = await loadDbLines();
+    // Price generator now sources from the calibrated rate card (embedded in
+    // the estimator), not the firm's historical (low) prices.
     const est = await estimateWithClaude(description, {
       contextLines,
-      extraLines,
       images: safePhotos,
     });
     await logAiCall({
