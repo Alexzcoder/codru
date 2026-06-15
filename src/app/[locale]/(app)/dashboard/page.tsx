@@ -112,6 +112,7 @@ export default async function DashboardPage({
         taxMode: l.taxMode,
         lineDiscountPercent: l.lineDiscountPercent?.toString() ?? null,
         lineDiscountAmount: l.lineDiscountAmount?.toString() ?? null,
+        isAdvanceDeduction: l.isAdvanceDeduction,
       })),
       documentDiscountPercent: inv.documentDiscountPercent?.toString() ?? null,
       documentDiscountAmount: inv.documentDiscountAmount?.toString() ?? null,

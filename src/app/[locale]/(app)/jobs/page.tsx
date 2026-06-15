@@ -107,7 +107,7 @@ export default async function JobsPage({
         actions={
           <>
             <a
-              href={`/jobs/export.xlsx?${new URLSearchParams({
+              href={`/${locale}/jobs/export.xlsx?${new URLSearchParams({
                 ...(q && { q }),
                 ...(sp.status && { status: sp.status }),
                 ...(sp.clientId && { clientId: sp.clientId }),

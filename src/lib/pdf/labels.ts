@@ -9,6 +9,9 @@ export const labels = {
     advanceInvoiceTitle: "Zálohová faktura",
     finalInvoiceTitle: "Faktura",
     creditNoteTitle: "Opravný daňový doklad",
+    paymentTaxDocumentTitle: "Daňový doklad k přijaté platbě",
+    paymentReceivedFor: "K zálohové faktuře",
+    totalReceived: "Přijatá platba celkem",
 
     number: "Číslo dokladu",
     issueDate: "Datum vystavení",
@@ -67,6 +70,9 @@ export const labels = {
     advanceInvoiceTitle: "Advance invoice",
     finalInvoiceTitle: "Invoice",
     creditNoteTitle: "Credit note",
+    paymentTaxDocumentTitle: "Tax document for received payment",
+    paymentReceivedFor: "For advance invoice",
+    totalReceived: "Total payment received",
 
     number: "Document no.",
     issueDate: "Issue date",

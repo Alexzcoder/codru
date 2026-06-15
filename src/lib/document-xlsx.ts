@@ -57,6 +57,7 @@ export async function buildDocumentsWorkbook(opts: {
         taxMode: l.taxMode,
         lineDiscountPercent: l.lineDiscountPercent?.toString() ?? null,
         lineDiscountAmount: l.lineDiscountAmount?.toString() ?? null,
+        isAdvanceDeduction: l.isAdvanceDeduction,
       })),
       documentDiscountPercent: d.documentDiscountPercent?.toString() ?? null,
       documentDiscountAmount: d.documentDiscountAmount?.toString() ?? null,
@@ -67,8 +68,10 @@ export async function buildDocumentsWorkbook(opts: {
       issueDate: d.issueDate.toISOString().slice(0, 10),
       dueDate: d.dueDate?.toISOString().slice(0, 10) ?? "",
       client: clientDisplayName(d.client),
-      net: Number(totals.subtotalNet),
-      vat: Number(totals.totalGross) - Number(totals.subtotalNet),
+      // Final figures (after document discount + any advance deduction) so
+      // Net + VAT = Gross reconciles for every document type.
+      net: Number(totals.totalNet),
+      vat: Number(totals.totalTax),
       gross: Number(totals.totalGross),
       currency: d.currency,
       status: d.status,

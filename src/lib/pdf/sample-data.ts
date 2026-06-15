@@ -80,6 +80,7 @@ export function buildSampleData(
     ADVANCE_INVOICE: `ADV-${today.getFullYear()}-0001`,
     FINAL_INVOICE: `INV-${today.getFullYear()}-0001`,
     CREDIT_NOTE: `CN-${today.getFullYear()}-0001`,
+    PAYMENT_TAX_DOCUMENT: `DD-${today.getFullYear()}-0001`,
   }[type];
 
   const absolute = (p: string | null) =>

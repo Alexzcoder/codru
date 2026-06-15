@@ -118,9 +118,8 @@ export function FinalInvoiceForm({
   const [selectedAdvances, setSelectedAdvances] = useState<Set<string>>(
     new Set(initial?.deductedAdvanceIds ?? []),
   );
-  const [workLines, setWorkLines] = useState<EditorLine[]>(
-    initial?.lines?.filter((l) => !l.name.startsWith("__DEDUCTION__")) ??
-      (initial?.lines ?? []),
+  const [workLines] = useState<EditorLine[]>(
+    initial?.lines?.filter((l) => !l.isAdvanceDeduction) ?? [],
   );
 
   const client = clients.find((c) => c.id === clientId);
@@ -148,6 +147,7 @@ export function FinalInvoiceForm({
           taxMode: "NET",
           lineDiscountPercent: "",
           lineDiscountAmount: "",
+          isAdvanceDeduction: true,
         });
       }
     }

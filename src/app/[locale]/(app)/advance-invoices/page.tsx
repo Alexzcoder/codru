@@ -73,7 +73,7 @@ export default async function AdvanceInvoicesPage({
         description={`${docs.length} ${docs.length === 1 ? "advance invoice" : "advance invoices"}`}
         actions={
           <>
-            <a href={`/advance-invoices/export.xlsx${q ? `?q=${encodeURIComponent(q)}` : ""}`} download>
+            <a href={`/${locale}/advance-invoices/export.xlsx${q ? `?q=${encodeURIComponent(q)}` : ""}`} download>
               <Button variant="outline" size="sm" className="gap-1.5">
                 <Download size={14} /> Excel
               </Button>

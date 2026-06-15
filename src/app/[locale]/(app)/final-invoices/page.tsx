@@ -73,7 +73,7 @@ export default async function FinalInvoicesPage({
         description={`${docs.length} ${docs.length === 1 ? "invoice" : "invoices"}`}
         actions={
           <>
-            <a href={`/final-invoices/export.xlsx${q ? `?q=${encodeURIComponent(q)}` : ""}`} download>
+            <a href={`/${locale}/final-invoices/export.xlsx${q ? `?q=${encodeURIComponent(q)}` : ""}`} download>
               <Button variant="outline" size="sm" className="gap-1.5">
                 <Download size={14} /> Excel
               </Button>
@@ -150,6 +150,7 @@ export default async function FinalInvoicesPage({
                     taxMode: l.taxMode,
                     lineDiscountPercent: l.lineDiscountPercent?.toString() ?? null,
                     lineDiscountAmount: l.lineDiscountAmount?.toString() ?? null,
+                    isAdvanceDeduction: l.isAdvanceDeduction,
                   })),
                   documentDiscountPercent: d.documentDiscountPercent?.toString() ?? null,
                   documentDiscountAmount: d.documentDiscountAmount?.toString() ?? null,

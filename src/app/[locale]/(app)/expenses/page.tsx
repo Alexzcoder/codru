@@ -80,7 +80,7 @@ export default async function ExpensesPage({
         actions={
           <>
             <a
-              href={`/expenses/export.xlsx?${new URLSearchParams({
+              href={`/${locale}/expenses/export.xlsx?${new URLSearchParams({
                 ...(q && { q }),
                 ...(sp.from && { from: sp.from }),
                 ...(sp.to && { to: sp.to }),

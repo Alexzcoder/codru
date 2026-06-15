@@ -31,6 +31,7 @@ export async function recomputeInvoiceStatus(documentId: string) {
       taxMode: l.taxMode,
       lineDiscountPercent: l.lineDiscountPercent?.toString() ?? null,
       lineDiscountAmount: l.lineDiscountAmount?.toString() ?? null,
+      isAdvanceDeduction: l.isAdvanceDeduction,
     })),
     documentDiscountPercent: doc.documentDiscountPercent?.toString() ?? null,
     documentDiscountAmount: doc.documentDiscountAmount?.toString() ?? null,
@@ -66,6 +67,25 @@ export async function recomputeInvoiceStatus(documentId: string) {
         paidAt: next === "PAID" ? new Date() : doc.paidAt,
       },
     });
+  }
+
+  // A paid advance triggers its "daňový doklad k přijaté platbě". The VAT point
+  // is the received payment, so this fires for both PAID and (job-incomplete)
+  // PAID_PENDING_COMPLETION. Idempotent — issuing once per advance. Done after
+  // the status write and best-effort so a snapshot/render hiccup never blocks
+  // the payment from being recorded.
+  if (
+    doc.type === "ADVANCE_INVOICE" &&
+    (next === "PAID" || next === "PAID_PENDING_COMPLETION")
+  ) {
+    try {
+      const { issuePaymentTaxDocumentForAdvance } = await import(
+        "./payment-tax-document"
+      );
+      await issuePaymentTaxDocumentForAdvance(doc.createdById, documentId);
+    } catch (err) {
+      console.error("Payment tax document issuance failed for", documentId, err);
+    }
   }
 }
 
@@ -107,6 +127,7 @@ export async function computeOutstanding(
       taxMode: l.taxMode,
       lineDiscountPercent: l.lineDiscountPercent?.toString() ?? null,
       lineDiscountAmount: l.lineDiscountAmount?.toString() ?? null,
+      isAdvanceDeduction: l.isAdvanceDeduction,
     })),
     documentDiscountPercent: doc.documentDiscountPercent?.toString() ?? null,
     documentDiscountAmount: doc.documentDiscountAmount?.toString() ?? null,

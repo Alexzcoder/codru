@@ -11,6 +11,7 @@ export type DeductionLineInput = {
   taxMode: "NET";
   lineDiscountPercent: string | null;
   lineDiscountAmount: string | null;
+  isAdvanceDeduction: true;
 };
 
 // For each deducted advance, split the deduction into one negative line per
@@ -58,6 +59,7 @@ export async function buildDeductionLines(
         taxMode: "NET",
         lineDiscountPercent: null,
         lineDiscountAmount: null,
+        isAdvanceDeduction: true,
       });
     }
   }

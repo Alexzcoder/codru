@@ -129,6 +129,7 @@ export default async function ClientDetailPage({
         taxMode: l.taxMode,
         lineDiscountPercent: l.lineDiscountPercent?.toString() ?? null,
         lineDiscountAmount: l.lineDiscountAmount?.toString() ?? null,
+        isAdvanceDeduction: l.isAdvanceDeduction,
       })),
       documentDiscountPercent: d.documentDiscountPercent?.toString() ?? null,
       documentDiscountAmount: d.documentDiscountAmount?.toString() ?? null,

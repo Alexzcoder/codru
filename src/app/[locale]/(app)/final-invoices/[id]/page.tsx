@@ -58,6 +58,7 @@ export default async function FinalInvoiceDetailPage({
       taxMode: l.taxMode,
       lineDiscountPercent: l.lineDiscountPercent?.toString() ?? null,
       lineDiscountAmount: l.lineDiscountAmount?.toString() ?? null,
+      isAdvanceDeduction: l.isAdvanceDeduction,
     })),
     documentDiscountPercent: doc.documentDiscountPercent?.toString() ?? null,
     documentDiscountAmount: doc.documentDiscountAmount?.toString() ?? null,
