@@ -15,6 +15,7 @@ export async function GET(req: Request) {
     from: url.searchParams.get("from"),
     to: url.searchParams.get("to"),
     month: url.searchParams.get("month"),
+    status: url.searchParams.get("status"),
     zipBaseName: "nabidky",
   });
   return new Response(new Uint8Array(buffer), {

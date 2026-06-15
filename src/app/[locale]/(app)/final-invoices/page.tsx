@@ -77,7 +77,8 @@ export default async function FinalInvoicesPage({
             <PdfZipExport
               action={`/${locale}/final-invoices/export.zip`}
               label={t("Common.pdfZip")}
-              defaultMonth={new Date().toISOString().slice(0, 7)}
+              allLabel={t("Common.all")}
+              statuses={allowed.map((s) => ({ value: s, label: t(`FinalInvoices.status.${s}`) }))}
               q={q || undefined}
             />
             <a href={`/${locale}/final-invoices/export.xlsx${q ? `?q=${encodeURIComponent(q)}` : ""}`} download>

@@ -86,7 +86,8 @@ export default async function QuotesPage({
             <PdfZipExport
               action={`/${locale}/quotes/export.zip`}
               label={t("Common.pdfZip")}
-              defaultMonth={new Date().toISOString().slice(0, 7)}
+              allLabel={t("Common.all")}
+              statuses={allowed.map((s) => ({ value: s, label: t(`Quotes.status.${s}`) }))}
               q={q || undefined}
             />
             <a href={`/${locale}/quotes/export.xlsx${q ? `?q=${encodeURIComponent(q)}` : ""}`} download>

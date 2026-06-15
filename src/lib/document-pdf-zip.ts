@@ -6,7 +6,12 @@ import {
   type DocumentWithLines,
 } from "./documents";
 import { readUpload } from "./uploads";
-import type { DocumentType } from "@prisma/client";
+import type { DocumentType, DocumentStatus } from "@prisma/client";
+
+const STATUS_VALUES = new Set<DocumentStatus>([
+  "UNSENT", "SENT", "ACCEPTED", "REJECTED", "EXPIRED", "PARTIALLY_PAID",
+  "PAID", "OVERDUE", "PAID_PENDING_COMPLETION", "APPLIED", "CANCELLED",
+]);
 
 // Bulk-download every document of a type as a ZIP of their PDFs. Used for
 // "give me all the final-invoice PDFs for May" — the Excel export is only a
@@ -26,9 +31,15 @@ export async function buildDocumentsPdfZip(opts: {
   to?: string | null;
   /** Convenience: a whole month (YYYY-MM). Overrides from/to when set. */
   month?: string | null;
+  /** Filter to a single document status (e.g. ACCEPTED, REJECTED, PAID). */
+  status?: string | null;
   zipBaseName: string;
 }): Promise<{ buffer: Buffer; filename: string; count: number }> {
   const { workspaceId, type, q, zipBaseName } = opts;
+  const status =
+    opts.status && STATUS_VALUES.has(opts.status as DocumentStatus)
+      ? (opts.status as DocumentStatus)
+      : null;
 
   // A month (YYYY-MM) is the common case ("all invoices for May") — expand it to
   // an inclusive day range. Otherwise use explicit from/to.
@@ -57,6 +68,7 @@ export async function buildDocumentsPdfZip(opts: {
     workspaceId,
     type,
     deletedAt: null,
+    ...(status && { status }),
     ...((issueDate.gte || issueDate.lt) && { issueDate }),
     ...(q && {
       OR: [
@@ -116,7 +128,9 @@ export async function buildDocumentsPdfZip(opts: {
     compression: "DEFLATE",
   });
 
-  const stamp = [from, to].filter(Boolean).join("_") || new Date().toISOString().slice(0, 10);
+  const stamp =
+    [status?.toLowerCase(), from, to].filter(Boolean).join("_") ||
+    new Date().toISOString().slice(0, 10);
   return {
     buffer,
     filename: `${zipBaseName}-${stamp}.zip`,

@@ -76,7 +76,11 @@ export default async function CreditNotesPage({
             <PdfZipExport
               action={`/${locale}/credit-notes/export.zip`}
               label={t("Common.pdfZip")}
-              defaultMonth={new Date().toISOString().slice(0, 7)}
+              allLabel={t("Common.all")}
+              statuses={allowed.map((s) => ({
+                value: s,
+                label: t(`CreditNotes.status.${s === "PAID" ? "APPLIED" : s}`),
+              }))}
               q={q || undefined}
             />
             <a
