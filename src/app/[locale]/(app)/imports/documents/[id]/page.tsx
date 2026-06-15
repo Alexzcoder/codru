@@ -6,6 +6,10 @@ import { Link } from "@/i18n/navigation";
 import { BackLink } from "@/components/back-link";
 import { ItemReviewCard } from "./item-review-card";
 import { FinalizeButton } from "./finalize-button";
+import { AutoParser } from "./auto-parser";
+
+// Per-item parse runs as a server action under this route; give it headroom.
+export const maxDuration = 300;
 
 export default async function ImportSessionReviewPage({
   params,
@@ -46,7 +50,10 @@ export default async function ImportSessionReviewPage({
     skipped: session.items.filter((i) => i.status === "SKIPPED").length,
     failed: session.items.filter((i) => i.status === "FAILED").length,
   };
-  const allHandled = counts.parsed === 0;
+  const pendingIds = session.items
+    .filter((i) => i.status === "PENDING" || i.status === "PARSING")
+    .map((i) => i.id);
+  const allHandled = counts.parsed === 0 && pendingIds.length === 0;
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-8">
@@ -65,6 +72,10 @@ export default async function ImportSessionReviewPage({
         </div>
         <FinalizeButton sessionId={session.id} disabled={!allHandled || session.status === "FINALIZED"} />
       </div>
+
+      {session.status !== "FINALIZED" && pendingIds.length > 0 && (
+        <AutoParser itemIds={pendingIds} />
+      )}
 
       {session.status === "FINALIZED" && (
         <div className="mt-4 rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-900">
