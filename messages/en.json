@@ -14,7 +14,8 @@
     "none": "—",
     "edit": "Edit",
     "save": "Save",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "pdfZip": "PDF (ZIP)"
   },
   "Auth": {
     "login": "Log in",

@@ -10,6 +10,7 @@ import { SearchBar } from "@/components/search-bar";
 import { SortHeader } from "@/components/sort-header";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
+import { PdfZipExport } from "@/components/pdf-zip-export";
 
 import { documentStatusClass } from "@/lib/status-style";
 import type { DocumentStatus } from "@prisma/client";
@@ -71,14 +72,22 @@ export default async function CreditNotesPage({
         title={t("CreditNotes.title")}
         description="Opravný daňový doklad — issued from an invoice detail page."
         actions={
-          <a
-            href={`/${locale}/credit-notes/export.xlsx${q ? `?q=${encodeURIComponent(q)}` : ""}`}
-            download
-          >
-            <Button variant="outline" size="sm" className="gap-1.5">
-              <Download size={14} /> Excel
-            </Button>
-          </a>
+          <>
+            <PdfZipExport
+              action={`/${locale}/credit-notes/export.zip`}
+              label={t("Common.pdfZip")}
+              defaultMonth={new Date().toISOString().slice(0, 7)}
+              q={q || undefined}
+            />
+            <a
+              href={`/${locale}/credit-notes/export.xlsx${q ? `?q=${encodeURIComponent(q)}` : ""}`}
+              download
+            >
+              <Button variant="outline" size="sm" className="gap-1.5">
+                <Download size={14} /> Excel
+              </Button>
+            </a>
+          </>
         }
       />
       <p className="hidden">

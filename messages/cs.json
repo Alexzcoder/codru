@@ -14,7 +14,8 @@
     "none": "—",
     "edit": "Upravit",
     "save": "Uložit",
-    "cancel": "Zrušit"
+    "cancel": "Zrušit",
+    "pdfZip": "PDF (ZIP)"
   },
   "Auth": {
     "login": "Přihlášení",

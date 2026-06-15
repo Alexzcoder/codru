@@ -44,5 +44,7 @@ next-env.d.ts
 # pricing model: extracted past quotes (client data — don't commit)
 .pricing-data/
 
-# raw zips dropped in repo root
-*.zip
+# raw zips dropped in repo root (root-scoped so it doesn't catch the
+# src/.../export.zip route directories)
+/*.zip
+admin-credentials.txt
