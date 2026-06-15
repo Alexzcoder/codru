@@ -7,12 +7,14 @@ export const dynamic = "force-dynamic";
 export async function GET(req: Request) {
   const { workspace } = await requireWorkspace();
   const url = new URL(req.url);
-  const q = url.searchParams.get("q");
   const { buffer, filename } = await buildDocumentsWorkbook({
     workspaceId: workspace.id,
     type: "CREDIT_NOTE",
-    q,
-    sheetName: "Credit notes",
+    q: url.searchParams.get("q"),
+    from: url.searchParams.get("from"),
+    to: url.searchParams.get("to"),
+    sheetName: "Opravné doklady",
+    titleNoun: "opravných dokladů",
   });
   return new Response(buffer, {
     headers: {

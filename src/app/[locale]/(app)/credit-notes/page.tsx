@@ -8,9 +8,8 @@ import { PageHeader } from "@/components/page-header";
 import { ClickableRow } from "@/components/clickable-row";
 import { SearchBar } from "@/components/search-bar";
 import { SortHeader } from "@/components/sort-header";
-import { Button } from "@/components/ui/button";
-import { Download } from "lucide-react";
 import { PdfZipExport } from "@/components/pdf-zip-export";
+import { ExcelExport } from "@/components/excel-export";
 
 import { documentStatusClass } from "@/lib/status-style";
 import type { DocumentStatus } from "@prisma/client";
@@ -83,19 +82,12 @@ export default async function CreditNotesPage({
               }))}
               q={q || undefined}
             />
-            <a
-              href={`/${locale}/credit-notes/export.xlsx${q ? `?q=${encodeURIComponent(q)}` : ""}`}
-              download
-            >
-              <Button variant="outline" size="sm" className="gap-1.5">
-                <Download size={14} /> Excel
-              </Button>
-            </a>
+            <ExcelExport action={`/${locale}/credit-notes/export.xlsx`} q={q || undefined} />
           </>
         }
       />
       <p className="hidden">
-        Opravný daňový doklad — issued from an invoice's detail page.
+        Opravný daňový doklad — issued from an invoice&apos;s detail page.
       </p>
 
       <div className="mb-4">

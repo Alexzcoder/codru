@@ -9,8 +9,9 @@ import { PageHeader } from "@/components/page-header";
 import { ClickableRow } from "@/components/clickable-row";
 import { SearchBar } from "@/components/search-bar";
 import { SortHeader } from "@/components/sort-header";
-import { Plus, Download } from "lucide-react";
+import { Plus } from "lucide-react";
 import { PdfZipExport } from "@/components/pdf-zip-export";
+import { ExcelExport } from "@/components/excel-export";
 
 import { documentStatusClass } from "@/lib/status-style";
 import type { DocumentStatus } from "@prisma/client";
@@ -81,11 +82,7 @@ export default async function FinalInvoicesPage({
               statuses={allowed.map((s) => ({ value: s, label: t(`FinalInvoices.status.${s}`) }))}
               q={q || undefined}
             />
-            <a href={`/${locale}/final-invoices/export.xlsx${q ? `?q=${encodeURIComponent(q)}` : ""}`} download>
-              <Button variant="outline" size="sm" className="gap-1.5">
-                <Download size={14} /> Excel
-              </Button>
-            </a>
+            <ExcelExport action={`/${locale}/final-invoices/export.xlsx`} q={q || undefined} />
             <Link href="/final-invoices/new">
               <Button size="sm" className="gap-1.5">
                 <Plus size={14} /> {t("FinalInvoices.new")}

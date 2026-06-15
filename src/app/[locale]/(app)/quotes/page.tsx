@@ -9,8 +9,9 @@ import { PageHeader } from "@/components/page-header";
 import { ClickableRow } from "@/components/clickable-row";
 import { SearchBar } from "@/components/search-bar";
 import { SortHeader } from "@/components/sort-header";
-import { Plus, Download } from "lucide-react";
+import { Plus } from "lucide-react";
 import { PdfZipExport } from "@/components/pdf-zip-export";
+import { ExcelExport } from "@/components/excel-export";
 import type { DocumentStatus } from "@prisma/client";
 import { documentStatusClass } from "@/lib/status-style";
 
@@ -90,11 +91,7 @@ export default async function QuotesPage({
               statuses={allowed.map((s) => ({ value: s, label: t(`Quotes.status.${s}`) }))}
               q={q || undefined}
             />
-            <a href={`/${locale}/quotes/export.xlsx${q ? `?q=${encodeURIComponent(q)}` : ""}`} download>
-              <Button variant="outline" size="sm" className="gap-1.5">
-                <Download size={14} /> Excel
-              </Button>
-            </a>
+            <ExcelExport action={`/${locale}/quotes/export.xlsx`} q={q || undefined} />
             <Link href="/quotes/new">
               <Button size="sm" className="gap-1.5">
                 <Plus size={14} /> {t("Quotes.newQuote")}
