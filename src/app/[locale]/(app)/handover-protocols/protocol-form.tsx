@@ -65,10 +65,12 @@ export function ProtocolForm({
   protocolId,
   initial,
   printHref,
+  blankPrintHref,
 }: {
   protocolId: string;
   initial: ProtocolFormValues;
   printHref: string;
+  blankPrintHref: string;
 }) {
   const t = useTranslations("HandoverProtocols");
 
@@ -497,6 +499,11 @@ export function ProtocolForm({
             )}
           </div>
           <div className="flex gap-2">
+            <a href={blankPrintHref} target="_blank" rel="noreferrer">
+              <Button type="button" variant="outline" size="sm">
+                {t("printBlank")}
+              </Button>
+            </a>
             <a href={printHref} target="_blank" rel="noreferrer">
               <Button type="button" variant="outline" size="sm">
                 {t("print")}

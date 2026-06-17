@@ -113,6 +113,7 @@ export default async function ProtocolDetailPage({
           protocolId={id}
           initial={initial}
           printHref={`/${locale}/handover-protocols/${id}/print`}
+          blankPrintHref={`/${locale}/handover-protocols/${id}/print?blank=1`}
         />
       </div>
     </div>

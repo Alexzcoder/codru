@@ -701,6 +701,7 @@
     "delete": "Delete",
     "deleteConfirm": "This protocol will be deleted.",
     "print": "Print / preview",
+    "printBlank": "Print blank form",
     "save": "Save",
     "saving": "Saving…",
     "savedAt": "Saved {time}",

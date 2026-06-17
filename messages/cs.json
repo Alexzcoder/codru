@@ -701,6 +701,7 @@
     "delete": "Smazat",
     "deleteConfirm": "Tento protokol bude smazán.",
     "print": "Tisk / náhled",
+    "printBlank": "Tisk prázdné verze",
     "save": "Uložit",
     "saving": "Ukládám…",
     "savedAt": "Uloženo {time}",

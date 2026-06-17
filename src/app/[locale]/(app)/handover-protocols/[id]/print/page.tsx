@@ -29,12 +29,20 @@ function Check({ on }: { on: boolean }) {
 
 export default async function ProtocolPrintPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string; id: string }>;
+  searchParams: Promise<{ blank?: string }>;
 }) {
   const { locale, id } = await params;
+  const { blank } = await searchParams;
   setRequestLocale(locale);
   const { workspace } = await requireWorkspace();
+
+  // "Blank-form" mode: keep the identification + item names + dates, but
+  // render every checkbox empty so the worker can tick them by hand on the
+  // printed sheet. Used by the "Print blank form" button on the editor.
+  const isBlank = blank === "1" || blank === "true";
 
   const p = await prisma.handoverProtocol.findFirst({
     where: { id, workspaceId: workspace.id },
@@ -67,7 +75,12 @@ export default async function ProtocolPrintPage({
         .protokol .small { font-size: 10px; color: #555; }
       `}</style>
 
-      <div className="no-print mx-auto max-w-[800px] px-6 pt-4 text-right">
+      <div className="no-print mx-auto max-w-[800px] flex items-center justify-between px-6 pt-4">
+        <p className="text-xs text-muted-foreground">
+          {isBlank
+            ? "Blank form — every checkbox empty, ready for on-site completion by hand."
+            : "Filled version — checkboxes reflect the saved protocol."}
+        </p>
         <PrintButton label="Tisk / Print" />
       </div>
 
@@ -85,8 +98,8 @@ export default async function ProtocolPrintPage({
           <div className="field"><span className="field-label">Adresa realizace:</span><span className="field-value">{p.siteAddress ?? ""}</span></div>
           <div className="field"><span className="field-label">Zhotovitel:</span><span className="field-value">{p.contractorName ?? ""}</span></div>
           <div className="field"><span className="field-label">Vedoucí zakázky:</span><span className="field-value">{p.leaderName ?? ""}</span></div>
-          <div className="field"><span className="field-label">Datum realizace:</span><span className="field-value">{fmtDate(p.realizationDate)}</span></div>
-          <div className="field"><span className="field-label">Datum podpisu:</span><span className="field-value">{fmtDate(p.signedAt)}</span></div>
+          <div className="field"><span className="field-label">Datum realizace:</span><span className="field-value">{isBlank ? "" : fmtDate(p.realizationDate)}</span></div>
+          <div className="field"><span className="field-label">Datum podpisu:</span><span className="field-value">{isBlank ? "" : fmtDate(p.signedAt)}</span></div>
         </div>
 
         <h2>2. Položky – původní rozsah a skutečné provedení</h2>
@@ -127,9 +140,9 @@ export default async function ProtocolPrintPage({
                   </td>
                   <td style={{ textAlign: "right" }}>{it.quantity ?? ""}</td>
                   <td>{it.unit ?? ""}</td>
-                  <td style={{ textAlign: "center" }}><Check on={it.completed} /></td>
-                  <td style={{ textAlign: "center" }}><Check on={it.notCompleted} /></td>
-                  <td>{it.note ?? ""}</td>
+                  <td style={{ textAlign: "center" }}><Check on={!isBlank && it.completed} /></td>
+                  <td style={{ textAlign: "center" }}><Check on={!isBlank && it.notCompleted} /></td>
+                  <td>{isBlank ? "" : it.note ?? ""}</td>
                 </tr>
               ))
             )}
@@ -138,49 +151,56 @@ export default async function ProtocolPrintPage({
 
         <h2>3. Vícepráce</h2>
         <div className="check-row">
-          <span className="check"><Check on={!p.vicepraceDone} /> Ne</span>
-          <span className="check"><Check on={p.vicepraceDone} /> Ano</span>
+          <span className="check"><Check on={!isBlank && !p.vicepraceDone} /> Ne</span>
+          <span className="check"><Check on={!isBlank && p.vicepraceDone} /> Ano</span>
         </div>
-        {p.vicepraceDone && (
+        {(isBlank || p.vicepraceDone) && (
           <div style={{ marginTop: 4 }}>
-            <div className="field"><span className="field-label">Popis víceprací:</span><span className="field-value">{p.vicepraceDescription ?? ""}</span></div>
-            <div className="field"><span className="field-label">Cena víceprací:</span><span className="field-value">{p.vicepracePrice ?? ""}</span></div>
-            <div className="field"><span className="field-label">Souhlas zákazníka:</span><span className="field-value">{p.vicepraceConsent ?? ""}</span></div>
+            <div className="field"><span className="field-label">Popis víceprací:</span><span className="field-value">{isBlank ? "" : p.vicepraceDescription ?? ""}</span></div>
+            <div className="field"><span className="field-label">Cena víceprací:</span><span className="field-value">{isBlank ? "" : p.vicepracePrice ?? ""}</span></div>
+            <div className="field"><span className="field-label">Souhlas zákazníka:</span><span className="field-value">{isBlank ? "" : p.vicepraceConsent ?? ""}</span></div>
           </div>
         )}
 
         <h2>4. Použitý materiál</h2>
-        <div className="field-value" style={{ minHeight: 28, whiteSpace: "pre-wrap" }}>{p.usedMaterials ?? ""}</div>
+        <div className="field-value" style={{ minHeight: 28, whiteSpace: "pre-wrap" }}>{isBlank ? "" : p.usedMaterials ?? ""}</div>
 
         <h2>5. Odpad / bioodpad</h2>
-        <div className="field"><span className="field-label">Rozsah:</span><span className="field-value">{p.wasteGenerated ?? ""}</span></div>
-        <div className="field"><span className="field-label">Odvoz:</span><span className="field-value">{p.wasteRemoved ?? ""}</span></div>
+        <div className="field"><span className="field-label">Rozsah:</span><span className="field-value">{isBlank ? "" : p.wasteGenerated ?? ""}</span></div>
+        <div className="field"><span className="field-label">Odvoz:</span><span className="field-value">{isBlank ? "" : p.wasteRemoved ?? ""}</span></div>
 
         <h2>6. Fotodokumentace</h2>
         <div className="check-row">
-          <span className="check"><Check on={p.photosBeforeTaken} /> před zahájením prací</span>
-          <span className="check"><Check on={p.photosDuringTaken} /> v průběhu prací</span>
-          <span className="check"><Check on={p.photosAfterTaken} /> po dokončení prací</span>
+          <span className="check"><Check on={!isBlank && p.photosBeforeTaken} /> před zahájením prací</span>
+          <span className="check"><Check on={!isBlank && p.photosDuringTaken} /> v průběhu prací</span>
+          <span className="check"><Check on={!isBlank && p.photosAfterTaken} /> po dokončení prací</span>
         </div>
 
         <h2>7. Stav předání</h2>
         <div className="check-row">
-          <span className="check"><Check on={p.acceptance === "ACCEPTED_NO_ISSUES"} /> převzato bez vad</span>
-          <span className="check"><Check on={p.acceptance === "ACCEPTED_WITH_RESERVATIONS"} /> převzato s výhradami</span>
-          <span className="check"><Check on={p.acceptance === "NOT_ACCEPTED"} /> nepřevzato</span>
-          <span className="check"><Check on={p.acceptance === "CLIENT_ABSENT"} /> klient nebyl přítomen</span>
+          <span className="check"><Check on={!isBlank && p.acceptance === "ACCEPTED_NO_ISSUES"} /> převzato bez vad</span>
+          <span className="check"><Check on={!isBlank && p.acceptance === "ACCEPTED_WITH_RESERVATIONS"} /> převzato s výhradami</span>
+          <span className="check"><Check on={!isBlank && p.acceptance === "NOT_ACCEPTED"} /> nepřevzato</span>
+          <span className="check"><Check on={!isBlank && p.acceptance === "CLIENT_ABSENT"} /> klient nebyl přítomen</span>
         </div>
-        {p.clientReservations && (
+        {!isBlank && p.clientReservations && (
           <div style={{ marginTop: 6 }}>
             <div className="field"><span className="field-label">Výhrady:</span><span className="field-value">{p.clientReservations}</span></div>
           </div>
         )}
 
-        {p.contractorNote && (
+        {isBlank ? (
           <>
             <h2>8. Poznámka zhotovitele</h2>
-            <div className="field-value" style={{ minHeight: 28, whiteSpace: "pre-wrap" }}>{p.contractorNote}</div>
+            <div className="field-value" style={{ minHeight: 36 }}></div>
           </>
+        ) : (
+          p.contractorNote && (
+            <>
+              <h2>8. Poznámka zhotovitele</h2>
+              <div className="field-value" style={{ minHeight: 28, whiteSpace: "pre-wrap" }}>{p.contractorNote}</div>
+            </>
+          )
         )}
 
         <div className="signature">
