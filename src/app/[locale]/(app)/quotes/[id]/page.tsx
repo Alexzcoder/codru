@@ -14,6 +14,7 @@ import {
   markQuoteRejected,
   markQuoteSent,
 } from "../actions";
+import { createProtocolFromQuote } from "../../handover-protocols/actions";
 import { BackLink } from "@/components/back-link";
 import { EmailComposerButton } from "@/components/email-composer";
 import { EmailHistory } from "@/components/email-history";
@@ -81,6 +82,10 @@ export default async function QuoteDetailPage({
   const cancelBound = async () => {
     "use server";
     await cancelQuote(id);
+  };
+  const generateProtocolBound = async () => {
+    "use server";
+    await createProtocolFromQuote(id);
   };
 
   const snapshot = doc.pdfSnapshots[0];
@@ -211,6 +216,13 @@ export default async function QuoteDetailPage({
             </Link>
           </>
         )}
+        {/* Available from draft onwards so the handover protocol can be staged
+            alongside the quote, not blocked on a sent/accepted transition. */}
+        <form action={generateProtocolBound}>
+          <Button type="submit" variant="outline" size="sm">
+            → {t("HandoverProtocols.generateFromQuote")}
+          </Button>
+        </form>
       </div>
 
       {/* Meta */}

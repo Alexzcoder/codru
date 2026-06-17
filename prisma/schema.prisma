@@ -68,6 +68,7 @@ model Workspace {
   podcastEpisodes   PodcastEpisode[]
   importBatches     ImportBatch[]
   docImportSessions DocumentImportSession[]
+  handoverProtocols HandoverProtocol[]
 }
 
 model Membership {
@@ -125,6 +126,7 @@ model User {
   podcastEpisodesCreated   PodcastEpisode[]        @relation("PodcastEpisodeCreator")
   importBatchesCreated     ImportBatch[]           @relation("ImportBatchCreator")
   docImportSessionsCreated DocumentImportSession[] @relation("DocImportSessionCreator")
+  handoverProtocolsCreated HandoverProtocol[]      @relation("HandoverProtocolCreator")
 }
 
 model Invite {
@@ -327,6 +329,7 @@ model Client {
   payments          Payment[]
   attachments       Attachment[]
   docImportItems    DocumentImportItem[] @relation("DocImportItemMatchedClient")
+  handoverProtocols HandoverProtocol[]
 
   @@index([workspaceId])
   @@index([status])
@@ -429,12 +432,13 @@ model Job {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  assignments    JobAssignment[]
-  contactLogs    ContactLog[]
-  attachments    Attachment[]
-  calendarEvents CalendarEvent[]
-  documents      Document[]
-  expenses       Expense[]
+  assignments       JobAssignment[]
+  contactLogs       ContactLog[]
+  attachments       Attachment[]
+  calendarEvents    CalendarEvent[]
+  documents         Document[]
+  expenses          Expense[]
+  handoverProtocols HandoverProtocol[]
 
   recurrenceRuleId String?
   recurrenceRule   RecurrenceRule? @relation("JobsFromRule", fields: [recurrenceRuleId], references: [id], onDelete: SetNull)
@@ -748,6 +752,9 @@ model Document {
   // AI document-import provenance (set when the doc was created from a PDF
   // via an import session).
   docImportItems DocumentImportItem[] @relation("DocImportItemCreatedDoc")
+
+  // M-Protocols: handover protocols generated from this document (quotes only)
+  handoverProtocols HandoverProtocol[] @relation("ProtocolFromQuote")
 
   // Uniqueness on the legal number string. Per-day numbering resets
   // `numberSeq` daily, so the old (yearSeries, numberSeq) tuple collided
@@ -1281,4 +1288,117 @@ model EventAttachment {
 
   @@index([eventId, createdAt])
   @@index([todoId])
+}
+
+// ──────────────────────────────────────────────────────────
+// Handover protocols — Předávací protokol / Protokol o provedených pracích.
+// Trades workflow: after a job is done, worker fills this in with the client.
+// Each item carries two independent boolean flags (completed / not completed)
+// so a partial completion can be represented without a separate section.
+// ──────────────────────────────────────────────────────────
+
+enum HandoverStatus {
+  DRAFT
+  COMPLETED
+}
+
+enum HandoverAcceptance {
+  PENDING
+  ACCEPTED_NO_ISSUES         // převzato bez vad
+  ACCEPTED_WITH_RESERVATIONS // převzato s výhradami
+  NOT_ACCEPTED               // nepřevzato
+  CLIENT_ABSENT              // klient nebyl při předání přítomen
+}
+
+model HandoverProtocol {
+  id          String    @id @default(cuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  // Optional links — protocols also work fully blank (free-text fields below).
+  clientId      String?
+  client        Client?   @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  jobId         String?
+  job           Job?      @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  sourceQuoteId String?
+  sourceQuote   Document? @relation("ProtocolFromQuote", fields: [sourceQuoteId], references: [id], onDelete: SetNull)
+
+  // Human-readable reference (not legally gapless).
+  number String?
+
+  // Free-text identity (works without client FK)
+  clientName    String
+  clientPhone   String?
+  clientEmail   String?
+  siteAddress   String?
+  zakazkaNumber String?
+
+  // Contractor / leader
+  contractorName String?
+  leaderName     String?
+
+  // Dates
+  realizationDate DateTime?
+  signedAt        DateTime?
+
+  // Vícepráce
+  vicepraceDone        Boolean @default(false)
+  vicepraceDescription String?
+  vicepracePrice       String?
+  vicepraceConsent     String?
+
+  // Materials, waste
+  usedMaterials  String?
+  wasteGenerated String?
+  wasteRemoved   String?
+
+  // Photo flags
+  photosBeforeTaken Boolean @default(false)
+  photosDuringTaken Boolean @default(false)
+  photosAfterTaken  Boolean @default(false)
+
+  // Acceptance
+  acceptance         HandoverAcceptance @default(PENDING)
+  clientReservations String?
+
+  contractorNote String?
+
+  status      HandoverStatus @default(DRAFT)
+  createdById String
+  createdBy   User           @relation("HandoverProtocolCreator", fields: [createdById], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items HandoverProtocolItem[]
+
+  @@index([workspaceId])
+  @@index([clientId])
+  @@index([jobId])
+  @@index([sourceQuoteId])
+  @@index([status])
+}
+
+model HandoverProtocolItem {
+  id          String           @id @default(cuid())
+  protocolId  String
+  protocol    HandoverProtocol @relation(fields: [protocolId], references: [id], onDelete: Cascade)
+  position    Int
+  name        String
+  description String?
+  quantity    String?
+  unit        String?
+
+  // Two independent checkboxes — completed / not completed. Both default to
+  // false (item still TBD). On a partial completion, leave both false and use
+  // the note field to describe what was missed.
+  completed    Boolean @default(false)
+  notCompleted Boolean @default(false)
+  note         String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([protocolId, position])
+  @@index([protocolId])
 }
