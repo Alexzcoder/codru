@@ -27,20 +27,35 @@ const expenseSchema = z.object({
 
 export type ExpenseState = { error?: string };
 
+// Never throw on user input. A Czech decimal comma ("1234,50"), thousands
+// spaces, or a stray symbol must not 500 the server action — treat unparseable
+// input as 0 instead of letting `new Decimal()` throw.
+function toDec(x: string | null | undefined): Decimal {
+  if (!x) return new Decimal(0);
+  const norm = x.replace(/\s/g, "").replace(",", ".");
+  try {
+    const d = new Decimal(norm);
+    return d.isFinite() ? d : new Decimal(0);
+  } catch {
+    return new Decimal(0);
+  }
+}
+
 function computeAmounts(raw: z.infer<typeof expenseSchema>) {
-  const net = new Decimal(raw.netAmount || "0");
-  const rate = new Decimal(raw.vatRatePercent || "0");
+  const net = toDec(raw.netAmount);
+  const rate = toDec(raw.vatRatePercent);
   const reverseCharge = raw.reverseCharge ?? false;
 
   // Auto-compute VAT amount if not provided (user can override).
   const autoVat = reverseCharge
     ? new Decimal(0)
     : net.mul(rate).div(100).toDecimalPlaces(2, Decimal.ROUND_HALF_UP);
-  const vat = raw.vatAmount && raw.vatAmount !== "" ? new Decimal(raw.vatAmount) : autoVat;
+  const vat = raw.vatAmount && raw.vatAmount !== "" ? toDec(raw.vatAmount) : autoVat;
   const total = net.plus(vat);
 
   return {
     net: net.toFixed(2),
+    rate: rate.toString(),
     vat: vat.toFixed(2),
     total: total.toFixed(2),
   };
@@ -74,7 +89,7 @@ export async function createExpense(
       supplier: d.supplier || null,
       description: d.description,
       netAmount: amounts.net,
-      vatRatePercent: d.vatRatePercent,
+      vatRatePercent: amounts.rate,
       vatAmount: amounts.vat,
       totalAmount: amounts.total,
       currency: d.currency,
@@ -135,7 +150,7 @@ export async function updateExpense(
       supplier: d.supplier || null,
       description: d.description,
       netAmount: amounts.net,
-      vatRatePercent: d.vatRatePercent,
+      vatRatePercent: amounts.rate,
       vatAmount: amounts.vat,
       totalAmount: amounts.total,
       currency: d.currency,

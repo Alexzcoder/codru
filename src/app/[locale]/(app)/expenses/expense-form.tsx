@@ -36,6 +36,9 @@ export function ExpenseForm({
 
   const [net, setNet] = useState(initial?.netAmount?.toString() ?? "0.00");
   const [rate, setRate] = useState(initial?.vatRatePercent?.toString() ?? "21");
+  // VAT amount follows net×rate automatically; a manual edit pins it (override).
+  const [vatManual, setVatManual] = useState(initial?.vatAmount?.toString() ?? "");
+  const [vatTouched, setVatTouched] = useState(initial?.vatAmount != null);
   const [reverseCharge, setReverseCharge] = useState(
     initial?.reverseCharge ?? false,
   );
@@ -85,6 +88,8 @@ export function ExpenseForm({
       if (s.date) setDate(s.date.slice(0, 10));
       if (s.description) setDescription(s.description);
       if (s.vatRatePercent != null) setRate(String(s.vatRatePercent));
+      // Let VAT re-derive from the scanned net × rate.
+      setVatTouched(false);
       // Prefer net if printed; else derive from total + vat rate.
       if (s.netAmount != null) {
         setNet(s.netAmount.toFixed(2));
@@ -99,18 +104,25 @@ export function ExpenseForm({
     });
   };
 
+  // parseFloat tolerates a trailing "." and junk -> NaN, which we coerce to 0
+  // so the live preview never shows NaN. Czech comma is normalized too.
+  const num = (s: string) => {
+    const n = Number.parseFloat((s || "").replace(",", "."));
+    return Number.isFinite(n) ? n : 0;
+  };
+
   const autoVat = useMemo(() => {
     if (reverseCharge) return "0.00";
-    const n = Number.parseFloat(net || "0");
-    const r = Number.parseFloat(rate || "0");
-    return ((n * r) / 100).toFixed(2);
+    return ((num(net) * num(rate)) / 100).toFixed(2);
   }, [net, rate, reverseCharge]);
 
-  const total = useMemo(() => {
-    const n = Number.parseFloat(net || "0");
-    const v = Number.parseFloat(autoVat);
-    return (n + v).toFixed(2);
-  }, [net, autoVat]);
+  // Shown/submitted VAT: the manual override if the user touched it, else auto.
+  const vat = reverseCharge ? "0.00" : vatTouched ? vatManual : autoVat;
+
+  const total = useMemo(
+    () => (num(net) + num(vat)).toFixed(2),
+    [net, vat],
+  );
 
   return (
     <form action={formAction} className="space-y-5 max-w-3xl">
@@ -242,7 +254,12 @@ export function ExpenseForm({
           <Input
             id="vatAmount"
             name="vatAmount"
-            defaultValue={autoVat}
+            value={vat}
+            onChange={(e) => {
+              setVatTouched(true);
+              setVatManual(e.target.value);
+            }}
+            disabled={reverseCharge}
             inputMode="decimal"
             placeholder={autoVat}
           />
