@@ -1,6 +1,13 @@
-import { addDays, sameDay, startOfDay, startOfWeek } from "@/lib/calendar-dates";
+import { addDays, sameDay, startOfWeek } from "@/lib/calendar-dates";
 import type { CalendarItem } from "./calendar-item";
 import { HourAxis, TimeGridColumn, AllDayStrip } from "./time-grid";
+import { coversDay } from "./calendar-span";
+
+// Local Y-M-D of a calendar cell date; equals its Prague day since the date is
+// built from local-midnight fields and Prague is always east of UTC.
+function cellDayKey(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
 
 export function WeekView({
   anchorDate,
@@ -15,9 +22,10 @@ export function WeekView({
   const days: { date: Date; items: CalendarItem[] }[] = [];
   for (let i = 0; i < 7; i++) {
     const d = addDays(start, i);
+    const key = cellDayKey(d);
     days.push({
       date: d,
-      items: items.filter((it) => sameDay(it.start, d)),
+      items: items.filter((it) => coversDay(it.start, it.end, key)),
     });
   }
   const today = new Date();
@@ -67,7 +75,7 @@ export function WeekView({
         <HourAxis />
         {days.map(({ date, items }, i) => (
           <div key={i} className="flex-1 min-w-0">
-            <TimeGridColumn dayStart={startOfDay(date)} items={items} />
+            <TimeGridColumn dayKey={cellDayKey(date)} items={items} />
           </div>
         ))}
       </div>

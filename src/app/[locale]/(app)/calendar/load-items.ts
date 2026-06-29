@@ -31,7 +31,11 @@ export async function loadCalendarItems({
       ? prisma.job.findMany({
           where: {
             workspaceId,
-            scheduledStart: { gte: start, lt: end },
+            // Starts in the window, OR started earlier but runs into it (multi-day).
+            OR: [
+              { scheduledStart: { gte: start, lt: end } },
+              { AND: [{ scheduledStart: { lt: start } }, { scheduledEnd: { gte: start } }] },
+            ],
             // Hide finished work by default so the grid only shows what's
             // still on the agenda. Operators can re-open completed jobs from
             // the /jobs list if they need to review.
@@ -49,7 +53,11 @@ export async function loadCalendarItems({
     prisma.calendarEvent.findMany({
       where: {
         workspaceId,
-        startsAt: { gte: start, lt: end },
+        // Starts in the window, OR started earlier but runs into it (multi-day).
+        OR: [
+          { startsAt: { gte: start, lt: end } },
+          { AND: [{ startsAt: { lt: start } }, { endsAt: { gte: start } }] },
+        ],
         ...(assigneeId && { assigneeId }),
       },
       include: {

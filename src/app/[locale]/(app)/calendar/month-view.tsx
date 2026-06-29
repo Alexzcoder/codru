@@ -2,20 +2,8 @@ import { Link } from "@/i18n/navigation";
 import { addDays, monthGridRange, sameDay, startOfMonth, endOfMonth } from "@/lib/calendar-dates";
 import type { CalendarItem } from "./calendar-item";
 import { formatTimePrague } from "@/lib/format-datetime";
+import { coversDay } from "./calendar-span";
 
-// Prague-day key as YYYY-MM-DD. We can't use `sameDay` for placing items in
-// month cells because that compares server-local fields — on Vercel the
-// server runs UTC, so a 23:00 Prague job (= 21:00 UTC) and a 01:00 Prague
-// job (= 23:00 UTC prev day) both get placed on the wrong calendar cell.
-const DAY_KEY_FORMATTER = new Intl.DateTimeFormat("sv-SE", {
-  timeZone: "Europe/Prague",
-  year: "numeric",
-  month: "2-digit",
-  day: "2-digit",
-});
-function pragueDayKey(d: Date): string {
-  return DAY_KEY_FORMATTER.format(d);
-}
 // The cell's `Date` is already at local-midnight (constructed from year,
 // month, day fields) — its Prague-projected day equals the calendar day
 // it represents, since Prague is always east of UTC.
@@ -41,7 +29,8 @@ export function MonthView({
     const key = cellDayKey(d);
     cells.push({
       date: d,
-      items: items.filter((it) => pragueDayKey(it.start) === key),
+      // A multi-day item appears in every cell from its start day to its end day.
+      items: items.filter((it) => coversDay(it.start, it.end, key)),
     });
   }
 

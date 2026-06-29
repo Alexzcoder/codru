@@ -1,6 +1,7 @@
 import { Link } from "@/i18n/navigation";
 import type { CalendarItem } from "./calendar-item";
-import { formatTimePrague, pragueParts } from "@/lib/format-datetime";
+import { formatTimePrague } from "@/lib/format-datetime";
+import { pragueDayKey, minuteOfDayPrague, itemEndDayKey } from "./calendar-span";
 
 // 48 px per hour → full day = 1152 px. The scroll-container below caps the
 // visible height so the whole day fits most screens without scrolling.
@@ -19,26 +20,18 @@ type Positioned = {
 // other. Classic calendar-grid layout: within a cluster of transitively-
 // overlapping events, each gets a column index 0..N-1, and renders with
 // width = 100%/N, left = col * width.
-// Project a Date onto a Prague-local minute-of-day. Anchored on Prague
-// midnight, NOT server midnight — on Vercel the server is UTC, so naïve
-// `entry.start - dayStart` arithmetic shifts blocks by 1–2 hours
-// (DST-dependent) and the rendered position no longer matches the label.
-function minuteOfDayPrague(d: Date): number {
-  const p = pragueParts(d);
-  return p.hour * 60 + p.minute;
-}
-
-function positionDayEvents(items: CalendarItem[]): Positioned[] {
+//
+// `dayKey` is the Prague day this column renders. A multi-day event is clamped
+// to this day's slice: if it began earlier it starts at 00:00, if it ends later
+// it runs to 24:00 — so each day shows its own portion of the span.
+function positionDayEvents(items: CalendarItem[], dayKey: string): Positioned[] {
   const entries = items
     .filter((it) => !it.allDay)
     .map((it) => {
-      const startMin = minuteOfDayPrague(it.start);
       const endRaw =
         it.end ?? new Date(it.start.getTime() + DEFAULT_DURATION_MIN * 60 * 1000);
-      // If the event ends on a later Prague-day, clamp to end-of-day so the
-      // block doesn't spill past the visible 24h column.
-      const sameDay = pragueDayKey(endRaw) === pragueDayKey(it.start);
-      const endMin = sameDay ? minuteOfDayPrague(endRaw) : 24 * 60;
+      const startMin = pragueDayKey(it.start) < dayKey ? 0 : minuteOfDayPrague(it.start);
+      const endMin = itemEndDayKey(it.start, it.end) > dayKey ? 24 * 60 : minuteOfDayPrague(endRaw);
       return { item: it, start: startMin, end: Math.max(endMin, startMin + 1) };
     })
     .sort((a, b) => a.start - b.start || b.end - a.end);
@@ -79,24 +72,14 @@ function positionDayEvents(items: CalendarItem[]): Positioned[] {
   return result;
 }
 
-const DAY_KEY_FORMATTER = new Intl.DateTimeFormat("sv-SE", {
-  timeZone: "Europe/Prague",
-  year: "numeric",
-  month: "2-digit",
-  day: "2-digit",
-});
-function pragueDayKey(d: Date): string {
-  return DAY_KEY_FORMATTER.format(d);
-}
-
 export function TimeGridColumn({
-  dayStart: _dayStart,
+  dayKey,
   items,
 }: {
-  dayStart: Date;
+  dayKey: string;
   items: CalendarItem[];
 }) {
-  const positioned = positionDayEvents(items);
+  const positioned = positionDayEvents(items, dayKey);
   return (
     <div
       className="relative border-l border-border"

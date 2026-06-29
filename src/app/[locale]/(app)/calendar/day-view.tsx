@@ -1,4 +1,3 @@
-import { startOfDay } from "@/lib/calendar-dates";
 import type { CalendarItem } from "./calendar-item";
 import { HourAxis, TimeGridColumn, AllDayStrip } from "./time-grid";
 
@@ -9,7 +8,7 @@ export function DayView({
   anchorDate: Date;
   items: CalendarItem[];
 }) {
-  const dayStart = startOfDay(anchorDate);
+  const dayKey = `${anchorDate.getFullYear()}-${String(anchorDate.getMonth() + 1).padStart(2, "0")}-${String(anchorDate.getDate()).padStart(2, "0")}`;
   const dateLabel = anchorDate.toLocaleDateString(undefined, { dateStyle: "full" });
 
   return (
@@ -21,7 +20,7 @@ export function DayView({
       <div className="flex overflow-auto" style={{ maxHeight: "70vh" }}>
         <HourAxis />
         <div className="flex-1">
-          <TimeGridColumn dayStart={dayStart} items={items} />
+          <TimeGridColumn dayKey={dayKey} items={items} />
         </div>
       </div>
     </div>
