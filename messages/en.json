@@ -15,7 +15,8 @@
     "edit": "Edit",
     "save": "Save",
     "cancel": "Cancel",
-    "pdfZip": "PDF (ZIP)"
+    "pdfZip": "PDF (ZIP)",
+    "noResults": "No results"
   },
   "Auth": {
     "login": "Log in",
@@ -475,7 +476,15 @@
     "markComplete": "Mark complete",
     "markUncomplete": "Mark pending",
     "filter": "Assigned team",
-    "weekdays": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+    "weekdays": [
+      "Mon",
+      "Tue",
+      "Wed",
+      "Thu",
+      "Fri",
+      "Sat",
+      "Sun"
+    ]
   },
   "Jobs": {
     "title": "Jobs",

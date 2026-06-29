@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
+import { JobCombobox } from "@/components/job-combobox";
 import type { PaymentState } from "./actions";
 
 export type ClientChoice = {
@@ -149,26 +150,21 @@ export function PaymentForm({
       <div className="grid gap-4 md:grid-cols-3">
         <div className="space-y-2">
           <Label htmlFor="clientId">{t("fields.client")}</Label>
-          <select
+          <JobCombobox
             id="clientId"
             name="clientId"
+            jobs={clients.map((c) => ({ id: c.id, title: c.name }))}
             value={clientId}
-            onChange={(e) => {
-              setClientId(e.target.value);
+            onValueChange={(v) => {
+              setClientId(v);
               setAlloc({});
-              const c = clients.find((x) => x.id === e.target.value);
+              const c = clients.find((x) => x.id === v);
               if (c) setCurrency(c.preferredCurrency);
             }}
-            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
+            placeholder={t("fields.client")}
+            noResultsLabel={tC("noResults")}
             required
-          >
-            <option value="">—</option>
-            {clients.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+          />
         </div>
         <div className="space-y-2">
           <Label htmlFor="date">{t("fields.date")}</Label>

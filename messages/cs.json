@@ -15,7 +15,8 @@
     "edit": "Upravit",
     "save": "Uložit",
     "cancel": "Zrušit",
-    "pdfZip": "PDF (ZIP)"
+    "pdfZip": "PDF (ZIP)",
+    "noResults": "Žádné výsledky"
   },
   "Auth": {
     "login": "Přihlášení",
@@ -475,7 +476,15 @@
     "markComplete": "Označit jako hotové",
     "markUncomplete": "Označit jako probíhající",
     "filter": "Přiřazený tým",
-    "weekdays": ["Po", "Út", "St", "Čt", "Pá", "So", "Ne"]
+    "weekdays": [
+      "Po",
+      "Út",
+      "St",
+      "Čt",
+      "Pá",
+      "So",
+      "Ne"
+    ]
   },
   "Jobs": {
     "title": "Zakázky",

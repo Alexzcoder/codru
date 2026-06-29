@@ -7,6 +7,7 @@ import { computeOutstanding } from "@/lib/payment-status";
 import { computeJobProfitability } from "@/lib/job-profitability";
 import { clientDisplayName } from "@/lib/client-display";
 import { PageHeader } from "@/components/page-header";
+import { ExcelExport } from "@/components/excel-export";
 
 function monthStart(d: Date): Date {
   return new Date(d.getFullYear(), d.getMonth(), 1);
@@ -213,6 +214,12 @@ export default async function AccountingDashboardPage({
       <PageHeader
         title={t("Accounting.title")}
         description="Revenue, outstanding balance, stale quotes, and job profitability in one view."
+        actions={
+          <ExcelExport
+            action={`/${locale}/accounting/export-all.zip`}
+            label={locale === "cs" ? "Export pro účetní" : "Export for accountant"}
+          />
+        }
       />
 
       <section className="grid gap-4 md:grid-cols-3">

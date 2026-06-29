@@ -163,7 +163,7 @@ export default async function FinalInvoiceDetailPage({
             </Button>
           </a>
         )}
-        <a href={`/final-invoices/${id}/pdf?download=1`} download>
+        <a href={`/final-invoices/${id}/pdf?download=1&live=1`} download>
           <Button variant="outline" size="sm">
             Download PDF ↓
           </Button>

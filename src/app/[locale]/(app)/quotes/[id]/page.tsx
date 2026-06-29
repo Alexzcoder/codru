@@ -159,7 +159,7 @@ export default async function QuoteDetailPage({
             </Button>
           </a>
         )}
-        <a href={`/quotes/${id}/pdf?download=1`} download>
+        <a href={`/quotes/${id}/pdf?download=1&live=1`} download>
           <Button variant="outline" size="sm">
             Download PDF ↓
           </Button>

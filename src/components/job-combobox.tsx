@@ -20,6 +20,7 @@ export function JobCombobox({
   onValueChange,
   placeholder,
   emptyLabel,
+  noResultsLabel,
   required,
 }: {
   name: string;
@@ -30,6 +31,8 @@ export function JobCombobox({
   onValueChange?: (id: string) => void;
   placeholder?: string;
   emptyLabel?: string;
+  /** Text when a search matches nothing. Defaults to the job wording. */
+  noResultsLabel?: string;
   required?: boolean;
 }) {
   const locale = useLocale();
@@ -140,7 +143,7 @@ export function JobCombobox({
             ))}
             {filtered.length === 0 && (
               <li className="px-2 py-3 text-center text-sm text-muted-foreground">
-                {cs ? "Žádné zakázky" : "No jobs"}
+                {noResultsLabel ?? (cs ? "Žádné zakázky" : "No jobs")}
               </li>
             )}
           </ul>

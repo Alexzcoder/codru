@@ -86,7 +86,16 @@ const ONE = new Decimal(1);
 
 function dec(x: string | number | null | undefined): Decimal {
   if (x === null || x === undefined || x === "") return ZERO;
-  return new Decimal(x);
+  // Never throw on user input. The live totals calc runs on every keystroke;
+  // a stray symbol ("abc"), a half-typed value ("-", "1."), or the Czech
+  // decimal comma ("1,5") must not crash the editor and wipe the form.
+  const norm = typeof x === "string" ? x.replace(",", ".").trim() : x;
+  try {
+    const d = new Decimal(norm);
+    return d.isFinite() ? d : ZERO;
+  } catch {
+    return ZERO;
+  }
 }
 
 function money(d: Decimal): string {

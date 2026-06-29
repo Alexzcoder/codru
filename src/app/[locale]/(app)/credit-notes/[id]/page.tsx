@@ -135,7 +135,7 @@ export default async function CreditNoteDetailPage({
             </Button>
           </a>
         )}
-        <a href={`/credit-notes/${id}/pdf?download=1`} download>
+        <a href={`/credit-notes/${id}/pdf?download=1&live=1`} download>
           <Button variant="outline" size="sm">
             Download PDF ↓
           </Button>

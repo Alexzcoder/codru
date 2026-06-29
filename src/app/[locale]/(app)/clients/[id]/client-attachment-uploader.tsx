@@ -1,13 +1,23 @@
 "use client";
 
 import { useActionState, useRef, useEffect, useTransition, useState } from "react";
+import { useLocale } from "next-intl";
 import { Button } from "@/components/ui/button";
+import { Link } from "@/i18n/navigation";
 import { CompressingFileInput } from "@/components/compressing-file-input";
 import {
   uploadClientAttachment,
   deleteClientAttachment,
+  convertAttachmentToDocument,
   type ClientAttachmentState,
 } from "./attachment-actions";
+
+const DOC_PATH: Record<string, string> = {
+  QUOTE: "quotes",
+  ADVANCE_INVOICE: "advance-invoices",
+  FINAL_INVOICE: "final-invoices",
+  CREDIT_NOTE: "credit-notes",
+};
 
 const inputCls =
   "h-9 w-full rounded-lg border border-input bg-transparent px-3 py-1 text-sm outline-none transition-colors cursor-pointer file:cursor-pointer focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
@@ -96,8 +106,15 @@ export function ClientAttachments({
 }
 
 function AttachmentTile({ a }: { a: Attachment }) {
+  const cs = useLocale() === "cs";
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [converting, startConvert] = useTransition();
+  const [convert, setConvert] = useState<{
+    documentId?: string;
+    type?: string;
+    error?: string;
+  } | null>(null);
 
   function handleDelete() {
     if (!confirm(`Delete "${a.filename}"?`)) return;
@@ -105,6 +122,13 @@ function AttachmentTile({ a }: { a: Attachment }) {
     startTransition(async () => {
       const res = await deleteClientAttachment(a.id);
       if (res.error) setError(res.error);
+    });
+  }
+
+  function handleConvert() {
+    setConvert(null);
+    startConvert(async () => {
+      setConvert(await convertAttachmentToDocument(a.id));
     });
   }
 
@@ -143,14 +167,48 @@ function AttachmentTile({ a }: { a: Attachment }) {
         <p className="text-[10px] text-muted-foreground">
           {sizeKb} KB · {new Date(a.createdAt).toISOString().slice(0, 10)}
         </p>
-        <button
-          type="button"
-          onClick={handleDelete}
-          disabled={pending}
-          className="mt-1 cursor-pointer text-[11px] text-red-600 hover:underline disabled:opacity-50"
-        >
-          {pending ? "Deleting…" : "Delete"}
-        </button>
+        <div className="mt-1 flex flex-wrap items-center gap-2">
+          {a.kind === "PDF" && !convert?.documentId && (
+            <button
+              type="button"
+              onClick={handleConvert}
+              disabled={converting}
+              title={
+                cs
+                  ? "Naskenovat PDF a vytvořit fakturu / nabídku"
+                  : "Scan the PDF and create an invoice / quote"
+              }
+              className="cursor-pointer text-[11px] text-primary hover:underline disabled:opacity-50"
+            >
+              {converting
+                ? cs
+                  ? "Zpracovávám…"
+                  : "Scanning…"
+                : cs
+                  ? "Vytvořit doklad →"
+                  : "Make document →"}
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={handleDelete}
+            disabled={pending}
+            className="cursor-pointer text-[11px] text-red-600 hover:underline disabled:opacity-50"
+          >
+            {pending ? "Deleting…" : "Delete"}
+          </button>
+        </div>
+        {convert?.documentId && convert.type && (
+          <Link
+            href={`/${DOC_PATH[convert.type] ?? "final-invoices"}/${convert.documentId}`}
+            className="mt-1 block text-[11px] text-green-700 hover:underline"
+          >
+            {cs ? "Doklad vytvořen — otevřít ↗" : "Document created — open ↗"}
+          </Link>
+        )}
+        {convert?.error && (
+          <p className="text-[10px] text-red-600">{convert.error}</p>
+        )}
         {error && <p className="text-[10px] text-red-600">{error}</p>}
       </div>
     </li>

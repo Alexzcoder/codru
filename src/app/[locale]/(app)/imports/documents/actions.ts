@@ -6,6 +6,7 @@ import { writeAudit } from "@/lib/audit";
 import { readUpload } from "@/lib/uploads";
 import { parseDocumentPdf, type ParsedDocument } from "@/lib/ai/document-parser";
 import { matchClient } from "@/lib/ai/client-matcher";
+import { createDocumentFromParsed } from "@/lib/document-from-parsed";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -227,74 +228,24 @@ export async function approveImportItem(
   const clientId = overrideClientId || item.matchedClientId;
   if (!clientId) return { error: "Pick a client first" };
 
-  // Default company profile + document template (the user can edit afterward).
-  const profile = await prisma.companyProfile.findFirst({
-    where: { workspaceId: workspace.id, archivedAt: null },
-    orderBy: [{ isDefault: "desc" }, { createdAt: "asc" }],
+  const result = await createDocumentFromParsed({
+    workspaceId: workspace.id,
+    userId: user.id,
+    clientId,
+    parsed,
   });
-  if (!profile) return { error: "Create a company profile first" };
-  const docType = parsed.documentType === "UNKNOWN" ? "FINAL_INVOICE" : parsed.documentType;
-  const tpl = await prisma.documentTemplate.findFirst({
-    where: {
-      companyProfileId: profile.id,
-      type: docType as "QUOTE" | "ADVANCE_INVOICE" | "FINAL_INVOICE" | "CREDIT_NOTE",
-      archivedAt: null,
-    },
-    orderBy: [{ isDefault: "desc" }, { createdAt: "asc" }],
-  });
-  if (!tpl) return { error: `No template configured for ${docType}` };
-
-  const issueDate = parsed.issueDate ? new Date(parsed.issueDate) : new Date();
-  const taxPointDate = parsed.taxPointDate ? new Date(parsed.taxPointDate) : issueDate;
-  const dueDate = parsed.dueDate ? new Date(parsed.dueDate) : issueDate;
-
-  const lines = (parsed.lineItems ?? [])
-    .filter((l) => l.name && l.name.trim().length > 0)
-    .map((l, i) => ({
-      position: i + 1,
-      name: l.name.slice(0, 200),
-      description: l.description ?? null,
-      quantity: (l.quantity ?? 1).toString(),
-      unit: l.unit ?? "ks",
-      unitPrice: (l.unitPrice ?? l.totalNet ?? 0).toString(),
-      taxRatePercent: (l.taxRatePercent ?? 21).toString(),
-      taxMode: "NET" as const,
-    }));
-
-  // Imported docs are already real-world: import them as SENT (skip the
-  // gapless numbering trip — we don't auto-number imported history because
-  // they already have their own number on the source PDF).
-  const created = await prisma.document.create({
-    data: {
-      workspaceId: workspace.id,
-      type: docType as "QUOTE" | "ADVANCE_INVOICE" | "FINAL_INVOICE" | "CREDIT_NOTE",
-      status: "SENT",
-      number: parsed.number ?? null,
-      clientId,
-      companyProfileId: profile.id,
-      documentTemplateId: tpl.id,
-      createdById: user.id,
-      currency: (parsed.currency as "CZK" | "EUR" | "USD" | null) ?? "CZK",
-      locale: "cs",
-      issueDate,
-      taxPointDate,
-      dueDate,
-      reverseCharge: false,
-      notesToClient: parsed.notes ?? null,
-      lineItems: { create: lines },
-    },
-  });
+  if ("error" in result) return { error: result.error };
 
   await prisma.documentImportItem.update({
     where: { id: item.id },
-    data: { status: "APPROVED", createdDocumentId: created.id },
+    data: { status: "APPROVED", createdDocumentId: result.documentId },
   });
 
   await writeAudit({
     workspaceId: workspace.id,
     actorId: user.id,
     entity: "Document",
-    entityId: created.id,
+    entityId: result.documentId,
     action: "create",
     after: { source: "doc-import", sessionId: item.sessionId, itemId } as unknown as Record<string, unknown>,
   });
