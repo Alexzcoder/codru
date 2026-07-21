@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 import { JobCombobox } from "@/components/job-combobox";
 import type { PaymentState } from "./actions";
+import { useKeepFormValues } from "@/lib/use-keep-form-values";
 
 export type ClientChoice = {
   id: string;
@@ -143,8 +144,10 @@ export function PaymentForm({
       .map(([documentId, amt]) => ({ documentId, amount: amt })),
   );
 
+  const { formRef, capture } = useKeepFormValues(state);
+
   return (
-    <form action={formAction} className="space-y-8">
+    <form action={formAction} ref={formRef} onSubmit={capture} className="space-y-8">
       <input type="hidden" name="allocationsJson" value={allocationsJson} />
 
       <div className="grid gap-4 md:grid-cols-3">

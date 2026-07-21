@@ -17,6 +17,7 @@ import type {
   TemplateChoice,
 } from "../quotes/quote-form";
 import type { CreditNoteState } from "./actions";
+import { useKeepFormValues } from "@/lib/use-keep-form-values";
 
 export type OriginalInvoiceSummary = {
   id: string;
@@ -78,8 +79,10 @@ export function CreditNoteForm({
   const selectedCompany = companyProfiles.find((c) => c.id === companyProfileId);
   const priceAdjustmentPercent = selectedCompany?.priceAdjustmentPercent ?? "0";
 
+  const { formRef, capture } = useKeepFormValues(state);
+
   return (
-    <form action={formAction} className="space-y-8">
+    <form action={formAction} ref={formRef} onSubmit={capture} className="space-y-8">
       {!isDraft && (
         <div className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900">
           {tQ("actions.editWarning")}

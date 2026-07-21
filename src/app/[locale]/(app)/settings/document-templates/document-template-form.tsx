@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 import type { DocumentTemplateState } from "./actions";
+import { useKeepFormValues } from "@/lib/use-keep-form-values";
 
 type Initial = Partial<DocumentTemplate>;
 
@@ -29,8 +30,10 @@ export function DocumentTemplateForm({
     {},
   );
 
+  const { formRef, capture } = useKeepFormValues(state);
+
   return (
-    <form action={formAction} className="max-w-2xl space-y-5">
+    <form action={formAction} ref={formRef} onSubmit={capture} className="max-w-2xl space-y-5">
       <div className="space-y-2">
         <Label htmlFor="name">Name</Label>
         <Input id="name" name="name" defaultValue={initial?.name ?? ""} required />

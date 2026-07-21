@@ -10,6 +10,7 @@ import { Link } from "@/i18n/navigation";
 import { splitDateTimeForFormPrague } from "@/lib/format-datetime";
 import type { CalendarEventState } from "./actions";
 import { JobCombobox } from "@/components/job-combobox";
+import { useKeepFormValues } from "@/lib/use-keep-form-values";
 
 type Initial = Partial<CalendarEvent>;
 
@@ -34,8 +35,10 @@ export function EventForm({
     {},
   );
 
+  const { formRef, capture } = useKeepFormValues(state);
+
   return (
-    <form action={formAction} className="max-w-2xl space-y-5">
+    <form action={formAction} ref={formRef} onSubmit={capture} className="max-w-2xl space-y-5">
       <div className="space-y-2">
         <Label htmlFor="title">{t("form.title")}</Label>
         <Input

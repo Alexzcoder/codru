@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { saveCompanyProfile, type OnboardingState } from "./actions";
+import { useKeepFormValues } from "@/lib/use-keep-form-values";
 
 export function CompanyProfileStep({
   initial,
@@ -19,8 +20,10 @@ export function CompanyProfileStep({
     {},
   );
 
+  const { formRef, capture } = useKeepFormValues(state);
+
   return (
-    <form action={formAction} className="space-y-4">
+    <form action={formAction} ref={formRef} onSubmit={capture} className="space-y-4">
       <h2 className="text-lg font-medium">{t("companyProfile")}</h2>
       <Field name="name" label="Name / Company" defaultValue={initial?.name} required />
       <div className="grid grid-cols-2 gap-3">

@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import type { CompanyProfileState } from "./actions";
 import { CountrySelect } from "@/components/country-select";
+import { useKeepFormValues } from "@/lib/use-keep-form-values";
 
 export function CompanyProfileForm({
   initial,
@@ -26,8 +27,10 @@ export function CompanyProfileForm({
     FormData
   >(action, {});
 
+  const { formRef, capture } = useKeepFormValues(state);
+
   return (
-    <form action={formAction} className="space-y-5">
+    <form action={formAction} ref={formRef} onSubmit={capture} className="space-y-5">
       <Field name="name" label={t("name")} defaultValue={initial?.name} required />
 
       <div className="grid grid-cols-2 gap-3">

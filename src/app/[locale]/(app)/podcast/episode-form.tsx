@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 import type { EpisodeState } from "./actions";
+import { useKeepFormValues } from "@/lib/use-keep-form-values";
 
 type Initial = {
   title?: string;
@@ -39,8 +40,10 @@ export function EpisodeForm({
     {},
   );
 
+  const { formRef, capture } = useKeepFormValues(state);
+
   return (
-    <form action={formAction} className="space-y-5 max-w-2xl">
+    <form action={formAction} ref={formRef} onSubmit={capture} className="space-y-5 max-w-2xl">
       <div className="space-y-2">
         <Label htmlFor="title">Episode title</Label>
         <Input

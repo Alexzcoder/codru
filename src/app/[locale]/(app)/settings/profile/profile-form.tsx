@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { saveProfile, type ProfileState } from "./actions";
+import { useKeepFormValues } from "@/lib/use-keep-form-values";
 
 type Initial = {
   name: string;
@@ -22,8 +23,10 @@ export function ProfileForm({ initial }: { initial: Initial }) {
     {},
   );
 
+  const { formRef, capture } = useKeepFormValues(state);
+
   return (
-    <form action={formAction} className="space-y-5 max-w-lg">
+    <form action={formAction} ref={formRef} onSubmit={capture} className="space-y-5 max-w-lg">
       <div className="space-y-2">
         <Label htmlFor="name">{t("fields.name")}</Label>
         <Input id="name" name="name" defaultValue={initial.name} required />

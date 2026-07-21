@@ -13,6 +13,7 @@ import { scanReceipt } from "./scan-actions";
 import { CompressingFileInput } from "@/components/compressing-file-input";
 import { compressImage } from "@/lib/image-compress";
 import { JobCombobox } from "@/components/job-combobox";
+import { useKeepFormValues } from "@/lib/use-keep-form-values";
 
 type Initial = Partial<Expense>;
 
@@ -124,8 +125,10 @@ export function ExpenseForm({
     [net, vat],
   );
 
+  const { formRef, capture } = useKeepFormValues(state);
+
   return (
-    <form action={formAction} className="space-y-5 max-w-3xl">
+    <form action={formAction} ref={formRef} onSubmit={capture} className="space-y-5 max-w-3xl">
       <div className="rounded-xl border border-dashed border-emerald-200 bg-emerald-50/40 p-3">
         <div className="flex items-center justify-between gap-3">
           <div>

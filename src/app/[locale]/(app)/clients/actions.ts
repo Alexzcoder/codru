@@ -45,13 +45,6 @@ export type ClientState = {
   duplicateIcoId?: string;
   duplicateEmailId?: string;
   duplicateName?: string;
-  /**
-   * What the operator submitted. React 19 resets uncontrolled fields once a
-   * form action resolves, so every non-redirecting return has to hand the
-   * values back or the whole form is wiped — which is what happened when a
-   * duplicate e-mail bounced the submit.
-   */
-  values?: Record<string, string>;
 };
 
 type DupField = "ico" | "email";
@@ -127,32 +120,31 @@ export async function createClient(
   formData: FormData,
 ): Promise<ClientState> {
   const { user, workspace } = await requireWorkspace();
-  const values = Object.fromEntries(formData) as Record<string, string>;
-  const parsed = clientSchema.safeParse(values);
+  const parsed = clientSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) {
     const issue = parsed.error.issues[0];
-    return { error: "invalidInput", fieldError: String(issue?.path[0] ?? ""), values };
+    return { error: "invalidInput", fieldError: String(issue?.path[0] ?? "") };
   }
   const d = parsed.data;
 
   if (d.ico && !isValidIco(d.ico) && !d.icoOverride) {
-    return { error: "icoInvalid", fieldError: "ico", values };
+    return { error: "icoInvalid", fieldError: "ico" };
   }
   if (d.dic && !isValidDic(d.dic)) {
-    return { error: "dicInvalid", fieldError: "dic", values };
+    return { error: "dicInvalid", fieldError: "dic" };
   }
 
   if (!d.duplicateAck) {
     if (d.ico) {
       const dup = await findDuplicate(workspace.id, "ico", d.ico);
       if (dup) {
-        return { duplicateIcoId: dup.id, duplicateName: displayOf(dup), values };
+        return { duplicateIcoId: dup.id, duplicateName: displayOf(dup) };
       }
     }
     if (d.email) {
       const dup = await findDuplicate(workspace.id, "email", d.email);
       if (dup) {
-        return { duplicateEmailId: dup.id, duplicateName: displayOf(dup), values };
+        return { duplicateEmailId: dup.id, duplicateName: displayOf(dup) };
       }
     }
   }
@@ -193,32 +185,31 @@ export async function updateClient(
   formData: FormData,
 ): Promise<ClientState> {
   const { user, workspace } = await requireWorkspace();
-  const values = Object.fromEntries(formData) as Record<string, string>;
-  const parsed = clientSchema.safeParse(values);
+  const parsed = clientSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) {
     const issue = parsed.error.issues[0];
-    return { error: "invalidInput", fieldError: String(issue?.path[0] ?? ""), values };
+    return { error: "invalidInput", fieldError: String(issue?.path[0] ?? "") };
   }
   const d = parsed.data;
 
   if (d.ico && !isValidIco(d.ico) && !d.icoOverride) {
-    return { error: "icoInvalid", fieldError: "ico", values };
+    return { error: "icoInvalid", fieldError: "ico" };
   }
   if (d.dic && !isValidDic(d.dic)) {
-    return { error: "dicInvalid", fieldError: "dic", values };
+    return { error: "dicInvalid", fieldError: "dic" };
   }
 
   const existing = await prisma.client.findFirst({ where: { id, workspaceId: workspace.id } });
-  if (!existing || existing.deletedAt) return { error: "notFound", values };
+  if (!existing || existing.deletedAt) return { error: "notFound" };
 
   if (!d.duplicateAck) {
     if (d.ico) {
       const dup = await findDuplicate(workspace.id, "ico", d.ico, id);
-      if (dup) return { duplicateIcoId: dup.id, duplicateName: displayOf(dup), values };
+      if (dup) return { duplicateIcoId: dup.id, duplicateName: displayOf(dup) };
     }
     if (d.email) {
       const dup = await findDuplicate(workspace.id, "email", d.email, id);
-      if (dup) return { duplicateEmailId: dup.id, duplicateName: displayOf(dup), values };
+      if (dup) return { duplicateEmailId: dup.id, duplicateName: displayOf(dup) };
     }
   }
 
