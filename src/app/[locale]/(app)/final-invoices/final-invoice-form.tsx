@@ -154,7 +154,14 @@ export function FinalInvoiceForm({
     return out;
   }, [selectedAdvances, availableAdvances, deductionLabelTemplate]);
 
-  const baseLines: EditorLine[] = selectedQuote
+  // Prefill from the quote only when the operator *picks a different* quote than
+  // the one already on the document. Otherwise editing an invoice that was
+  // created from a quote would silently discard its own (possibly edited) lines
+  // and re-show the quote's — and saving would persist that.
+  const quotePrefill =
+    selectedQuote && sourceQuoteId !== (initial?.sourceQuoteId ?? "");
+
+  const baseLines: EditorLine[] = quotePrefill
     ? selectedQuote.lines
     : workLines.length === 0
       ? [
