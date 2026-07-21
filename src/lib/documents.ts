@@ -77,7 +77,12 @@ export async function buildPdfDataForDocument(
     },
     client: {
       type: client.type,
-      displayName: clientDisplayName(client),
+      // An individual who supplied billing details is invoiced under the
+      // company; the contact record keeps showing their own name elsewhere.
+      displayName:
+        client.companyName && client.ico
+          ? client.companyName
+          : clientDisplayName(client),
       ico: client.ico,
       dic: client.dic,
       addressStreet: client.addressStreet,

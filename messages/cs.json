@@ -595,6 +595,7 @@
       "currency": "Preferovaná měna",
       "icoInvalid": "Kontrolní součet IČO neodpovídá. Zaškrtněte, chcete-li přesto uložit.",
       "icoOverride": "Uložit i přes nesouhlas kontrolního součtu",
+      "billingHeading": "Fakturační údaje (nepovinné)",
       "dicInvalid": "DIČ musí začínat CZ a obsahovat 8–10 číslic.",
       "duplicate": "Klient s tímto {field} už existuje:"
     },

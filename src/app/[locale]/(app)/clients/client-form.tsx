@@ -82,34 +82,39 @@ export function ClientForm({
         />
       )}
 
-      {type === "COMPANY" && (
+      {/* Billing identity. Shown for individuals too: a private customer often
+          wants the invoice issued to their company. Blank = invoice stays in
+          their own name. */}
+      {type === "INDIVIDUAL" && (
         <>
-          <div className="grid grid-cols-2 gap-3">
-            <Field
-              name="ico"
-              label={t("form.ico")}
-              defaultValue={initial?.ico ?? ""}
-              error={
-                state.error === "icoInvalid" ? t("form.icoInvalid") : undefined
-              }
-            />
-            <Field
-              name="dic"
-              label={t("form.dic")}
-              defaultValue={initial?.dic ?? ""}
-              error={
-                state.error === "dicInvalid" ? t("form.dicInvalid") : undefined
-              }
-              placeholder="CZ12345678"
-            />
-          </div>
-          {state.error === "icoInvalid" && (
-            <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" name="icoOverride" defaultChecked />
-              {t("form.icoOverride")}
-            </label>
-          )}
+          <p className="pt-2 text-sm font-medium">{t("form.billingHeading")}</p>
+          <Field
+            name="companyName"
+            label={t("form.companyName")}
+            defaultValue={initial?.companyName ?? ""}
+          />
         </>
+      )}
+      <div className="grid grid-cols-2 gap-3">
+        <Field
+          name="ico"
+          label={t("form.ico")}
+          defaultValue={initial?.ico ?? ""}
+          error={state.error === "icoInvalid" ? t("form.icoInvalid") : undefined}
+        />
+        <Field
+          name="dic"
+          label={t("form.dic")}
+          defaultValue={initial?.dic ?? ""}
+          error={state.error === "dicInvalid" ? t("form.dicInvalid") : undefined}
+          placeholder="CZ12345678"
+        />
+      </div>
+      {state.error === "icoInvalid" && (
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" name="icoOverride" defaultChecked />
+          {t("form.icoOverride")}
+        </label>
       )}
 
       {state.duplicateIcoId && (

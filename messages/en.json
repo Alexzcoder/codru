@@ -595,6 +595,7 @@
       "currency": "Preferred currency",
       "icoInvalid": "IČO checksum doesn't match. Tick below to save anyway.",
       "icoOverride": "Save despite checksum mismatch",
+      "billingHeading": "Billing details (optional)",
       "dicInvalid": "DIČ format must be CZ followed by 8–10 digits.",
       "duplicate": "A client with this {field} already exists:"
     },

@@ -72,7 +72,9 @@ function toPayload(d: z.infer<typeof clientSchema>) {
   return {
     type: d.type,
     status: d.status,
-    companyName: d.type === "COMPANY" ? (d.companyName || null) : null,
+    // Kept for individuals too — it is their billing name when they invoice
+    // through a company. Empty means invoice in their own name.
+    companyName: d.companyName || null,
     fullName: d.type === "INDIVIDUAL" ? (d.fullName || null) : null,
     ico: d.ico || null,
     dic: d.dic || null,
