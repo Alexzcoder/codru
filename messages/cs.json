@@ -603,7 +603,7 @@
     "anonymize": "Anonymizovat",
     "anonymizeExplain": "Tento klient má odeslané doklady; data budou anonymizována místo smazání (GDPR §24.2).",
     "confirmDelete": "Smazat tohoto klienta?",
-    "exportCsv": "Export CSV",
+    "exportCsv": "Export Excel",
     "importCsv": "Import CSV"
   },
   "Settings": {

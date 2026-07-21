@@ -105,11 +105,11 @@ export default async function ClientsPage({
                 <Upload size={14} /> Import
               </Button>
             </Link>
-            <Link href="/clients/export" prefetch={false}>
+            <a href={`/${locale}/clients/export.xlsx`}>
               <Button variant="outline" size="sm" className="gap-1.5">
                 <Download size={14} /> {t("Clients.exportCsv")}
               </Button>
-            </Link>
+            </a>
             <Link href="/clients/new">
               <Button size="sm" className="gap-1.5">
                 <Plus size={14} /> {t("Clients.newClient")}

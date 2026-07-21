@@ -603,7 +603,7 @@
     "anonymize": "Anonymize",
     "anonymizeExplain": "This client has sent documents; data will be anonymized instead of deleted (GDPR §24.2).",
     "confirmDelete": "Delete this client?",
-    "exportCsv": "Export CSV",
+    "exportCsv": "Export Excel",
     "importCsv": "Import CSV"
   },
   "Settings": {
