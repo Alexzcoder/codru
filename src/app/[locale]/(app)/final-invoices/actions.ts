@@ -309,7 +309,9 @@ export async function deleteFinalDraft(id: string) {
   const { user, workspace } = await requireWorkspace();
   const doc = await prisma.document.findFirst({ where: { id, workspaceId: workspace.id } });
   if (!doc) return;
-  if (doc.status !== "UNSENT") return;
+  // Soft delete only, and only where nothing fiscal is lost: a draft has no
+  // number, and a cancelled invoice keeps its number reserved in the row.
+  if (doc.status !== "UNSENT" && doc.status !== "CANCELLED") return;
   await prisma.document.update({ where: { id }, data: { deletedAt: new Date() } });
   await writeAudit({
     workspaceId: workspace.id,

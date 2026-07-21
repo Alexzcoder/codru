@@ -183,11 +183,15 @@ export default async function FinalInvoiceDetailPage({
             </Button>
           </form>
         )}
-        {isDraft && (
+        {(isDraft || doc.status === "CANCELLED") && (
           <form action={deleteBound}>
             <ConfirmButton
               label={t("FinalInvoices.actions.delete")}
-              message="The draft will be permanently removed."
+              message={
+                isDraft
+                  ? "The draft will be permanently removed."
+                  : "The cancelled invoice will be hidden from the list. Its number stays reserved in the records."
+              }
             />
           </form>
         )}
