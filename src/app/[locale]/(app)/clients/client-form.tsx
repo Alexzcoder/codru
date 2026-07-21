@@ -36,6 +36,17 @@ export function ClientForm({
     {},
   );
 
+  // React 19 resets uncontrolled fields once a form action resolves. When the
+  // action rejects the submit (duplicate e-mail, bad IČO) it hands the values
+  // back so the operator does not lose everything they typed.
+  const v = (name: string, fallback = "") =>
+    state.values?.[name] ??
+    ((initial as Record<string, unknown> | undefined)?.[name] as
+      | string
+      | null
+      | undefined) ??
+    fallback;
+
   return (
     <form action={formAction} className="space-y-5 max-w-2xl">
       <input
@@ -70,14 +81,14 @@ export function ClientForm({
         <Field
           name="companyName"
           label={t("form.companyName")}
-          defaultValue={initial?.companyName ?? ""}
+          defaultValue={v("companyName")}
           required
         />
       ) : (
         <Field
           name="fullName"
           label={t("form.fullName")}
-          defaultValue={initial?.fullName ?? ""}
+          defaultValue={v("fullName")}
           required
         />
       )}
@@ -91,7 +102,7 @@ export function ClientForm({
           <Field
             name="companyName"
             label={t("form.companyName")}
-            defaultValue={initial?.companyName ?? ""}
+            defaultValue={v("companyName")}
           />
         </>
       )}
@@ -99,13 +110,13 @@ export function ClientForm({
         <Field
           name="ico"
           label={t("form.ico")}
-          defaultValue={initial?.ico ?? ""}
+          defaultValue={v("ico")}
           error={state.error === "icoInvalid" ? t("form.icoInvalid") : undefined}
         />
         <Field
           name="dic"
           label={t("form.dic")}
-          defaultValue={initial?.dic ?? ""}
+          defaultValue={v("dic")}
           error={state.error === "dicInvalid" ? t("form.dicInvalid") : undefined}
           placeholder="CZ12345678"
         />
@@ -133,21 +144,21 @@ export function ClientForm({
       )}
 
       <div className="grid grid-cols-2 gap-3">
-        <Field name="email" label={t("form.email")} defaultValue={initial?.email ?? ""} type="email" />
-        <Field name="phone" label={t("form.phone")} defaultValue={initial?.phone ?? ""} />
+        <Field name="email" label={t("form.email")} defaultValue={v("email")} type="email" />
+        <Field name="phone" label={t("form.phone")} defaultValue={v("phone")} />
       </div>
 
       <Field
         name="addressStreet"
         label={t("form.street")}
-        defaultValue={initial?.addressStreet ?? ""}
+        defaultValue={v("addressStreet")}
       />
       <div className="grid grid-cols-[1fr_140px_180px] gap-3">
-        <Field name="addressCity" label={t("form.city")} defaultValue={initial?.addressCity ?? ""} />
-        <Field name="addressZip" label={t("form.zip")} defaultValue={initial?.addressZip ?? ""} />
+        <Field name="addressCity" label={t("form.city")} defaultValue={v("addressCity")} />
+        <Field name="addressZip" label={t("form.zip")} defaultValue={v("addressZip")} />
         <div className="space-y-2">
           <Label htmlFor="addressCountry">{t("form.country")}</Label>
-          <CountrySelect name="addressCountry" defaultValue={initial?.addressCountry ?? "CZ"} />
+          <CountrySelect name="addressCountry" defaultValue={v("addressCountry", "CZ")} />
         </div>
       </div>
 
@@ -157,7 +168,7 @@ export function ClientForm({
           <select
             id="status"
             name="status"
-            defaultValue={initial?.status ?? "POTENTIAL"}
+            defaultValue={v("status", "POTENTIAL")}
             className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
           >
             {(["POTENTIAL", "ACTIVE", "PAST", "FAILED"] as const).map((s) => (
@@ -172,7 +183,7 @@ export function ClientForm({
           <select
             id="defaultLanguage"
             name="defaultLanguage"
-            defaultValue={initial?.defaultLanguage ?? "cs"}
+            defaultValue={v("defaultLanguage", "cs")}
             className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
           >
             <option value="cs">Čeština</option>
@@ -184,7 +195,7 @@ export function ClientForm({
           <select
             id="preferredCurrency"
             name="preferredCurrency"
-            defaultValue={initial?.preferredCurrency ?? "CZK"}
+            defaultValue={v("preferredCurrency", "CZK")}
             className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
           >
             <option value="CZK">CZK</option>
@@ -201,7 +212,7 @@ export function ClientForm({
         <input
           id="contactSource"
           name="contactSource"
-          defaultValue={initial?.contactSource ?? ""}
+          defaultValue={v("contactSource")}
           maxLength={120}
           list="contact-source-suggestions"
           placeholder="Instagram, Google, doporučení, billboard…"
@@ -225,7 +236,7 @@ export function ClientForm({
         <textarea
           id="notes"
           name="notes"
-          defaultValue={initial?.notes ?? ""}
+          defaultValue={v("notes")}
           className="h-24 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
         />
       </div>
