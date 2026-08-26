@@ -772,5 +772,13 @@
       "NOT_ACCEPTED": "Nepřevzato",
       "CLIENT_ABSENT": "Klient nebyl přítomen"
     }
+  },
+  "Join": {
+    "title": "Připojit se k pracovnímu prostoru",
+    "intro": "Byli jste pozváni do prostoru {workspace}. Pokračujte vytvořením účtu — nebo se připojte s účtem, ke kterému jste přihlášeni.",
+    "cta": "Vytvořit účet a připojit se",
+    "joinAs": "Připojit se jako {name}",
+    "accountExists": "Účet s tímto e-mailem už existuje. Nejdřív se přihlaste a poté odkaz otevřete znovu.",
+    "invalidLink": "Tento odkaz pro připojení je neplatný nebo byl zakázán."
   }
 }

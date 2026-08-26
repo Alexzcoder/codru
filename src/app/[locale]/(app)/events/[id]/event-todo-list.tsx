@@ -10,6 +10,7 @@ import {
   addTodo,
   setTodoStatus,
   setTodoAssignee,
+  setTodoTeam,
   deleteTodo,
   type AddTodoState,
 } from "./todo-actions";
@@ -34,11 +35,16 @@ export type TodoRow = {
   status: EventTodoStatus;
   assigneeId: string | null;
   assigneeName: string | null;
+  teamId: string | null;
   dueDate: string | null;
   attachments: TodoAttachment[];
+  // Set on cross-event boards (/tasks) so the card can say where it's from.
+  eventId: string | null;
+  eventName: string | null;
 };
 
 export type AssigneeOption = { id: string; name: string };
+export type TeamOption = { id: string; name: string };
 
 const STATUS_TONES: Record<EventTodoStatus, { header: string; ring: string; label: string }> = {
   NOT_STARTED: { header: "bg-secondary", ring: "ring-neutral-300", label: "Not started" },
@@ -50,10 +56,13 @@ export function EventTodoList({
   eventId,
   todos,
   assignees,
+  teams = [],
 }: {
-  eventId: string;
+  // Null = standalone workspace board (/tasks); cards then link to their event.
+  eventId: string | null;
   todos: TodoRow[];
   assignees: AssigneeOption[];
+  teams?: TeamOption[];
 }) {
   // Optimistic copy: dragging feels instant; the server action revalidates.
   const [items, setItems] = useState(todos);
@@ -80,7 +89,7 @@ export function EventTodoList({
       prev.map((t) => (t.id === draggingId ? { ...t, status } : t)),
     );
     startTransition(async () => {
-      await setTodoStatus(eventId, draggingId, status);
+      await setTodoStatus(draggingId, status);
     });
     setDraggingId(null);
     setOverCol(null);
@@ -94,7 +103,7 @@ export function EventTodoList({
 
   return (
     <div className="space-y-6">
-      <AddForm eventId={eventId} assignees={assignees} />
+      <AddForm eventId={eventId} assignees={assignees} teams={teams} />
 
       <div className="grid gap-4 md:grid-cols-3">
         {(Object.keys(grouped) as EventTodoStatus[]).map((status) => (
@@ -102,8 +111,9 @@ export function EventTodoList({
             key={status}
             status={status}
             rows={grouped[status]}
-            eventId={eventId}
+            showEventBadge={eventId === null}
             assignees={assignees}
+            teams={teams}
             isDropTarget={overCol === status}
             draggingId={draggingId}
             onDragOver={(e) => {
@@ -127,8 +137,9 @@ export function EventTodoList({
 function Column({
   status,
   rows,
-  eventId,
+  showEventBadge,
   assignees,
+  teams,
   isDropTarget,
   draggingId,
   onDragOver,
@@ -139,8 +150,9 @@ function Column({
 }: {
   status: EventTodoStatus;
   rows: TodoRow[];
-  eventId: string;
+  showEventBadge: boolean;
   assignees: AssigneeOption[];
+  teams: TeamOption[];
   isDropTarget: boolean;
   draggingId: string | null;
   onDragOver: (e: React.DragEvent) => void;
@@ -177,8 +189,9 @@ function Column({
             <TodoCard
               key={t.id}
               todo={t}
-              eventId={eventId}
+              showEventBadge={showEventBadge}
               assignees={assignees}
+              teams={teams}
               isDragging={draggingId === t.id}
               onDragStart={onCardDragStart}
               onDragEnd={onCardDragEnd}
@@ -192,15 +205,17 @@ function Column({
 
 function TodoCard({
   todo,
-  eventId,
+  showEventBadge,
   assignees,
+  teams,
   isDragging,
   onDragStart,
   onDragEnd,
 }: {
   todo: TodoRow;
-  eventId: string;
+  showEventBadge: boolean;
   assignees: AssigneeOption[];
+  teams: TeamOption[];
   isDragging: boolean;
   onDragStart: (id: string) => void;
   onDragEnd: () => void;
@@ -228,6 +243,14 @@ function TodoCard({
         />
         <div className="min-w-0 flex-1">
           <p className="text-sm font-medium leading-snug">{todo.title}</p>
+          {showEventBadge && todo.eventId && todo.eventName && (
+            <a
+              href={`/events/${todo.eventId}`}
+              className="mt-0.5 inline-block truncate text-[10px] uppercase tracking-wider text-muted-foreground hover:underline"
+            >
+              {todo.eventName}
+            </a>
+          )}
           {todo.description && (
             <p className="mt-1 text-xs text-muted-foreground">
               {todo.description}
@@ -238,7 +261,7 @@ function TodoCard({
               value={todo.assigneeId ?? ""}
               onChange={(e) =>
                 startTransition(async () => {
-                  await setTodoAssignee(eventId, todo.id, e.target.value);
+                  await setTodoAssignee(todo.id, e.target.value);
                 })
               }
               className="h-6 rounded-full border border-input bg-background px-2 text-[11px]"
@@ -251,6 +274,25 @@ function TodoCard({
                 </option>
               ))}
             </select>
+            {teams.length > 0 && (
+              <select
+                value={todo.teamId ?? ""}
+                onChange={(e) =>
+                  startTransition(async () => {
+                    await setTodoTeam(todo.id, e.target.value);
+                  })
+                }
+                className="h-6 rounded-full border border-input bg-background px-2 text-[11px]"
+                aria-label="Team"
+              >
+                <option value="">— no team —</option>
+                {teams.map((tm) => (
+                  <option key={tm.id} value={tm.id}>
+                    {tm.name}
+                  </option>
+                ))}
+              </select>
+            )}
             {todo.dueDate && (
               <span className="rounded-full bg-secondary px-2 py-0.5 text-[11px] tabular-nums text-muted-foreground">
                 due {todo.dueDate}
@@ -273,7 +315,7 @@ function TodoCard({
           className="shrink-0 cursor-pointer text-muted-foreground/70 opacity-0 transition-opacity hover:text-red-600 group-hover:opacity-100"
           onClick={() =>
             startTransition(async () => {
-              await deleteTodo(eventId, todo.id);
+              await deleteTodo(todo.id);
             })
           }
           disabled={pending}
@@ -282,15 +324,17 @@ function TodoCard({
         </button>
       </div>
 
-      {showFiles && todo.attachments.length > 0 && (
+      {showFiles && todo.attachments.length > 0 && todo.eventId && (
         <ul className="mt-2 space-y-1 border-t border-border pt-2">
           {todo.attachments.map((a) => (
-            <TodoAttachmentRow key={a.id} eventId={eventId} attachment={a} />
+            <TodoAttachmentRow key={a.id} eventId={todo.eventId!} attachment={a} />
           ))}
         </ul>
       )}
 
-      <TodoUploader eventId={eventId} todoId={todo.id} />
+      {/* ponytail: attachments hang off EventAttachment, so standalone tasks
+          (no event) have none — add a workspace-level file model if needed. */}
+      {todo.eventId && <TodoUploader eventId={todo.eventId} todoId={todo.id} />}
     </li>
   );
 }
@@ -380,9 +424,11 @@ function TodoUploader({
 function AddForm({
   eventId,
   assignees,
+  teams,
 }: {
-  eventId: string;
+  eventId: string | null;
   assignees: AssigneeOption[];
+  teams: TeamOption[];
 }) {
   const [open, setOpen] = useState(false);
   const action = addTodo.bind(null, eventId);
@@ -438,6 +484,24 @@ function AddForm({
           <Label htmlFor="dueDate">Due date</Label>
           <Input id="dueDate" name="dueDate" type="date" />
         </div>
+        {teams.length > 0 && (
+          <div className="space-y-1">
+            <Label htmlFor="teamId">Team</Label>
+            <select
+              id="teamId"
+              name="teamId"
+              className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
+              defaultValue=""
+            >
+              <option value="">— no team —</option>
+              {teams.map((tm) => (
+                <option key={tm.id} value={tm.id}>
+                  {tm.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
       <div className="space-y-1">
         <Label htmlFor="description">Notes</Label>

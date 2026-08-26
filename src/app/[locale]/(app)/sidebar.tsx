@@ -20,6 +20,7 @@ import {
   Upload,
   ReceiptText,
   ClipboardCheck,
+  ListChecks,
 } from "lucide-react";
 import { SidebarLink } from "./sidebar-link";
 import type { Workspace, Membership } from "@prisma/client";
@@ -80,6 +81,7 @@ export async function Sidebar({
       label: "Club",
       items: [
         { href: "/events",    label: "Events",    icon: <Megaphone size={16} />, key: "events" },
+        { href: "/tasks",     label: "Tasks",     icon: <ListChecks size={16} />, key: "tasks" },
         { href: "/scheduler", label: "Scheduler", icon: <Sparkles size={16} />,  key: "scheduler" },
         { href: "/podcast",   label: "Podcast",   icon: <Mic size={16} />,       key: "podcast" },
       ],

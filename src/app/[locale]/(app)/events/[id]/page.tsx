@@ -11,6 +11,7 @@ import { deleteEvent } from "../actions";
 import { deleteEventAttachment } from "./attachment-actions";
 import { EventTodoList } from "./event-todo-list";
 import { EventAttachmentUploader } from "./event-attachment-uploader";
+import { AutoRefresh } from "@/components/auto-refresh";
 
 export default async function EventDetailPage({
   params,
@@ -59,6 +60,12 @@ export default async function EventDetailPage({
     orderBy: { name: "asc" },
   });
 
+  const teams = await prisma.team.findMany({
+    where: { workspaceId: workspace.id },
+    select: { id: true, name: true },
+    orderBy: { name: "asc" },
+  });
+
   const deleteBound = async () => {
     "use server";
     await deleteEvent(id);
@@ -66,6 +73,7 @@ export default async function EventDetailPage({
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-8">
+      <AutoRefresh />
       <BackLink href="/events" label="Events" />
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
@@ -116,6 +124,9 @@ export default async function EventDetailPage({
               status: t.status,
               assigneeId: t.assigneeId,
               assigneeName: t.assignee?.name ?? null,
+              teamId: t.teamId,
+              eventId: t.eventId,
+              eventName: null,
               dueDate: t.dueDate ? t.dueDate.toISOString().slice(0, 10) : null,
               attachments: t.attachments.map((a) => ({
                 id: a.id,
@@ -126,6 +137,7 @@ export default async function EventDetailPage({
               })),
             }))}
             assignees={members.map((m) => ({ id: m.id, name: m.name }))}
+            teams={teams}
           />
         </div>
       </section>

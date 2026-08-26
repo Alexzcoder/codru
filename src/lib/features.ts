@@ -26,6 +26,7 @@ export const FEATURES = {
   recurring: { label: "Recurring", defaultOn: true,  group: "standard" },
   // Club / demo extras — default OFF. Workspaces opt in.
   events:    { label: "Events",    defaultOn: false, group: "club" },
+  tasks:     { label: "Tasks",     defaultOn: false, group: "club" },
   scheduler: { label: "Scheduler", defaultOn: false, group: "club" },
   podcast:   { label: "Podcast",   defaultOn: false, group: "club" },
 } as const;

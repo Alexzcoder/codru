@@ -242,3 +242,53 @@ export async function updateMemberScopes(
   revalidatePath("/", "layout");
   return { saved: true };
 }
+
+// ── Shareable join link ─────────────────────────────────────
+
+async function requireOwnerOf(workspaceId: string) {
+  const user = await requireUser();
+  const membership = await prisma.membership.findUnique({
+    where: { workspaceId_userId: { workspaceId, userId: user.id } },
+  });
+  if (!membership || membership.role !== "OWNER") return null;
+  return user;
+}
+
+/** Enable the join link, or rotate it (revokes the old URL). */
+export async function rotateJoinLink(workspaceId: string): Promise<void> {
+  const user = await requireOwnerOf(workspaceId);
+  if (!user) return;
+  const { randomBytes } = await import("node:crypto");
+  const token = randomBytes(32).toString("base64url");
+  await prisma.workspace.update({
+    where: { id: workspaceId },
+    data: { joinToken: token },
+  });
+  await writeAudit({
+    workspaceId,
+    actorId: user.id,
+    entity: "Workspace",
+    entityId: workspaceId,
+    action: "update",
+    after: { joinLink: "rotated" } as unknown as Record<string, unknown>,
+  });
+  revalidatePath(`/settings/workspaces/${workspaceId}`);
+}
+
+export async function disableJoinLink(workspaceId: string): Promise<void> {
+  const user = await requireOwnerOf(workspaceId);
+  if (!user) return;
+  await prisma.workspace.update({
+    where: { id: workspaceId },
+    data: { joinToken: null },
+  });
+  await writeAudit({
+    workspaceId,
+    actorId: user.id,
+    entity: "Workspace",
+    entityId: workspaceId,
+    action: "update",
+    after: { joinLink: "disabled" } as unknown as Record<string, unknown>,
+  });
+  revalidatePath(`/settings/workspaces/${workspaceId}`);
+}

@@ -37,6 +37,11 @@ model Workspace {
   // Google Calendar / Apple Calendar subscribe to. Null until the owner
   // generates one; rotating it invalidates old subscriptions.
   icsToken     String?   @unique
+  // Shareable join link ("like a shared Notion page"): anyone with the link
+  // can register (or use their signed-in account) and becomes a MEMBER of
+  // THIS workspace only. Stored raw like icsToken so the owner can re-copy
+  // the link; null = disabled; rotating revokes the old link.
+  joinToken    String?   @unique
   // Per-workspace optional features. Shape: { events?: bool, scheduler?: bool, ... }
   // Future workspace templates (business / club / agency) write the same shape
   // at create time; the OWNER can flip individual flags from settings.
@@ -65,6 +70,8 @@ model Workspace {
   attachments       Attachment[]
   aiCalls           AiCall[]
   events            Event[]
+  eventTodos        EventTodo[]
+  teams             Team[]
   podcastEpisodes   PodcastEpisode[]
   importBatches     ImportBatch[]
   docImportSessions DocumentImportSession[]
@@ -122,6 +129,7 @@ model User {
   emailsSent               EmailLog[]              @relation("EmailLogSender")
   eventsCreated            Event[]                 @relation("EventCreator")
   eventTodosAssigned       EventTodo[]             @relation("EventTodoAssignee")
+  teamMemberships          TeamMember[]            @relation("TeamMemberUser")
   eventAttachmentsUploaded EventAttachment[]       @relation("EventAttachmentUploader")
   podcastEpisodesCreated   PodcastEpisode[]        @relation("PodcastEpisodeCreator")
   importBatchesCreated     ImportBatch[]           @relation("ImportBatchCreator")
@@ -1247,10 +1255,41 @@ model PodcastEpisode {
   @@index([workspaceId, recordingDate])
 }
 
+// Committee / team inside a workspace (e.g. Events, Marketing, Podcast).
+// Tasks can be assigned to a team as well as (or instead of) one member.
+model Team {
+  id          String    @id @default(cuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  name        String
+  createdAt   DateTime  @default(now())
+
+  members TeamMember[]
+  todos   EventTodo[]
+
+  @@unique([workspaceId, name])
+}
+
+model TeamMember {
+  teamId String
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation("TeamMemberUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([teamId, userId])
+}
+
 model EventTodo {
   id          String            @id @default(cuid())
-  eventId     String
-  event       Event             @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  // Denormalized from the event; required so standalone tasks (eventId null)
+  // stay workspace-scoped and cross-event queries don't join through Event.
+  workspaceId String
+  workspace   Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  // Null = standalone workspace task (the /tasks board), not tied to an event.
+  eventId     String?
+  event       Event?            @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  teamId      String?
+  team        Team?             @relation(fields: [teamId], references: [id], onDelete: SetNull)
   title       String
   description String?
   status      EventTodoStatus   @default(NOT_STARTED)
@@ -1265,6 +1304,8 @@ model EventTodo {
 
   @@index([eventId, position])
   @@index([assigneeId])
+  @@index([workspaceId, status])
+  @@index([teamId])
 }
 
 model EventAttachment {

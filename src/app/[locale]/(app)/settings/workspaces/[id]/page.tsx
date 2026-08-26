@@ -7,6 +7,7 @@ import { FEATURES, readFeatureFlags, readMemberScopes } from "@/lib/features";
 import { FeatureToggles } from "./feature-toggles";
 import { MemberScopes } from "./member-scopes";
 import { AddExistingMember } from "./add-existing-member";
+import { rotateJoinLink, disableJoinLink } from "../../../workspace-actions";
 
 export default async function WorkspaceDetailPage({
   params,
@@ -25,6 +26,8 @@ export default async function WorkspaceDetailPage({
   const isOwner = membership.role === "OWNER";
   const ws = membership.workspace;
   const flags = readFeatureFlags(ws);
+  const rotateBound = rotateJoinLink.bind(null, ws.id);
+  const disableBound = disableJoinLink.bind(null, ws.id);
 
   const otherMembers = isOwner
     ? await prisma.membership.findMany({
@@ -107,6 +110,52 @@ export default async function WorkspaceDetailPage({
           </ul>
         )}
       </section>
+
+      {isOwner && (
+        <section className="mt-10">
+          <h3 className="text-sm font-semibold">Join link</h3>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Share one link and anyone who opens it can create an account and
+            join <strong>this workspace only</strong> as a member — like a
+            shared Notion page. Rotate to revoke the old link; disable to turn
+            it off.
+          </p>
+          {ws.joinToken ? (
+            <div className="mt-3 space-y-3">
+              <code className="block w-full select-all break-all rounded-md border border-border bg-secondary/40 px-3 py-2 text-xs">
+                {`${process.env.APP_URL ?? "http://localhost:3000"}/join/${ws.joinToken}`}
+              </code>
+              <div className="flex gap-2">
+                <form action={rotateBound}>
+                  <button
+                    type="submit"
+                    className="cursor-pointer rounded-md border border-border px-3 py-1.5 text-xs hover:bg-secondary/60"
+                  >
+                    Rotate link
+                  </button>
+                </form>
+                <form action={disableBound}>
+                  <button
+                    type="submit"
+                    className="cursor-pointer rounded-md border border-border px-3 py-1.5 text-xs text-red-600 hover:bg-secondary/60"
+                  >
+                    Disable link
+                  </button>
+                </form>
+              </div>
+            </div>
+          ) : (
+            <form action={rotateBound} className="mt-3">
+              <button
+                type="submit"
+                className="cursor-pointer rounded-md border border-border px-3 py-1.5 text-xs hover:bg-secondary/60"
+              >
+                Enable join link
+              </button>
+            </form>
+          )}
+        </section>
+      )}
 
       {isOwner && (
         <section className="mt-10">

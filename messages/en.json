@@ -772,5 +772,13 @@
       "NOT_ACCEPTED": "Not accepted",
       "CLIENT_ABSENT": "Client absent at handover"
     }
+  },
+  "Join": {
+    "title": "Join workspace",
+    "intro": "You've been invited to join {workspace}. Create your account to continue — or join with the account you're signed in with.",
+    "cta": "Create account and join",
+    "joinAs": "Join as {name}",
+    "accountExists": "An account with this email already exists. Log in first, then open this link again.",
+    "invalidLink": "This join link is invalid or has been disabled."
   }
 }
